@@ -94,6 +94,22 @@
   .secim button.secili.evet { background: #2E7D32; color: #fff; }
   .secim button.secili.hayir { background: var(--hata); color: #fff; }
   .kontrol-tablo tr.uygunsuz td { background: #FBEDEB; }
+  /* Kontrol formu kısa görünüm */
+  .kk { display: flex; flex-direction: column; gap: 10px; }
+  .kk-ozet { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #E3F1DF; color: #23602A; font-size: 15.5px; flex-wrap: wrap; }
+  .kk.var .kk-ozet { background: #FBE7E4; color: #8E1F18; }
+  .kk-tam-dugme { margin-left: auto; background: none; border: 0; color: inherit; text-decoration: underline; font-weight: 600; cursor: pointer; font-size: 14px; padding: 4px 0; }
+  .kk-tam-dugme.koyu { color: var(--yesil); margin-left: 0; }
+  .kk-ipucu { margin: 0; font-size: 13.5px; color: var(--soluk); }
+  .kk-cipler { display: flex; flex-wrap: wrap; gap: 8px; }
+  .kk-cip { display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid #B9D8B0; background: #F3FAF0; color: #23602A; border-radius: 999px;
+            padding: 8px 14px; font-weight: 700; font-size: 14.5px; min-height: 44px; cursor: pointer; text-align: left; }
+  .kk-cip:hover { border-color: #8FC283; }
+  .kk-cip.hayir { border-color: #E7A49C; background: #FBE7E4; color: #8E1F18; }
+  .kk-detay { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid #F0C9C4; background: #FFF7F6; border-radius: 12px; }
+  .kk-detay small { display: block; color: var(--soluk); font-size: 13px; margin-top: 2px; }
+  .kk-detay input { width: 100%; min-height: 44px; }
+  @media (max-width: 760px) { .kk-detay { grid-template-columns: 1fr; } .kk-cip { flex: 1 1 calc(50% - 8px); } }
   .karar-satir { display: flex; gap: 10px; flex-wrap: wrap; }
   .karar-satir label { flex-direction: row; align-items: center; gap: 8px; border: 1px solid #CFC7AF; border-radius: 10px; padding: 10px 16px; background: #fff; cursor: pointer; color: var(--yazi); font-size: 15px; }
   .karar-satir label:has(input:checked) { border-color: var(--yesil); outline: 2px solid var(--fistik); }
@@ -1558,6 +1574,21 @@ function urunSablonu(urunId) {
   const ozel = mk.filter(s => s.urun_id == urunId);
   return ozel.length ? { ozel: true, liste: ozel } : { ozel: false, liste: mk.filter(s => s.urun_id == null) };
 }
+// Kontrol formu kısa görünüm: hepsi uygunsa tek satır özet + madde düğmeleri;
+// "uygun değil" yapılan madde açılır ve açıklama ister. "Kriterleri göster" ile tam tablo.
+function kontrolKisaHtml(liste, a) {
+  const say = liste.filter(k => !k.uygun).length;
+  return `<div class="kk ${say ? 'var' : ''}">
+    <div class="kk-ozet">${say ? ikon('uyari', 20, 2) + `<span><b>${say} madde uygun değil</b> · ne bulunduğunu yazın</span>` : ikon('bitti', 20, 2) + `<span><b>${liste.length} maddenin hepsi uygun</b></span>`}
+      <button type="button" class="kk-tam-dugme" data-kk-tam="1">Kriterleri göster</button></div>
+    <p class="kk-ipucu">Uygun olmayan bir şey varsa o maddeye dokunun.</p>
+    <div class="kk-cipler">${liste.map((k, i) => `<button type="button" class="kk-cip ${k.uygun ? '' : 'hayir'}" data-${a}="${i}" data-uygun="${k.uygun ? 0 : 1}" title="${esc(k.kriter)}" aria-pressed="${!k.uygun}">${ikon(k.uygun ? 'bitti' : 'hata', 17, 2.2)}${esc(k.baslik)}</button>`).join('')}</div>
+    ${liste.map((k, i) => k.uygun ? '' : `<div class="kk-detay"><div><b>${i + 1}. ${esc(k.baslik)}</b><small>${esc(k.kriter)}</small></div>
+      <input data-${a}-acik="${i}" value="${esc(k.aciklama)}" placeholder="Ne bulundu? *" aria-label="${esc(k.baslik)}: ne bulundu"></div>`).join('')}
+  </div>`;
+}
+const kontrolTamAlt = '<div style="margin-top:8px"><button type="button" class="kk-tam-dugme koyu" data-kk-tam="0">Kısa görünüme dön</button></div>';
+
 function kontrolHazirla() {
   const u = urunler.find(x => x.id == $('k-urun').value);
   if (!u) { kontrol = []; $('k-form-ad').textContent = ''; kontrolCiz(); return; }
@@ -1569,13 +1600,15 @@ function kontrolHazirla() {
 function kontrolCiz() {
   if (!kontrol.length) {
     $('k-kontrol').innerHTML = $('k-urun').value ? '<div class="bos">Bu ürün için kontrol listesi tanımlı değil. Mühendis “Kontrol Listeleri” ekranından ekleyebilir.</div>' : '<div class="bos">Ürün seçince kontrol listesi gelir.</div>';
+  } else if ($('k-kontrol').dataset.tam !== '1') {
+    $('k-kontrol').innerHTML = kontrolKisaHtml(kontrol, 'k');
   } else {
     $('k-kontrol').innerHTML = `<table class="kontrol-tablo"><tr><th style="width:40px">No</th><th>Kontrol başlığı</th><th>Kabul kriteri</th><th style="width:210px">Sonuç</th><th>Açıklama / kayıt</th></tr>
       ${kontrol.map((k, i) => `<tr class="${k.uygun ? '' : 'uygunsuz'}">
         <td>${i + 1}</td><td><b>${esc(k.baslik)}</b></td><td class="kriter">${esc(k.kriter)}</td>
         <td><div class="secim"><button type="button" class="evet ${k.uygun ? 'secili' : ''}" data-k="${i}" data-uygun="1">Uygun</button><button type="button" class="hayir ${k.uygun ? '' : 'secili'}" data-k="${i}" data-uygun="0">Uygun değil</button></div></td>
         <td><input data-k-acik="${i}" value="${esc(k.aciklama)}" placeholder="${k.uygun ? '' : 'Ne bulundu? *'}" style="width:100%;min-height:38px;padding:7px 9px"></td>
-      </tr>`).join('')}</table>`;
+      </tr>`).join('')}</table>` + kontrolTamAlt;
   }
   aksiyonGuncelle();
 }
@@ -1585,6 +1618,8 @@ function aksiyonGuncelle() {
   $('k-aksiyon-kap').classList.toggle('gizli', !gerekli);
 }
 $('k-kontrol').addEventListener('click', ev => {
+  const t = ev.target.closest('[data-kk-tam]');
+  if (t) { $('k-kontrol').dataset.tam = t.dataset.kkTam; return kontrolCiz(); }
   const b = ev.target.closest('button[data-k]');
   if (!b) return;
   const k = kontrol[Number(b.dataset.k)];
@@ -2432,15 +2467,17 @@ const sevDurumAd = { arac_uygunsuz: 'Araç uygunsuz · yükleme kilitli', yuklen
 // Genel kontrol formu çizici (sevkiyat ve yeniden kontrol için)
 function kontrolBagla(kap, liste, degisti) {
   const ciz = () => {
-    kap.innerHTML = liste.length ? `<table class="kontrol-tablo"><tr><th style="width:40px">No</th><th>Kontrol kriteri</th><th style="width:210px">Sonuç</th><th>Açıklama</th></tr>
+    kap.innerHTML = liste.length && kap.dataset.tam !== '1' ? kontrolKisaHtml(liste, 'ki') : liste.length ? `<table class="kontrol-tablo"><tr><th style="width:40px">No</th><th>Kontrol kriteri</th><th style="width:210px">Sonuç</th><th>Açıklama</th></tr>
       ${liste.map((k, i) => `<tr class="${k.uygun ? '' : 'uygunsuz'}">
         <td>${i + 1}</td><td><b>${esc(k.baslik)}</b><div class="kriter">${esc(k.kriter)}</div></td>
         <td><div class="secim"><button type="button" class="evet ${k.uygun ? 'secili' : ''}" data-ki="${i}" data-uygun="1">Uygun</button><button type="button" class="hayir ${k.uygun ? '' : 'secili'}" data-ki="${i}" data-uygun="0">Uygun değil</button></div></td>
         <td><input data-ki-acik="${i}" value="${esc(k.aciklama)}" placeholder="${k.uygun ? '' : 'Ne bulundu? *'}" style="width:100%;min-height:38px;padding:7px 9px"></td>
-      </tr>`).join('')}</table>` : '<div class="bos">Sevkiyat kontrol listesi tanımlı değil (Kontrol Listeleri ekranı).</div>';
+      </tr>`).join('')}</table>` + kontrolTamAlt : '<div class="bos">Sevkiyat kontrol listesi tanımlı değil (Kontrol Listeleri ekranı).</div>';
     if (degisti) degisti();
   };
   kap.onclick = ev => {
+    const t = ev.target.closest('[data-kk-tam]');
+    if (t) { kap.dataset.tam = t.dataset.kkTam; return ciz(); }
     const b = ev.target.closest('button[data-ki]'); if (!b) return;
     const k = liste[Number(b.dataset.ki)]; k.uygun = b.dataset.uygun === '1'; ciz();
     if (!k.uygun) kap.querySelector(`[data-ki-acik="${b.dataset.ki}"]`)?.focus();
