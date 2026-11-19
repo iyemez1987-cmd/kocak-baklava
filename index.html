@@ -277,6 +277,18 @@
   .rozet.bekliyor { background: #F3E3BC; color: #6B4A0E; }
   @media (max-width: 760px) { .rol-dugme { flex: 1 1 100%; justify-content: center; } }
 
+  /* Ekran grupları: iki iş tek ekranda, üstte iki büyük sekme */
+  .grup-sekme { display: none; grid-template-columns: 1fr 1fr; gap: 6px; background: #ECE6D3; padding: 5px; border-radius: 16px; margin-bottom: 18px; }
+  section.grupta > .grup-sekme { display: grid; }
+  section.grupta > h2 { display: none !important; }
+  .grup-sekme button { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; border: 0; border-radius: 12px; background: transparent;
+                       font-weight: 800; font-size: 17px; color: var(--soluk); cursor: pointer; padding: 8px 12px; }
+  .grup-sekme button .ik { color: var(--c); flex: none; }
+  .grup-sekme button.secili { background: #fff; color: var(--yazi); box-shadow: 0 2px 8px rgba(30,42,34,.10), inset 0 -3px 0 var(--c); }
+  .grup-sekme button:not(.secili):hover { background: rgba(255,255,255,.5); }
+  .grup-sekme button:focus-visible { outline: 3px solid var(--c); outline-offset: 1px; }
+  @media (max-width: 760px) { .grup-sekme { margin-bottom: 14px; } .grup-sekme button { font-size: 15.5px; min-height: 54px; gap: 8px; } }
+
   /* Pano: solda günün sayıları ve ekranlar, sağda sade uyarı sütunu */
   .pano-duzen { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-areas: "bugun yan" "ekran yan"; gap: 0 24px; align-items: start; }
   .pano-bugun { grid-area: bugun; } .pano-ekranlar { grid-area: ekran; }
@@ -566,10 +578,8 @@
     <h1 class="marka"><span id="marka-ik" class="marka-ik"></span><span class="marka-ad"><b>KOÇAK BAKLAVA</b><small>İzlenebilirlik</small></span></h1>
     <nav>
       <button data-sayfa="ana" class="gizli" id="ana-btn">Bugün</button>
-      <button data-sayfa="kabul" class="aktif">Mal Kabul</button>
-      <button data-sayfa="uretim">Üretime Ver</button>
-      <button data-sayfa="oda">Baklava Odası</button>
-      <button data-sayfa="sevkiyat">Sevkiyat</button>
+      <button type="button" data-grup="depo"><span class="grup-ad">Depo</span></button>
+      <button type="button" data-grup="odasevk"><span class="grup-ad">Oda &amp; Sevkiyat</span></button>
       <button data-sayfa="sube">Şube</button>
       <button data-sayfa="stok">Stok</button>
       <button data-sayfa="partiler">Partiler</button>
@@ -2257,6 +2267,7 @@ function ekranlariUygula() {
     else b.classList.toggle('gizli', !izin.includes(b.dataset.sayfa));
   });
   $('yonetim-btn').classList.toggle('gizli', !YONETIM_EKRANLARI.some(id => izin.includes(id)));
+  gruplariUygula(izin);
   $('ana-selam').textContent = `Merhaba ${profil.ad || ''}`.trim();
   // Panoda ana iş ekranları büyük kutu, yönetim ekranları küçük düğme olarak
   $('ana-kutular').innerHTML = izin.filter(id => !YONETIM_EKRANLARI.includes(id)).map(id => { const e = EKRANLAR.find(x => x.id === id);
@@ -3714,6 +3725,39 @@ async function rolKartiYukle() {
   $('rol-liste').innerHTML = satirlar.length ? satirlar.join('') : `<li class="bos-satir">${esc(bos)}</li>`;
 }
 
+// ================= EKRAN GRUPLARI =================
+// Birlikte yapılan işler tek ekranda iki sekme: Depo (Mal Kabul + Üretime Ver), Oda & Sevkiyat (Baklava Odası + Sevkiyat)
+const GRUPLAR = {
+  depo: { ad: 'Depo', ekranlar: ['kabul', 'uretim'], ikon: 'kabul' },
+  odasevk: { ad: 'Oda & Sevkiyat', ekranlar: ['oda', 'sevkiyat'], ikon: 'oda' }
+};
+const grupBul = ad => Object.keys(GRUPLAR).find(k => GRUPLAR[k].ekranlar.includes(ad));
+(function gruplariKur() {
+  Object.entries(GRUPLAR).forEach(([k, g]) => {
+    const b = document.querySelector(`nav button[data-grup="${k}"]`);
+    b.insertAdjacentHTML('afterbegin', ikon(g.ikon, 18));
+    b.onclick = () => {
+      const izin = izinliEkranlar(), son = yerel.oku('grupSon-' + k, null);
+      sayfaAc(g.ekranlar.includes(son) && izin.includes(son) ? son : g.ekranlar.find(e => izin.includes(e)));
+    };
+    g.ekranlar.forEach(e => {
+      document.querySelector(`main > section[data-sayfa="${e}"]`).insertAdjacentHTML('afterbegin',
+        `<div class="grup-sekme" role="tablist" aria-label="${esc(g.ad)}">${g.ekranlar.map(x => { const ek = EKRANLAR.find(y => y.id === x);
+          return `<button type="button" role="tab" data-grup-sekme="${x}" aria-selected="${x === e}" class="${x === e ? 'secili' : ''}" style="--c:${ek.renk}">${ikon(x, 22, 2)}<span>${esc(ek.ad)}</span></button>`; }).join('')}</div>`);
+    });
+  });
+  document.addEventListener('click', ev => { const t = ev.target.closest('[data-grup-sekme]'); if (t && !t.classList.contains('secili')) sayfaAc(t.dataset.grupSekme); });
+})();
+function gruplariUygula(izin) {
+  Object.entries(GRUPLAR).forEach(([k, g]) => {
+    const izinli = g.ekranlar.filter(e => izin.includes(e));
+    const b = document.querySelector(`nav button[data-grup="${k}"]`);
+    b.classList.toggle('gizli', !izinli.length);
+    b.querySelector('.grup-ad').textContent = izinli.length === 1 ? EKRANLAR.find(x => x.id === izinli[0]).ad : g.ad;
+    g.ekranlar.forEach(e => document.querySelector(`main > section[data-sayfa="${e}"]`).classList.toggle('grupta', izinli.length > 1));
+  });
+}
+
 // ================= SAYFA GEÇİŞİ =================
 function sayfaAc(ad) {
   if (ad !== 'ana' && profil.id && !izinliEkranlar().includes(ad)) return bildir('Bu ekran için yetkiniz yok.', true);
@@ -3724,6 +3768,9 @@ function sayfaAc(ad) {
   $('yonetim-btn').classList.toggle('aktif', yonetimde);
   $('yonetim-btn').style.setProperty('--c', yonetimde ? ekranRengi(ad) : '');
   yonetimMenuKapat();
+  const grup = grupBul(ad);
+  document.querySelectorAll('nav button[data-grup]').forEach(b => { const a = b.dataset.grup === grup; b.classList.toggle('aktif', a); b.style.setProperty('--c', a ? ekranRengi(ad) : ''); });
+  if (grup) yerel.yaz('grupSon-' + grup, ad);
   const aktifBtn = yonetimde ? $('yonetim-btn') : document.querySelector('nav button.aktif');
   if (aktifBtn && telefonMu()) aktifBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
   document.querySelectorAll('main > section').forEach(s => s.classList.toggle('gizli', s.dataset.sayfa !== ad));
