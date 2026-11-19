@@ -212,13 +212,16 @@
   /* ---------- Marka: giriş ekranı ve üst çubuk ---------- */
   #giris.giris-sahne { max-width: none; margin: 0; min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
   #giris.giris-sahne.gizli { display: none; }
-  .giris-marka { background: radial-gradient(120% 90% at 30% 20%, #2C4F39 0%, #1E3A2A 55%, #152A1E 100%); color: #F5F0E1; display: flex; align-items: center; justify-content: center;
+  .giris-marka { background: linear-gradient(180deg, rgba(14,30,20,.78) 0%, rgba(14,30,20,.5) 45%, rgba(14,30,20,.9) 100%), var(--foto, none) center / cover no-repeat, #1E3A2A; color: #F5F0E1; display: flex; align-items: center; justify-content: center;
                  padding-block: 40px; padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: 32px; }
   .giris-marka-ic { max-width: 460px; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
   .giris-yazi-marka { display: flex; flex-direction: column; font-family: Georgia, "Times New Roman", serif; line-height: 1; }
   .giris-yazi-marka span:first-child { font-size: 44px; letter-spacing: 10px; color: #F5F0E1; font-weight: 700; }
   .giris-yazi-marka span:last-child { font-size: 17px; letter-spacing: 12px; color: var(--altin); margin-top: 8px; font-weight: 700; }
-  .giris-logo img { max-width: 260px; max-height: 120px; object-fit: contain; background: #fff; border-radius: 14px; padding: 10px 16px; }
+  .giris-logo img { width: min(340px, 72vw); height: auto; display: block; filter: drop-shadow(0 8px 18px rgba(0,0,0,.45)); }
+  .giris-marka-ic { justify-content: space-between; min-height: min(640px, 80vh); }
+  .giris-slogan { text-shadow: 0 1px 8px rgba(0,0,0,.6); color: #F5F0E1 !important; font-weight: 600; }
+  .giris-adimlar { background: rgba(14,30,20,.55); backdrop-filter: blur(4px); padding: 14px 16px; border-radius: 14px; }
   .giris-logo:empty { display: none; }
   .giris-slogan { margin: 0; font-size: 16px; color: #CFE0C3; max-width: 36ch; line-height: 1.5; }
   .giris-tepsi { width: min(340px, 70vw); aspect-ratio: 1; max-width: 100%; filter: drop-shadow(0 18px 30px rgba(0,0,0,.4)); }
@@ -238,17 +241,28 @@
     .giris-marka { padding-block: 26px 22px; }
     .giris-yazi-marka span:first-child { font-size: 32px; letter-spacing: 7px; }
     .giris-tepsi { width: min(190px, 50vw); }
+    .giris-marka-ic { min-height: 0; gap: 10px; }
+    .giris-marka { min-height: 200px; }
+    .giris-logo img { width: min(240px, 64vw); }
     .giris-adimlar, .giris-slogan { display: none; }
     .giris-form-kap { justify-content: flex-start; padding-block: 20px 32px; }
   }
   header h1.marka { display: flex; align-items: center; gap: 10px; margin-right: 16px; }
   .marka-ik { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: rgba(255,255,255,.08); flex: none; }
-  .marka-ik.logolu { background: #fff; width: auto; padding: 3px 8px; }
-  .marka-ik img { max-height: 32px; max-width: 90px; display: block; }
+  .marka-ik.logolu { background: transparent; width: auto; height: auto; padding: 0; }
+  .marka-ik img { height: 40px; width: auto; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
   .marka-ad { display: flex; flex-direction: column; line-height: 1.1; }
   .marka-ad b { font-family: Georgia, "Times New Roman", serif; letter-spacing: 2.5px; font-size: 16px; color: #F5F0E1; }
   .marka-ad small { font-size: 12px; font-weight: 600; color: var(--fistik); letter-spacing: .5px; }
-  @media (max-width: 760px) { .marka-ad small { display: none; } .marka-ad b { font-size: 14px; letter-spacing: 1.5px; } .marka-ik { width: 32px; height: 32px; } }
+  .marka-ad small { font-size: 13px; color: #CFE0C3; letter-spacing: .6px; border-left: 1px solid rgba(255,255,255,.25); padding-left: 10px; }
+  @media (max-width: 760px) { .marka-ik img { height: 34px; } .marka-ad small { font-size: 12px; } }
+  .pano-serit { position: relative; border-radius: 18px; overflow: hidden; margin-bottom: 18px; min-height: 132px; display: flex; align-items: flex-end;
+                background: linear-gradient(90deg, rgba(14,30,20,.92) 0%, rgba(14,30,20,.65) 45%, rgba(14,30,20,.15) 100%), var(--foto, none) center 55% / cover no-repeat, #1E3A2A; }
+  .pano-serit-ic { padding: 18px 22px; color: #fff; display: flex; flex-direction: column; gap: 6px; }
+  .pano-serit h2 { margin: 0; color: #fff; font-size: 26px; text-shadow: 0 2px 10px rgba(0,0,0,.4); }
+  .pano-serit-alt { display: flex; align-items: center; gap: 12px; color: #E4EBDA; font-weight: 600; }
+  .pano-serit .pano-yenile { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.35); }
+  @media (max-width: 760px) { .pano-serit { min-height: 112px; border-radius: 14px; } .pano-serit h2 { font-size: 21px; } .pano-serit-ic { padding: 14px 16px; } }
   .marka-yukle { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; }
   .marka-kutu { display: flex; flex-direction: column; gap: 10px; }
   .marka-on { min-height: 90px; border: 1px dashed var(--cizgi); border-radius: 12px; display: grid; place-items: center; padding: 10px; background: #fff; }
@@ -575,7 +589,7 @@
 <!-- ============ UYGULAMA ============ -->
 <div id="uygulama" class="gizli">
   <header>
-    <h1 class="marka"><span id="marka-ik" class="marka-ik"></span><span class="marka-ad"><b>KOÇAK BAKLAVA</b><small>İzlenebilirlik</small></span></h1>
+    <h1 class="marka"><span id="marka-ik" class="marka-ik"></span><span class="marka-ad"><small>İzlenebilirlik</small></span></h1>
     <nav>
       <button data-sayfa="ana" class="gizli" id="ana-btn">Bugün</button>
       <button type="button" data-grup="depo"><span class="grup-ad">Depo</span></button>
@@ -778,9 +792,11 @@
 
     <!-- ANA SAYFA (telefon) -->
     <section data-sayfa="ana" class="gizli">
-      <div class="pano-ust-satir">
-        <h2 id="ana-selam">Merhaba</h2>
-        <div class="satir"><span id="pano-gun" class="sonuc-say" style="margin:0"></span><button class="btn ikincil kucuk" type="button" id="pano-yenile">Yenile</button></div>
+      <div class="pano-serit">
+        <div class="pano-serit-ic">
+          <h2 id="ana-selam">Merhaba</h2>
+          <div class="pano-serit-alt"><span id="pano-gun"></span><button class="btn kucuk pano-yenile" type="button" id="pano-yenile">Yenile</button></div>
+        </div>
       </div>
       <div class="pano-duzen">
         <div class="pano-bugun" id="pano-kap">
@@ -1022,7 +1038,7 @@
 
         <div class="kart">
           <h3 style="margin:0 0 4px">Firma görünümü</h3>
-          <p class="aciklama">Logo üst çubukta ve giriş ekranında, giriş görseli (ör. baklava fotoğrafı) giriş ekranının sol tarafında görünür. Resimler yüklenirken küçültülür.</p>
+          <p class="aciklama">Uygulama Koçak Baklava logosu ve baklava fotoğrafıyla gelir. Başka bir logo ya da fotoğraf yüklenirse bütün bilgisayar ve telefonlarda onlar görünür; “Kaldır” ile uygulamanınkine dönülür.</p>
           <div class="marka-yukle">
             <div class="marka-kutu"><div class="marka-on" id="pr-logo-on"></div>
               <div class="satir"><label class="btn ikincil kucuk" style="cursor:pointer">Logo yükle<input type="file" id="pr-logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden></label><button type="button" class="btn ikincil kucuk" id="pr-logo-sil">Kaldır</button></div></div>
@@ -3589,17 +3605,21 @@ function baklavaDilimSvg(boy = 28) {
   </svg>`;
 }
 
+const VARSAYILAN_LOGO = 'img/kocak-logo.png', VARSAYILAN_FOTO = 'img/kocak-baklava.jpg', VARSAYILAN_SERIT = 'img/kocak-serit.jpg';
 function markaUygula() {
   let logo = null, gorsel = null;
   try { logo = localStorage.getItem('firmaLogosu'); gorsel = localStorage.getItem('girisGorseli'); } catch (e) {}
-  // Üst çubuk
-  $('marka-ik').innerHTML = logo ? `<img src="${logo}" alt="">` : baklavaDilimSvg(30);
-  $('marka-ik').classList.toggle('logolu', !!logo);
-  // Giriş ekranı
-  $('giris-logo').innerHTML = logo ? `<img src="${logo}" alt="${esc(FIRMA_ADI)}">` : '';
-  $('giris-yazi-marka').classList.toggle('gizli', !!logo);
-  $('giris-tepsi').innerHTML = gorsel ? `<img src="${gorsel}" alt="Baklava">` : baklavaTepsiSvg(420);
-  $('giris-tepsi').classList.toggle('foto', !!gorsel);
+  logo = logo || VARSAYILAN_LOGO; const foto = gorsel || VARSAYILAN_FOTO;
+  // Üst çubuk: logo + "İzlenebilirlik"
+  $('marka-ik').innerHTML = `<img src="${logo}" alt="${esc(FIRMA_ADI)}">`;
+  $('marka-ik').classList.add('logolu');
+  // Giriş ekranı: arkada baklava fotoğrafı, üstünde logo
+  $('giris-logo').innerHTML = `<img src="${logo}" alt="${esc(FIRMA_ADI)}">`;
+  $('giris-yazi-marka').classList.add('gizli');
+  document.querySelector('.giris-marka').style.setProperty('--foto', `url("${foto}")`);
+  $('giris-tepsi').innerHTML = ''; $('giris-tepsi').classList.add('gizli');
+  // Bugün sayfasının üst şeridi
+  const serit = document.querySelector('.pano-serit'); if (serit) serit.style.setProperty('--foto', `url("${gorsel || VARSAYILAN_SERIT}")`);
 }
 markaUygula();
 
@@ -3627,8 +3647,8 @@ async function markaResmiKaydet(anahtar, yerelAnahtar, dosya, enFazla, tur, kali
   } catch (e) { bildir(e.message, true); }
 }
 function markaOnizle() {
-  $('pr-logo-on').innerHTML = ayar.firma_logosu ? `<img src="${ayar.firma_logosu}" alt="Logo">` : '<span class="aciklama" style="margin:0">Logo yok; yazıyla “KOÇAK BAKLAVA” görünür.</span>';
-  $('pr-gorsel-on').innerHTML = ayar.giris_gorseli ? `<img src="${ayar.giris_gorseli}" alt="Giriş görseli">` : '<span class="aciklama" style="margin:0">Görsel yok; çizim baklava tepsisi görünür.</span>';
+  $('pr-logo-on').innerHTML = `<img src="${ayar.firma_logosu || VARSAYILAN_LOGO}" alt="Logo">` + (ayar.firma_logosu ? '' : '<small class="aciklama" style="margin:6px 0 0">Uygulamayla gelen logo</small>');
+  $('pr-gorsel-on').innerHTML = `<img src="${ayar.giris_gorseli || VARSAYILAN_FOTO}" alt="Giriş görseli">` + (ayar.giris_gorseli ? '' : '<small class="aciklama" style="margin:6px 0 0">Uygulamayla gelen fotoğraf</small>');
 }
 $('pr-logo').onchange = ev => { const f = ev.target.files[0]; if (f) markaResmiKaydet('firma_logosu', 'firmaLogosu', f, 600, 'image/png'); ev.target.value = ''; };
 $('pr-gorsel').onchange = ev => { const f = ev.target.files[0]; if (f) markaResmiKaydet('giris_gorseli', 'girisGorseli', f, 1400, 'image/jpeg', 0.82); ev.target.value = ''; };
