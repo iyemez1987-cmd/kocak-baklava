@@ -94,6 +94,19 @@
   .secim button.secili.evet { background: #2E7D32; color: #fff; }
   .secim button.secili.hayir { background: var(--hata); color: #fff; }
   .kontrol-tablo tr.uygunsuz td { background: #FBEDEB; }
+  /* Hızlı sevkiyat */
+  .sv-etiket { font-size: 14px; font-weight: 700; color: var(--soluk); margin-bottom: 8px; }
+  .sube-sec { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .sube-dugme { display: flex; align-items: center; gap: 10px; min-height: 62px; padding: 10px 14px; border: 2px solid var(--cizgi); background: #fff; border-radius: 14px;
+                font-weight: 800; font-size: 16.5px; color: var(--yazi); cursor: pointer; text-align: left; --c: #4338CA; }
+  .sube-dugme .ik { color: var(--c); flex: none; }
+  .sube-dugme.secili { border-color: var(--c); background: color-mix(in srgb, var(--c) 9%, #fff); box-shadow: inset 0 0 0 1px var(--c); }
+  .sv-ek { margin-top: 14px; border: 1px solid var(--cizgi); border-radius: 12px; padding: 12px 14px; background: #fff; }
+  .sv-ek summary { cursor: pointer; font-weight: 800; }
+  .sv-ek summary span { font-weight: 500; color: var(--soluk); font-size: 13.5px; margin-left: 6px; }
+  .sv-basla { min-height: 58px; font-size: 18px; padding: 14px 28px; }
+  #sv-kapat.onayla { background: var(--hata); border-color: var(--hata); color: #fff; }
+  @media (max-width: 760px) { .sube-sec { grid-template-columns: 1fr 1fr; } .sv-basla { width: 100%; } }
   /* Kontrol formu kısa görünüm */
   .kk { display: flex; flex-direction: column; gap: 10px; }
   .kk-ozet { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #E3F1DF; color: #23602A; font-size: 15.5px; flex-wrap: wrap; }
@@ -869,30 +882,36 @@
       <div id="sv-ana">
         <div id="sv-acik" class="dikkat-liste" style="margin-bottom:16px"></div>
         <form id="sv-form" class="kart">
-          <h3 style="margin:0 0 12px">Yeni sevkiyat · Sevkiyat öncesi araç temizlik kontrolü</h3>
-          <div class="grid">
+          <h3 style="margin:0 0 12px">Yeni sevkiyat</h3>
+          <div class="sv-etiket">Nereye gidiyor?</div>
+          <div class="sube-sec" id="sv-sube-dugmeler" role="radiogroup" aria-label="Gideceği şube"></div>
+          <select id="sv-sube" hidden aria-hidden="true"></select>
+          <div class="grid" style="margin-top:14px">
             <label>Araç plakası * <input id="sv-plaka" list="sv-plakalar" required autocapitalize="characters" placeholder="27 ABC 123"></label>
-            <label>Şoför adı soyadı * <input id="sv-sofor" required></label>
-            <label>Gideceği şube * <select id="sv-sube"></select></label>
-            <label>Nokta / rota açıklaması <input id="sv-nokta" list="sv-noktalar" placeholder="Şube dışıysa: müşteri, kargo firması…"></label>
-            <label>Dara irsaliye no <input id="sv-irsaliye"></label>
-            <label>Kargo takip no <input id="sv-kargo"></label>
+            <label>Şoför <input id="sv-sofor" placeholder="Plakadan kendiliğinden gelir"></label>
           </div>
           <datalist id="sv-plakalar"></datalist><datalist id="sv-noktalar"></datalist>
-          <div style="margin-top:20px;border-top:1px solid var(--cizgi);padding-top:16px">
-            <div class="satir" style="justify-content:space-between;margin-bottom:10px">
-              <h3 style="margin:0">1. Araç temizlik kontrolleri</h3>
-              <button class="btn ikincil kucuk" type="button" id="sv-tumu">Tümü uygun</button>
+          <details class="sv-ek">
+            <summary>Ek bilgiler <span>rota, Dara irsaliye no, kargo takip no</span></summary>
+            <div class="grid" style="margin-top:12px">
+              <label>Nokta / rota açıklaması <input id="sv-nokta" list="sv-noktalar" placeholder="Şube dışıysa: müşteri, kargo firması…"></label>
+              <label>Dara irsaliye no <input id="sv-irsaliye"></label>
+              <label>Kargo takip no <input id="sv-kargo"></label>
             </div>
-            <div id="sv-kontrol"></div>
-            <h3 style="margin:16px 0 8px">2. Genel değerlendirme</h3>
-            <div id="sv-genel" class="okut-durum ok">Sevkiyat durumu: UYGUN</div>
-            <label id="sv-aksiyon-kap" class="gizli" style="margin-top:12px">Tespit edilen uygunsuzluk / yapılan işlem *
-              <textarea id="sv-aksiyon" rows="2" placeholder="Örn. yükleme alanında döküntü vardı, araç yıkandı"></textarea>
-            </label>
-          </div>
+          </details>
+          <details class="sv-ek" id="sv-kontrol-kap">
+            <summary>Araç temizlik kontrolü <span>isteğe bağlı · yükleme bittikten sonra da doldurulabilir</span></summary>
+            <div style="margin-top:12px">
+              <div class="satir" style="justify-content:flex-end;margin-bottom:10px"><button class="btn ikincil kucuk" type="button" id="sv-tumu">Tümü uygun</button></div>
+              <div id="sv-kontrol"></div>
+              <div id="sv-genel" class="okut-durum ok" style="margin-top:12px">Sevkiyat durumu: UYGUN</div>
+              <label id="sv-aksiyon-kap" class="gizli" style="margin-top:12px">Tespit edilen uygunsuzluk / yapılan işlem *
+                <textarea id="sv-aksiyon" rows="2" placeholder="Örn. yükleme alanında döküntü vardı, araç yıkandı"></textarea>
+              </label>
+            </div>
+          </details>
           <div class="satir" style="margin-top:16px;justify-content:flex-end">
-            <button class="btn" type="submit" id="sv-kaydet">Kontrolü kaydet ve yüklemeye başla</button>
+            <button class="btn sv-basla" type="submit" id="sv-kaydet">Okutmaya başla</button>
           </div>
         </form>
 
@@ -2161,7 +2180,7 @@ function muhSevkiyatCiz() {
       <td style="white-space:nowrap">${tarihSaat(x.created_at)}</td><td class="mono">${esc(x.kod)}</td>
       <td><b>${esc(x.plaka)}</b><br><span style="color:var(--soluk)">${esc(x.sofor_ad)}</span></td><td>${esc(x.sevk_noktasi)}</td>
       <td>${x.tepsi_adet} tepsi</td>
-      <td>${x.uygunsuz_kontrol ? `<span class="rozet ret">${x.uygunsuz_kontrol} uygunsuz kontrol</span>${x.arac_uygun ? ' <span class="rozet kabul">sonra uygun</span>' : ''}` : '<span class="rozet kabul">Uygun</span>'}</td>
+      <td>${!x.kontrol_sayisi ? '<span class="rozet bekliyor">Form doldurulmadı</span>' : x.uygunsuz_kontrol ? `<span class="rozet ret">${x.uygunsuz_kontrol} uygunsuz kontrol</span>${x.arac_uygun ? ' <span class="rozet kabul">sonra uygun</span>' : ''}` : '<span class="rozet kabul">Uygun</span>'}</td>
       <td><span class="rozet ${x.durum === 'arac_uygunsuz' ? 'ret' : x.durum === 'yolda' ? 'kabul' : 'bekliyor'}">${sevDurumAd[x.durum]}</span></td>
       <td><span class="rozet ${x.muhendis_durum}">${muhAd[x.muhendis_durum]}</span></td>
       <td><button class="btn kucuk" data-sev-form="${x.id}">Formu aç</button></td>
@@ -2511,13 +2530,26 @@ async function sevkiyatSayfasi() {
     sb.from('sevkiyatlar').select('sevk_noktasi').order('id', { ascending: false }).limit(300)
   ]);
   araclar = ar || [];
-  $('sv-sube').innerHTML = '<option value="">— Şube dışı (aşağıya yazın) —</option>' + subeler.filter(x => x.aktif).map(x => `<option value="${x.id}">${esc(x.ad)}</option>`).join('');
-  if (!$('sv-sube').dataset.ilk) { $('sv-sube').value = subeler[0]?.id || ''; $('sv-sube').dataset.ilk = '1'; }
+  const aktifSube = subeler.filter(x => x.aktif);
+  $('sv-sube').innerHTML = '<option value="">— Şube dışı —</option>' + aktifSube.map(x => `<option value="${x.id}">${esc(x.ad)}</option>`).join('');
+  if (!$('sv-sube').dataset.ilk) { $('sv-sube').value = yerel.oku('sonSevkSube', aktifSube[0]?.id) ?? ''; $('sv-sube').dataset.ilk = '1'; }
+  if (!$('sv-plaka').value) $('sv-plaka').value = yerel.oku('sonSevkPlaka', '');
+  subeDugmeleriCiz();
   $('sv-plakalar').innerHTML = araclar.map(a => `<option value="${esc(a.plaka)}">${esc(a.son_sofor || '')}</option>`).join('');
   $('sv-noktalar').innerHTML = [...new Set((nk || []).map(x => x.sevk_noktasi))].map(n => `<option value="${esc(n)}">`).join('');
   sevkiyatListesi();
   acikSevkiyatlar();
 }
+function subeDugmeleriCiz() {
+  const sec = $('sv-sube').value;
+  $('sv-sube-dugmeler').innerHTML = subeler.filter(x => x.aktif).map(x => `<button type="button" role="radio" aria-checked="${String(x.id) === sec}" class="sube-dugme ${String(x.id) === sec ? 'secili' : ''}" data-sube-sec="${x.id}">${ikon(x.tur === 'kargo' ? 'sevkiyat' : 'sube', 22, 2)}<span>${esc(x.ad.replace(/ Şube$/, ''))}</span></button>`).join('')
+    + `<button type="button" role="radio" aria-checked="${sec === ''}" class="sube-dugme ${sec === '' ? 'secili' : ''}" data-sube-sec="">${ikon('ileri', 22, 2)}<span>Diğer</span></button>`;
+}
+$('sv-sube-dugmeler').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-sube-sec]'); if (!b) return;
+  $('sv-sube').value = b.dataset.subeSec; subeDugmeleriCiz();
+  if (!b.dataset.subeSec) { document.querySelector('#sv-form details.sv-ek').open = true; $('sv-nokta').focus(); }
+});
 // Yüklemesi bitmemiş araçlar en üstte: tek dokunuşla kaldığı yerden devam
 async function acikSevkiyatlar() {
   const { data } = await sb.from('v_sevkiyatlar').select('id,kod,plaka,sofor_ad,sevk_noktasi,tepsi_adet,durum,tarih').in('durum', ['yukleniyor', 'arac_uygunsuz']).gte('tarih', gunEkle(bugun(), -3)).order('id', { ascending: false });
@@ -2533,20 +2565,23 @@ $('sv-plaka').addEventListener('change', () => {
 $('sv-tumu').addEventListener('click', () => { svKontrol.forEach(k => k.uygun = true); svCiz(); });
 $('sv-form').addEventListener('submit', async ev => {
   ev.preventDefault();
-  if (!svKontrol.length) return bildir('Sevkiyat kontrol listesi tanımlı değil.', true);
-  if (!$('sv-sube').value && !$('sv-nokta').value.trim()) return bildir('Gideceği şubeyi seçin ya da nokta / rota yazın.', true);
-  const eksik = kontrolEksik(svKontrol); if (eksik) return bildir(eksik, true);
-  const uygun = svKontrol.every(k => k.uygun);
+  if (!$('sv-sube').value && !$('sv-nokta').value.trim()) { bildir('Gideceği şubeyi seçin ya da “Diğer” deyip nokta / rota yazın.', true); return; }
+  // Kontrol formu sadece açılıp doldurulduysa gönderilir
+  const kontrolVar = $('sv-kontrol-kap').open && svKontrol.length > 0;
+  if (kontrolVar) { const eksik = kontrolEksik(svKontrol); if (eksik) return bildir(eksik, true); }
+  const uygun = !kontrolVar || svKontrol.every(k => k.uygun);
   if (!uygun && !$('sv-aksiyon').value.trim()) { bildir('Tespit edilen uygunsuzluk / yapılan işlem yazılmalı.', true); return $('sv-aksiyon').focus(); }
+  yerel.yaz('sonSevkSube', $('sv-sube').value); yerel.yaz('sonSevkPlaka', $('sv-plaka').value.trim());
   const btn = $('sv-kaydet'); btn.disabled = true;
   try {
     const { data: id, error } = await sb.rpc('sevkiyat_ac', { p_plaka: $('sv-plaka').value, p_sofor: $('sv-sofor').value, p_nokta: $('sv-nokta').value,
-      p_irsaliye: $('sv-irsaliye').value, p_kargo_no: $('sv-kargo').value, p_kontroller: kontrolVeri(svKontrol), p_aksiyon: $('sv-aksiyon').value,
+      p_irsaliye: $('sv-irsaliye').value, p_kargo_no: $('sv-kargo').value, p_kontroller: kontrolVar ? kontrolVeri(svKontrol) : [], p_aksiyon: $('sv-aksiyon').value,
       p_sube_id: $('sv-sube').value ? Number($('sv-sube').value) : null });
     if (error) throw error;
-    ['sv-plaka', 'sv-sofor', 'sv-nokta', 'sv-irsaliye', 'sv-kargo', 'sv-aksiyon'].forEach(x => $(x).value = '');
+    ['sv-sofor', 'sv-nokta', 'sv-irsaliye', 'sv-kargo', 'sv-aksiyon'].forEach(x => $(x).value = '');
+    $('sv-kontrol-kap').open = false; svKontrol.forEach(k => { k.uygun = true; k.aciklama = ''; }); svCiz();
     bekleyenSay();
-    if (uygun) { bildir('Araç kontrolü kaydedildi. Yüklemeye başlayın.'); yuklemeAc(id); }
+    if (uygun) { yuklemeAc(id); }
     else { ses('hata'); bildir('Araç UYGUN DEĞİL. Temizlikten sonra “Yeniden kontrol” yapın.', true); sevkiyatSayfasi(); }
   } catch (e) { bildir(hataMesaji(e), true); }
   finally { btn.disabled = false; }
@@ -2560,12 +2595,13 @@ async function sevkiyatListesi() {
       <td><b>${esc(x.plaka)}</b><br><span style="color:var(--soluk)">${esc(x.sofor_ad)}</span></td>
       <td>${esc(x.sevk_noktasi)}${x.irsaliye_no ? `<div style="color:var(--soluk);font-size:13px">İrs: ${esc(x.irsaliye_no)}</div>` : ''}</td>
       <td><b>${x.tepsi_adet}</b> tepsi</td>
-      <td><span class="rozet ${x.durum === 'arac_uygunsuz' ? 'ret' : x.durum === 'yolda' ? 'kabul' : 'bekliyor'}">${sevDurumAd[x.durum]}</span></td>
+      <td><span class="rozet ${x.durum === 'arac_uygunsuz' ? 'ret' : x.durum === 'yolda' ? 'kabul' : 'bekliyor'}">${sevDurumAd[x.durum]}</span>${!x.kontrol_sayisi ? ' <span class="rozet bekliyor">Kontrol formu yok</span>' : ''}</td>
       <td>${teslimRozet(x)}</td>
       <td><span class="rozet ${x.muhendis_durum}">${x.muhendis_durum === 'bekliyor' ? 'Onay bekliyor' : x.muhendis_durum === 'onaylandi' ? 'Onaylı' : 'Reddedildi'}</span></td>
       <td style="white-space:nowrap">
         ${x.durum === 'yukleniyor' ? `<button class="btn kucuk" data-sev-yukle="${x.id}">Yükle</button>` : ''}
         ${x.durum === 'arac_uygunsuz' ? `<button class="btn kucuk" data-sev-yeniden="${x.id}">Yeniden kontrol</button>` : ''}
+        ${!x.kontrol_sayisi && x.durum !== 'iptal' ? `<button class="btn kucuk ikincil" data-sev-yeniden="${x.id}">Kontrol formu</button>` : ''}
         ${x.durum === 'yolda' ? `<button class="btn kucuk ikincil" data-sev-yukle="${x.id}">Ürünler</button>` : ''}
         <button class="btn kucuk ikincil" data-sev-form="${x.id}">Form</button>
       </td></tr>`).join('')}</table>` : '<div class="bos">Bu gün sevkiyat yok.</div>';
@@ -2589,7 +2625,7 @@ async function yuklemeAc(id) {
   aktifSevkiyat = x;
   $('sv-ana').classList.add('gizli'); $('sv-yukleme').classList.remove('gizli');
   $('sv-baslik').textContent = `${x.kod} · ${x.plaka}`;
-  $('sv-alt').textContent = `${x.sofor_ad} · ${x.sevk_noktasi}${x.irsaliye_no ? ' · İrs: ' + x.irsaliye_no : ''}`;
+  $('sv-alt').innerHTML = `${esc([x.sofor_ad, x.sevk_noktasi].filter(Boolean).join(' · '))}${x.irsaliye_no ? ' · İrs: ' + esc(x.irsaliye_no) : ''}${!x.kontrol_sayisi ? ` · <button type="button" class="kk-tam-dugme koyu" data-sev-yeniden="${x.id}">Araç kontrol formu doldur</button>` : ''}`;
   const acik = x.durum === 'yukleniyor';
   $('sv-okut-form').classList.toggle('gizli', !acik); $('sv-kapat').classList.toggle('gizli', !acik);
   svDurum(acik ? 'bekle' : 'ok', acik ? 'Araca yüklenen her tepsinin QR\'ını okutun.' : `Bu araç yola çıktı (${tarihSaat(x.cikis_zamani)}). Liste sadece görüntülenir.`);
@@ -2644,17 +2680,25 @@ async function sevkiyattanCikar(tepsiId, kod) {
 $('sv-kapat').onclick = async () => {
   const n = document.querySelectorAll('#sv-tepsiler tr').length - 1;
   if (n < 1) return bildir('Araca hiç ürün yüklenmedi.', true);
-  if (!confirm(`${aktifSevkiyat.kod}: ${n} tepsi ile yükleme bitti, araç yola çıkıyor. Onaylıyor musunuz?`)) return;
+  const btn = $('sv-kapat');
+  if (!btn.dataset.onay) {   // ilk dokunuş: onay iste, 4 sn içinde ikinci dokunuş gönderir
+    btn.dataset.onay = '1'; const eski = btn.textContent; btn.textContent = `${n} tepsi · göndermek için tekrar dokunun`; btn.classList.add('onayla');
+    setTimeout(() => { delete btn.dataset.onay; btn.textContent = eski; btn.classList.remove('onayla'); }, 4000);
+    return;
+  }
+  delete btn.dataset.onay; btn.classList.remove('onayla');
   const { error } = await sb.rpc('sevkiyat_kapat', { p_sevkiyat_id: aktifSevkiyat.id });
   if (error) return bildir(hataMesaji(error), true);
   bildir(`${aktifSevkiyat.kod} yola çıktı.`); sevkiyatSayfasi();
 };
 
 // ---- Yeniden kontrol (temizlikten sonra) ----
-function yenidenKontrolAc(id) {
+async function yenidenKontrolAc(id) {
   const liste = sevkiyatSablonu();
-  modalAc('Yeniden araç kontrolü', `
-    <p class="bilgi" style="margin:0 0 12px">Araç temizlendikten sonra kontrolü tekrar yapın. Tüm maddeler uygunsa yükleme kilidi açılır. Önceki kontrol kaydı silinmez.</p>
+  const { data: sx } = await sb.from('v_sevkiyatlar').select('kod,plaka,durum,kontrol_sayisi').eq('id', id).single();
+  const sonradan = sx && !sx.kontrol_sayisi;
+  modalAc(sonradan ? `Araç kontrol formu · ${sx.kod} · ${sx.plaka}` : 'Yeniden araç kontrolü', `
+    <p class="bilgi" style="margin:0 0 12px">${sonradan ? 'Bu sevkiyatın araç temizlik kontrolü yapılmamış. Şimdi doldurabilirsiniz; kayıt mühendis onayına gider.' : 'Araç temizlendikten sonra kontrolü tekrar yapın. Tüm maddeler uygunsa yükleme kilidi açılır. Önceki kontrol kaydı silinmez.'}</p>
     <div id="yk-kontrol"></div>
     <div id="yk-genel" class="okut-durum ok" style="margin-top:12px"></div>
     <label id="yk-aksiyon-kap" class="gizli" style="margin-top:12px">Tespit edilen uygunsuzluk / yapılan işlem * <textarea id="yk-aksiyon" rows="2"></textarea></label>
@@ -2673,6 +2717,7 @@ function yenidenKontrolAc(id) {
     const { data: sonuc, error } = await sb.rpc('sevkiyat_yeniden_kontrol', { p_sevkiyat_id: id, p_kontroller: kontrolVeri(liste), p_aksiyon: $('yk-aksiyon').value });
     if (error) return bildir(hataMesaji(error), true);
     modalKapat(); bekleyenSay();
+    if (sonradan) { bildir('Araç kontrol formu kaydedildi.'); sevkiyatListesi(); if (aktifSevkiyat?.id === id) yuklemeAc(id); return; }
     if (sonuc) { bildir('Araç uygun. Yüklemeye başlayın.'); yuklemeAc(id); }
     else { bildir('Araç hâlâ uygun değil; yükleme kilitli.', true); sevkiyatListesi(); }
   };
@@ -2902,7 +2947,7 @@ const tepsiDurumAd = { stokta: 'Baklava odasında', sevk: 'Yolda (sevk edildi)',
 const tepsiHareketAd = { sevk: 'Araca yüklendi', sevkten_cikar: 'Araçtan çıkarıldı', sube_kabul: 'Şubede teslim alındı', tuketildi: 'Bitti / satıldı', imha: 'Fire / imha', iade: 'İade' };
 let subeler = [];
 async function subeleriYukle() {
-  const { data } = await sb.from('subeler').select('*').order('id');
+  const { data } = await sb.from('subeler').select('*').order('sira').order('id');
   subeler = data || [];
 }
 function partiYerHtml(l) {
@@ -3771,11 +3816,11 @@ async function rolKartiYukle() {
     } else if (anahtar === 'muhendis') {
       const [p, s] = await Promise.all([
         sb.from('v_partiler').select('parti_kodu,urun_ad,firma_ad,giris_tarihi,kabul_karari').eq('muhendis_durum', 'bekliyor').order('id', { ascending: false }).limit(5),
-        sb.from('v_sevkiyatlar').select('kod,plaka,tarih,arac_uygun').eq('muhendis_durum', 'bekliyor').neq('durum', 'iptal').order('id', { ascending: false }).limit(5)]);
+        sb.from('v_sevkiyatlar').select('kod,plaka,tarih,arac_uygun,kontrol_sayisi').eq('muhendis_durum', 'bekliyor').neq('durum', 'iptal').order('id', { ascending: false }).limit(5)]);
       baslik = 'Onayınızı bekleyen formlar'; bos = 'Onay bekleyen form yok.';
       satirlar = [...(p.data || []).map(x => satirHtml(`Mal kabul · ${esc(x.urun_ad)}`, `${esc(x.parti_kodu)} · ${esc(x.firma_ad || '')} · ${tarih(x.giris_tarihi)}`,
           x.kabul_karari === 'kabul' ? '' : `<span class="rozet ret">${x.kabul_karari === 'ret' ? 'Ret' : 'Şartlı'}</span>`)),
-        ...(s.data || []).map(x => satirHtml(`Araç kontrolü · ${esc(x.plaka)}`, `${esc(x.kod)} · ${tarih(x.tarih)}`, x.arac_uygun ? '' : '<span class="rozet ret">Uygun değil</span>'))];
+        ...(s.data || []).map(x => satirHtml(`Araç kontrolü · ${esc(x.plaka)}`, `${esc(x.kod)} · ${tarih(x.tarih)}`, !x.kontrol_sayisi ? '<span class="rozet bekliyor">Form yok</span>' : x.arac_uygun === false ? '<span class="rozet ret">Uygun değil</span>' : ''))];
     }
   } catch (e) { bos = 'Bilgi alınamadı: ' + e.message; }
   $('rol-liste-baslik').textContent = baslik;
