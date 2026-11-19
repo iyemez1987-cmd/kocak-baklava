@@ -236,6 +236,38 @@
   .dikkat small { display: block; font-weight: 600; opacity: .85; font-size: 13.5px; margin-top: 2px; }
   .dikkat > .ik:last-child { margin-left: auto; opacity: .6; }
   .dikkat.mavi { background: #E7EEF7; color: #1F3A63; border-color: #C9D7EA; }
+  .eski-kap:empty { display: none; }
+  .eski-uyari { border-radius: 14px; border: 2px solid #E5A93A; background: #FFF4DC; color: #4A3200; padding: 14px 16px; margin-bottom: 14px; }
+  .eski-uyari.kirmizi { border-color: #D9574B; background: #FDEBE8; color: #6E1810; }
+  .eski-uyari h4 { margin: 0 0 4px; font-size: 18px; display: flex; gap: 8px; align-items: center; }
+  .eski-uyari p { margin: 0 0 10px; font-size: 14.5px; }
+  .eski-uyari ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .eski-uyari li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; background: rgba(255,255,255,.6); border-radius: 10px; padding: 8px 10px; }
+  .eski-uyari li b { font-size: 15.5px; }
+  .eski-uyari li .mono { font-size: 13px; }
+  .eski-uyari li .say { margin-left: auto; font-weight: 800; font-size: 16px; white-space: nowrap; }
+  .sip-kart { border: 1px solid var(--cizgi); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; background: var(--kart); }
+  .sip-kart.yeni { border-color: var(--ekran); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ekran) 25%, transparent); }
+  .sip-ust { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-bottom: 8px; }
+  .sip-ust .sube-ad { font-size: 17px; font-weight: 800; }
+  .sip-ust .sag { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+  .sip-kalem { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 14px; font-size: 14.5px; }
+  .sip-kalem > span:nth-child(3n+2), .sip-kalem > span:nth-child(3n) { text-align: right; font-variant-numeric: tabular-nums; }
+  .sip-kalem .bas { font-size: 12px; font-weight: 700; color: var(--soluk); letter-spacing: .4px; }
+  .sip-not { font-size: 14px; color: var(--soluk); margin-top: 6px; }
+  .sip-form-liste { max-height: 52vh; overflow: auto; border: 1px solid var(--cizgi); border-radius: 10px; margin: 8px 0; }
+  .sip-form-satir { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--cizgi); }
+  .sip-form-satir:last-child { border-bottom: 0; }
+  .sip-form-satir.dolu { background: color-mix(in srgb, var(--ekran) 8%, transparent); }
+  .sip-form-satir > span { flex: 1; min-width: 0; }
+  .sip-form-satir small { display: block; color: var(--soluk); font-size: 12.5px; }
+  .sv-sip { border: 1px solid var(--cizgi); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+  .sv-sip h4 { margin: 0 0 8px; font-size: 15px; }
+  .fark-eksik { color: var(--hata); font-weight: 800; }
+  .fark-fazla { color: #8A5F12; font-weight: 800; }
+  .fark-tamam { color: #23602A; font-weight: 800; }
+  .rozet.mavi { background: #E7EEF7; color: #1F3A63; }
+  .sekme-rozet { background: var(--hata); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 800; padding: 1px 6px; margin-left: 4px; }
   .her-sey-yolunda { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #E3F1DF; color: #23602A; font-weight: 700; }
 
   /* ---------- Marka: giriş ekranı ve üst çubuk ---------- */
@@ -745,6 +777,8 @@
           <label style="flex-direction:row;align-items:center;gap:8px">Üretim günü <input type="date" id="o-gun"></label>
           <button class="btn" type="button" id="o-hepsi">Tüm etiketsizleri bas</button>
         </div>
+        <div id="o-eski" class="eski-kap"></div>
+        <div id="o-siparis-uyari"></div>
         <div id="o-ozet" class="ozet-satir"></div>
         <div class="arac-cubugu" data-filtre-hedef="o-liste">
           <input class="ara" type="search" placeholder="Ara: mamul adı veya Dara kodu" aria-label="Mamul ara">
@@ -753,6 +787,32 @@
         </div>
         <p style="color:var(--soluk);font-size:14px;margin:0 0 12px">Tepsi çıktıkça adedi yazıp QR basın; listeyi beklemeye gerek yok. Dara iş emri listesi gelince miktarları “İş emri” sütununa yazın, sistem karşılaştırır.</p>
         <div id="o-liste"></div>
+      </div>
+    </section>
+
+    <!-- ODA STOĞU + ŞUBE SİPARİŞLERİ -->
+    <section data-sayfa="odastok" class="gizli">
+      <h2>Oda Stoğu ve Şube Siparişleri</h2>
+      <div id="os-eski" class="eski-kap"></div>
+      <div class="kart">
+        <div class="satir" style="justify-content:space-between;margin-bottom:10px">
+          <h3 style="margin:0">Odadaki tepsiler · şu an <span id="os-saat" style="color:var(--soluk);font-weight:600;font-size:14px"></span></h3>
+          <button class="btn ikincil kucuk" type="button" id="os-yenile">Yenile</button>
+        </div>
+        <div id="os-ozet" class="ozet-satir"></div>
+        <div class="arac-cubugu" data-filtre-hedef="os-liste">
+          <input class="ara" type="search" placeholder="Ara: mamul adı veya Dara kodu" aria-label="Mamul ara">
+          <div class="cipler"><button type="button" class="cip secili" data-f="">Hepsi</button><button type="button" class="cip" data-f="eski">Dünden kalan</button><button type="button" class="cip" data-f="eksik">Siparişe yetmeyen</button></div>
+          <span class="sonuc-say"></span>
+        </div>
+        <div id="os-liste"></div>
+      </div>
+      <div class="kart">
+        <div class="satir" style="justify-content:space-between;margin-bottom:10px">
+          <h3 style="margin:0">Şube siparişleri</h3>
+          <div class="cipler" id="os-sip-filtre"><button type="button" class="cip secili" data-sf="acik">Bekleyen</button><button type="button" class="cip" data-sf="gonderildi">Gönderilen</button></div>
+        </div>
+        <div id="os-siparisler"></div>
       </div>
     </section>
 
@@ -873,6 +933,7 @@
             <h3 style="margin:0">Araçtaki ürünler <span id="sv-adet" style="color:var(--soluk)"></span></h3>
             <button class="btn" type="button" id="sv-kapat">✓ Yükleme bitti, yola çıktı</button>
           </div>
+          <div id="sv-siparis"></div>
           <div id="sv-ozet" class="ozet-satir"></div>
           <div id="sv-tepsiler"></div>
         </div>
@@ -952,6 +1013,13 @@
         <div id="sb2-durum" class="okut-durum bekle">Gelen tepsileri “Teslim al” ile okutun.</div>
         <div class="buyuk-sayac"><b id="sb2-sayac">0</b><span>tepsi bugün teslim alındı</span></div>
         <ul class="okut-gecmis" id="sb2-gecmis" aria-label="Son okutmalar"></ul>
+      </div>
+      <div class="kart">
+        <div class="satir" style="justify-content:space-between;margin-bottom:10px">
+          <h3 style="margin:0">Siparişler</h3>
+          <button class="btn" type="button" id="sb2-siparis-yeni"><span data-ikon="sevkiyat"></span>Sipariş ver</button>
+        </div>
+        <div id="sb2-siparisler"></div>
       </div>
       <div class="kart">
         <h3 style="margin:0 0 10px">Gelen sevkiyatlar · teslim kontrolü</h3>
@@ -2252,6 +2320,7 @@ const IK = {
   oda: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 12 7.25 5M2.5 12l4.75 7M12 5l-4.75 7L12 19M12 5l4.75 7L12 19M21.5 12 16.75 5M21.5 12l-4.75 7"/>',
   sevkiyat: '<path d="M14 17V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h1"/><path d="M14 8h4.2l2.8 3.5V16a1 1 0 0 1-1 1h-1"/><path d="M9 17h6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
   sube: '<path d="M4 10.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9.5"/><path d="M3 7.2 4.6 3.6A1 1 0 0 1 5.5 3h13a1 1 0 0 1 .9.6L21 7.2V8a2.75 2.75 0 0 1-5 1.5 2.75 2.75 0 0 1-4 0 2.75 2.75 0 0 1-4 0A2.75 2.75 0 0 1 3 8Z"/><path d="M10 21v-5h4v5"/>',
+  odastok: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h4M7 17h4"/>',
   stok: '<path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/><path d="m7.5 5.5 9 5"/>',
   partiler: '<path d="m12 3 9 4.5-9 4.5-9-4.5Z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16.5 9 4.5 9-4.5"/>',
   muhendis: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6Z"/><path d="m8.8 12 2.3 2.3 4.2-4.6"/>',
@@ -2281,6 +2350,7 @@ const EKRANLAR = [
   { id: 'kabul', ad: 'Mal Kabul', renk: '#0F766E', acik: 'Parti gir, QR etiket bas' },
   { id: 'uretim', ad: 'Üretime Ver', renk: '#C2410C', acik: 'Çuvalı okut, üretime çıkar' },
   { id: 'oda', ad: 'Baklava Odası', renk: '#B45309', acik: 'Tepsi etiketleri' },
+  { id: 'odastok', ad: 'Oda Stoğu', renk: '#92400E', acik: 'Odadaki tepsiler ve şube siparişleri' },
   { id: 'sevkiyat', ad: 'Sevkiyat', renk: '#4338CA', acik: 'Araç kontrolü ve yükleme' },
   { id: 'sube', ad: 'Şube', renk: '#7E22CE', acik: 'Gelen tepsileri teslim al' },
   { id: 'stok', ad: 'Stok', renk: '#0E7490', acik: 'Anlık stok ve hareketler' },
@@ -2311,7 +2381,7 @@ const ekranRengi = id => (EKRANLAR.find(e => e.id === id) || {}).renk || '#2F5A4
 const HAZIR_SETLER = {
   depo: { ad: 'Depo / mal kabul', ekranlar: ['kabul', 'stok', 'partiler', 'sorgula', 'firmalar'] },
   uretim: { ad: 'Üretime veren', ekranlar: ['uretim', 'sorgula'] },
-  oda: { ad: 'Baklava odası', ekranlar: ['oda', 'sorgula'] },
+  oda: { ad: 'Baklava odası', ekranlar: ['oda', 'odastok', 'sorgula'] },
   sevkiyat: { ad: 'Sevkiyat', ekranlar: ['sevkiyat', 'sorgula'] },
   sube: { ad: 'Şube personeli', ekranlar: ['sube', 'sorgula'] },
   muhendis: { ad: 'Gıda mühendisi', ekranlar: ['muhendis', 'rapor', 'sorgula', 'partiler', 'stok', 'mamuller', 'sablon', 'urunler'] },
@@ -2324,6 +2394,8 @@ function izinliEkranlar(p = profil) {
         : p.rol === 'muhendis' ? HAZIR_SETLER.muhendis.ekranlar.slice()
         : EKRANLAR.map(e => e.id).filter(e => !SADECE_MUHENDIS.includes(e) && !SADECE_YONETICI.includes(e));
   if (p.rol === 'yonetici' && !l.includes('kullanicilar')) l.push('kullanicilar');
+  // Oda stoğu, odayı ya da sevkiyatı gören herkese açık (siparişler buradan izlenir)
+  if ((l.includes('oda') || l.includes('sevkiyat')) && !l.includes('odastok')) l.push('odastok');
   return EKRANLAR.map(e => e.id).filter(e => l.includes(e)
     && (!SADECE_MUHENDIS.includes(e) || ['muhendis', 'yonetici'].includes(p.rol))
     && (!SADECE_YONETICI.includes(e) || p.rol === 'yonetici'));
@@ -2641,6 +2713,7 @@ async function svTepsileriYukle() {
   const g = {}; data.forEach(r => { g[r.mamul_ad] = (g[r.mamul_ad] || 0) + 1; });
   $('sv-adet').textContent = `(${data.length} tepsi)`; $('sv-sayac').textContent = data.length;
   $('sv-ozet').innerHTML = Object.entries(g).sort((a, b) => b[1] - a[1]).map(([ad, n]) => `<div class="ozet"><b>${n}</b>${esc(ad)}</div>`).join('');
+  svSiparisCiz(g);
   $('sv-tepsiler').innerHTML = data.length ? `<table><tr><th>Saat</th><th>Tepsi</th><th>Mamul</th><th>Üretim</th><th>SKT</th><th></th></tr>
     ${data.map(r => `<tr><td>${saat(r.yukleme_zamani)}</td><td class="mono">${esc(r.kod)}</td><td>${esc(r.mamul_ad)}</td><td>${tarih(r.uretim_tarihi)}</td><td>${tarih(r.skt)}</td>
       <td>${acik ? `<button class="btn kucuk ikincil" data-sev-cikar="${r.tepsi_id}" data-kod="${esc(r.kod)}">Çıkar</button>` : ''}</td></tr>`).join('')}</table>`
@@ -2652,7 +2725,10 @@ async function sevkiyataYukle(kod) {
   const { data, error } = await sb.rpc('sevkiyata_yukle', { p_sevkiyat_id: aktifSevkiyat.id, p_kod: kod });
   if (error) { ses('hata'); return svDurum('hata', 'Kaydedilemedi: ' + hataMesaji(error), 'İnternet bağlantısını kontrol edip tekrar okutun.'); }
   const r = data;
-  if (r.sonuc === 'ok') { ses('ok'); svDurum('ok', `✓ ${r.kod} yüklendi · araçta ${r.adet} tepsi`, r.mamul_ad); svTepsileriYukle(); }
+  if (r.sonuc === 'ok') {
+    ses('ok'); svDurum('ok', `✓ ${r.kod} yüklendi · araçta ${r.adet} tepsi`, r.mamul_ad); svTepsileriYukle();
+    eskiTepsiKontrol(r.kod, r.mamul_ad);
+  }
   else if (r.sonuc === 'zaten') { ses('uyari'); svDurum('uyari', `${r.kod} zaten bu araçta`, r.mamul_ad); }
   else if (r.sonuc === 'baska') { ses('hata'); svDurum('hata', `${r.kod} başka bir araca yüklenmiş`, r.diger); }
   else if (r.sonuc === 'hammadde') { ses('hata'); svDurum('hata', 'Bu bir hammadde etiketi, tepsi değil', 'Tepsi/kutu üzerindeki T-… ile başlayan QR\'ı okutun.'); }
@@ -2973,10 +3049,10 @@ function subeSayfasi() {
   sel.disabled = !!profil.sube_id;
   $('sb2-kilit').classList.toggle('gizli', !profil.sube_id);
   if (matchMedia('(pointer: coarse)').matches) $('sb2-okut').setAttribute('inputmode', 'none');
-  subeListesi();
+  subeListesi(); subeSiparisleri();
   setTimeout(() => $('sb2-okut').focus(), 50);
 }
-$('sb2-sube').addEventListener('change', () => { try { localStorage.setItem('subeSecim', $('sb2-sube').value); } catch (e) {} subeListesi(); });
+$('sb2-sube').addEventListener('change', () => { try { localStorage.setItem('subeSecim', $('sb2-sube').value); } catch (e) {} subeListesi(); subeSiparisleri(); });
 $('sb2-islemler').addEventListener('click', ev => {
   const b = ev.target.closest('button[data-islem]'); if (!b) return;
   sb2Islem = b.dataset.islem;
@@ -3111,12 +3187,243 @@ $('sbler-liste').addEventListener('change', async ev => {
 
 // ================= BAKLAVA ODASI =================
 let odaSatirlar = [];
+// ================= ODA STOĞU · DÜNDEN KALAN · ŞUBE SİPARİŞLERİ =================
+const gunFarki = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
+const kacGunOnce = t => { const n = gunFarki(t, bugun()); return n === 1 ? 'dünkü' : `${n} gün önceki`; };
+const kodGunu = kod => { const m = /^T-?(\d{2})(\d{2})(\d{2})/.exec(String(kod || '')); return m ? `20${m[1]}-${m[2]}-${m[3]}` : null; };
+const yarin = () => gunEkle(bugun(), 1);
+let odaStok = [], siparisKalemleri = [], siparisListe = [], osSipFiltre = 'acik', sonSiparisIdleri = null;
+
+// Odada bugünden önce üretilmiş, hâlâ sevk edilmemiş tepsiler
+function eskiTepsiHtml(satirlar) {
+  const eski = satirlar.filter(r => r.uretim_tarihi < bugun()).sort((a, b) => a.uretim_tarihi.localeCompare(b.uretim_tarihi) || a.mamul_ad.localeCompare(b.mamul_ad, 'tr'));
+  if (!eski.length) return '';
+  const toplam = eski.reduce((t, r) => t + Number(r.adet), 0);
+  const sktSorun = eski.some(r => r.skt && r.skt <= yarin());
+  const gunAd = eski.every(r => gunFarki(r.uretim_tarihi, bugun()) === 1) ? 'dünden' : eski.some(r => gunFarki(r.uretim_tarihi, bugun()) === 1) ? 'dünden ve daha önceden' : 'önceki günlerden';
+  return `<div class="eski-uyari ${sktSorun ? 'kirmizi' : ''}" role="alert">
+    <h4>${ikon('uyari', 22, 2)}Elinizde ${gunAd} kalan ${toplam} tepsi var</h4>
+    <p>${sktSorun ? 'Bazılarının SKT’si doluyor. ' : ''}Bugünkülerden önce bunları sevk edin.</p>
+    <ul>${eski.map(r => { const ilk = r.ilk_kod, son = r.son_kod;
+      return `<li><b>${esc(r.mamul_ad)}</b><span>${kacGunOnce(r.uretim_tarihi)} parti · ${tarih(r.uretim_tarihi)}</span>
+        <span class="mono">${esc(ilk)}${son !== ilk ? ' … ' + esc(son.split('-').pop()) : ''}</span>
+        ${r.skt ? `<span${r.skt <= yarin() ? ' class="fark-eksik"' : ''}>SKT ${tarih(r.skt)}</span>` : ''}
+        <span class="say">${r.adet} tepsi</span></li>`; }).join('')}</ul></div>`;
+}
+async function odaStokGetir() {
+  const { data, error } = await sb.from('v_oda_stok').select('*');
+  if (error) { bildir(hataMesaji(error), true); return null; }
+  odaStok = data || []; return odaStok;
+}
+async function acikSiparisleriGetir() {
+  const { data, error } = await sb.from('v_siparisler').select('*').in('durum', ['bekliyor', 'hazirlaniyor']).order('teslim_tarihi').order('sube_sira');
+  if (error) { bildir(hataMesaji(error), true); return []; }
+  const idler = (data || []).map(x => x.id);
+  const { data: k } = idler.length ? await sb.from('v_siparis_kalemleri').select('*').in('siparis_id', idler) : { data: [] };
+  siparisKalemleri = k || [];
+  return data || [];
+}
+// Baklava odası ekranının üstündeki uyarılar
+async function odaUyarilari() {
+  const [stok, sip] = await Promise.all([odaStokGetir(), acikSiparisleriGetir()]);
+  if (stok) $('o-eski').innerHTML = eskiTepsiHtml(stok);
+  const n = sip.length;
+  $('o-siparis-uyari').innerHTML = n ? `<button type="button" class="dikkat mavi" data-git="odastok" style="margin-bottom:14px">${ikon('sevkiyat', 22, 2)}<span>${n} şube siparişi bekliyor · ${sip.reduce((t, x) => t + Number(x.toplam_adet), 0)} tepsi<small>${esc([...new Set(sip.map(x => x.sube_ad))].join(', '))} · stok ve siparişleri görmek için dokunun</small></span>${ikon('ileri', 18, 2)}</button>` : '';
+  sekmeRozeti(n);
+}
+function sekmeRozeti(n) {
+  document.querySelectorAll('[data-grup-sekme="odastok"]').forEach(b => {
+    let r = b.querySelector('.sekme-rozet');
+    if (!n) { r?.remove(); return; }
+    if (!r) { r = document.createElement('span'); r.className = 'sekme-rozet'; b.querySelector('span').after(r); }
+    r.textContent = n;
+  });
+}
+async function odaStokYukle() {
+  const [stok, sip] = await Promise.all([odaStokGetir(), acikSiparisleriGetir()]);
+  if (!stok) return;
+  siparisListe = sip; sekmeRozeti(sip.length);
+  $('os-saat').textContent = '· ' + new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  $('os-eski').innerHTML = eskiTepsiHtml(stok);
+  // Mamul bazında topla: bugün / dün / daha eski + bekleyen sipariş
+  const g = {};
+  stok.forEach(r => {
+    const x = g[r.mamul_id] ||= { ad: r.mamul_ad, kod: r.dara_kod, bugun: 0, dun: 0, eski: 0, toplam: 0, skt: null, siparis: 0 };
+    const n = Number(r.adet), f = gunFarki(r.uretim_tarihi, bugun());
+    if (f <= 0) x.bugun += n; else if (f === 1) x.dun += n; else x.eski += n;
+    x.toplam += n; if (r.skt && (!x.skt || r.skt < x.skt)) x.skt = r.skt;
+  });
+  siparisKalemleri.forEach(k => { const x = g[k.mamul_id] ||= { ad: k.mamul_ad, kod: k.dara_kod, bugun: 0, dun: 0, eski: 0, toplam: 0, skt: null, siparis: 0 }; x.siparis += Number(k.adet); });
+  const satirlar = Object.values(g).sort((a, b) => (b.dun + b.eski) - (a.dun + a.eski) || b.toplam - a.toplam || a.ad.localeCompare(b.ad, 'tr'));
+  const t = k => satirlar.reduce((s, x) => s + x[k], 0);
+  const eksikToplam = satirlar.reduce((s, x) => s + Math.max(0, x.siparis - x.toplam), 0);
+  $('os-ozet').innerHTML = `<div class="ozet"><b>${t('toplam')}</b>Odadaki tepsi</div>
+    <div class="ozet"><b>${t('bugun')}</b>Bugün üretilen</div>
+    <div class="ozet ${t('dun') + t('eski') ? 'uyari' : 'iyi'}"><b>${t('dun') + t('eski')}</b>Dünden / önceden kalan</div>
+    <div class="ozet"><b>${t('siparis')}</b>Bekleyen sipariş (tepsi)</div>
+    ${t('siparis') ? `<div class="ozet ${eksikToplam ? 'uyari' : 'iyi'}"><b>${eksikToplam}</b>Siparişe yetmeyen</div>` : ''}`;
+  $('os-liste').innerHTML = satirlar.length ? `<table><tr><th>Mamul</th><th>Bugün</th><th>Dün</th><th>Daha eski</th><th>Odada toplam</th><th>En yakın SKT</th><th>Sipariş</th><th>Durum</th></tr>
+    ${satirlar.map(x => { const fark = x.toplam - x.siparis;
+      const durum = !x.siparis ? '<span style="color:var(--soluk)">–</span>' : fark < 0 ? `<span class="fark-eksik">${-fark} eksik · üretilmeli</span>` : `<span class="fark-tamam">Yeter${fark ? ` (+${fark})` : ''}</span>`;
+      return `<tr data-f="${[x.dun + x.eski ? 'eski' : '', x.siparis && fark < 0 ? 'eksik' : ''].join(' ')}">
+        <td><b>${esc(x.ad)}</b>${x.kod ? `<div class="mono" style="font-size:12px;color:var(--soluk)">${esc(x.kod)}</div>` : ''}</td>
+        <td>${x.bugun || '–'}</td><td>${x.dun ? `<b class="fark-fazla">${x.dun}</b>` : '–'}</td><td>${x.eski ? `<b class="fark-eksik">${x.eski}</b>` : '–'}</td>
+        <td><b>${x.toplam}</b></td><td>${x.skt ? `<span${x.skt <= yarin() ? ' class="fark-eksik"' : ''}>${tarih(x.skt)}</span>` : '–'}</td>
+        <td>${x.siparis || '–'}</td><td>${durum}</td></tr>`; }).join('')}</table>`
+    : '<div class="bos">Odada sevk bekleyen tepsi yok.</div>';
+  siparisleriCiz();
+}
+async function siparisleriCiz() {
+  let liste = siparisListe, kalemler = siparisKalemleri;
+  if (osSipFiltre === 'gonderildi') {
+    const { data } = await sb.from('v_siparisler').select('*').in('durum', ['gonderildi', 'iptal']).gte('teslim_tarihi', gunEkle(bugun(), -7)).order('guncelleme', { ascending: false }).limit(30);
+    liste = data || [];
+    const { data: k } = liste.length ? await sb.from('v_siparis_kalemleri').select('*').in('siparis_id', liste.map(x => x.id)) : { data: [] };
+    kalemler = k || [];
+  }
+  const oncekiler = sonSiparisIdleri; sonSiparisIdleri = new Set(siparisListe.map(x => x.id));
+  $('os-siparisler').innerHTML = liste.length ? liste.map(s => siparisKartHtml(s, kalemler.filter(k => k.siparis_id === s.id), {
+    oda: true, yeni: osSipFiltre === 'acik' && oncekiler && !oncekiler.has(s.id) })).join('')
+    : `<div class="bos">${osSipFiltre === 'acik' ? 'Bekleyen şube siparişi yok.' : 'Son 7 günde gönderilen sipariş yok.'}</div>`;
+}
+const SIP_DURUM = { bekliyor: ['Bekliyor', 'bekliyor'], hazirlaniyor: ['Hazırlanıyor', 'mavi'], gonderildi: ['Gönderildi', 'kabul'], iptal: ['İptal', 'ret'] };
+function siparisKartHtml(s, kalemler, o = {}) {
+  const [dAd, dSinif] = SIP_DURUM[s.durum] || [s.durum, ''];
+  const gonderildi = s.durum === 'gonderildi';
+  const teslim = s.teslim_tarihi === bugun() ? 'bugün' : s.teslim_tarihi === yarin() ? 'yarın' : tarih(s.teslim_tarihi);
+  const satir = k => { const f = Number(k.gonderilen) - Number(k.adet);
+    return `<span>${esc(k.mamul_ad)}</span><span><b>${k.adet}</b></span><span>${gonderildi ? (f === 0 ? `<span class="fark-tamam">${k.gonderilen} ✓</span>` : f < 0 ? `<span class="fark-eksik">${k.gonderilen} (${-f} eksik)</span>` : `<span class="fark-fazla">${k.gonderilen} (+${f})</span>`) : ''}</span>`; };
+  const dugmeler = [];
+  if (o.oda && s.durum === 'bekliyor') dugmeler.push(`<button class="btn kucuk" data-sip-durum="${s.id}" data-d="hazirlaniyor">Hazırlanıyor</button>`);
+  if (o.oda && s.durum === 'hazirlaniyor') dugmeler.push(`<button class="btn kucuk ikincil" data-sip-durum="${s.id}" data-d="bekliyor">Beklemeye al</button>`);
+  if (o.sube && ['bekliyor', 'hazirlaniyor'].includes(s.durum)) dugmeler.push(`<button class="btn kucuk ikincil" data-sip-duzenle="${s.id}">Değiştir</button>`, `<button class="btn kucuk ikincil" data-sip-iptal="${s.id}">İptal</button>`);
+  return `<div class="sip-kart ${o.yeni ? 'yeni' : ''}">
+    <div class="sip-ust"><span class="sube-ad">${esc(s.sube_ad)}</span><span class="rozet ${dSinif}">${dAd}</span>${o.yeni ? '<span class="rozet mavi">Yeni</span>' : ''}
+      <span style="color:var(--soluk);font-size:14px">${esc(s.kod || '')} · teslim ${teslim} · ${s.toplam_adet} tepsi${s.olusturan_ad ? ' · ' + esc(s.olusturan_ad) : ''} · ${saat(s.created_at)}</span>
+      <span class="sag">${dugmeler.join('')}</span></div>
+    <div class="sip-kalem"><span class="bas">ÜRÜN</span><span class="bas">SİPARİŞ</span><span class="bas">${gonderildi ? 'GÖNDERİLEN' : ''}</span>${kalemler.sort((a, b) => a.mamul_ad.localeCompare(b.mamul_ad, 'tr')).map(satir).join('')}</div>
+    ${gonderildi && s.sevkiyat_kod ? `<div class="sip-not">Sevkiyat ${esc(s.sevkiyat_kod)} ile gönderildi.</div>` : ''}
+    ${s.notu ? `<div class="sip-not">Not: ${esc(s.notu)}</div>` : ''}</div>`;
+}
+async function siparisDurumDegistir(id, durum) {
+  const { error } = await sb.rpc('siparis_durum', { p_id: Number(id), p_durum: durum });
+  if (error) return bildir(hataMesaji(error), true);
+  if (aktifSayfa === 'odastok') odaStokYukle(); else if (aktifSayfa === 'sube') subeSiparisleri();
+}
+document.addEventListener('click', ev => {
+  const d = ev.target.closest('[data-sip-durum]'); if (d) return siparisDurumDegistir(d.dataset.sipDurum, d.dataset.d);
+  const i = ev.target.closest('[data-sip-iptal]');
+  if (i) { if (!i.dataset.onay) { i.dataset.onay = '1'; i.textContent = 'Emin misiniz? Tekrar dokunun'; setTimeout(() => { delete i.dataset.onay; i.textContent = 'İptal'; }, 4000); return; }
+    return siparisDurumDegistir(i.dataset.sipIptal, 'iptal'); }
+  const e = ev.target.closest('[data-sip-duzenle]'); if (e) return siparisFormu(Number(e.dataset.sipDuzenle));
+  const f = ev.target.closest('#os-sip-filtre [data-sf]');
+  if (f) { osSipFiltre = f.dataset.sf; document.querySelectorAll('#os-sip-filtre .cip').forEach(c => c.classList.toggle('secili', c === f)); siparisleriCiz(); }
+});
+$('os-yenile').onclick = odaStokYukle;
+// Oda ekranları açıkken siparişler kendiliğinden düşsün
+setInterval(() => {
+  if (document.hidden || !profil?.id) return;
+  if (aktifSayfa === 'odastok') odaStokYukle();
+  else if (aktifSayfa === 'oda') odaUyarilari();
+}, 45000);
+
+// Yüklemede: okutulan tepsiden daha eski aynı ürün odada kaldıysa uyar
+async function eskiTepsiKontrol(kod, mamulAd) {
+  const gun = kodGunu(kod); if (!gun || !mamulAd) return;
+  const { data } = await sb.from('v_oda_stok').select('uretim_tarihi,adet,ilk_kod').eq('mamul_ad', mamulAd).lt('uretim_tarihi', gun).order('uretim_tarihi');
+  if (!data || !data.length) return;
+  const n = data.reduce((t, r) => t + Number(r.adet), 0);
+  ses('uyari');
+  svDurum('uyari', `✓ ${kod} yüklendi — ama odada daha eski ${mamulAd} var`,
+    `${data.map(r => `${kacGunOnce(r.uretim_tarihi)} parti (${tarih(r.uretim_tarihi)}): ${r.adet} tepsi`).join(' · ')}. Önce eskileri gönderin (toplam ${n}).`);
+}
+// Yüklemede: bu şubenin siparişi ile araçtaki tepsileri karşılaştır
+async function svSiparisCiz(aracta) {
+  const x = aktifSevkiyat, kap = $('sv-siparis');
+  if (!x || !x.sube_id) { kap.innerHTML = ''; return; }
+  let q = sb.from('v_siparis_kalemleri').select('*');
+  q = x.durum === 'yukleniyor' ? q.eq('sube_id', x.sube_id).in('durum', ['bekliyor', 'hazirlaniyor']).lte('teslim_tarihi', yarin()) : q.eq('sevkiyat_id', x.id);
+  const { data } = await q;
+  if (!data || !data.length) { kap.innerHTML = x.durum === 'yukleniyor' ? `<div class="sip-not" style="margin-bottom:10px">${esc(x.sube_ad || 'Bu şube')} için bekleyen sipariş yok.</div>` : ''; return; }
+  const g = {}; data.forEach(k => { g[k.mamul_ad] = (g[k.mamul_ad] || 0) + Number(k.adet); });
+  const adlar = [...new Set([...Object.keys(g), ...Object.keys(aracta)])].sort((a, b) => a.localeCompare(b, 'tr'));
+  let eksik = 0, fazla = 0;
+  const satirlar = adlar.map(ad => { const s = g[ad] || 0, a = aracta[ad] || 0, f = a - s;
+    if (f < 0) eksik -= f; else fazla += f;
+    return `<span>${esc(ad)}</span><span><b>${s || '–'}</b></span><span>${f === 0 ? `<span class="fark-tamam">${a} ✓</span>` : f < 0 ? `<span class="fark-eksik">${a} · ${-f} eksik</span>` : `<span class="fark-fazla">${a} · ${s ? `+${f} fazla` : 'siparişte yok'}</span>`}</span>`; });
+  kap.innerHTML = `<div class="sv-sip"><h4>${esc(x.sube_ad || '')} siparişi · ${eksik ? `<span class="fark-eksik">${eksik} tepsi eksik</span>` : '<span class="fark-tamam">sipariş tamam</span>'}${fazla ? ` · <span class="fark-fazla">${fazla} fazla</span>` : ''}</h4>
+    <div class="sip-kalem"><span class="bas">ÜRÜN</span><span class="bas">SİPARİŞ</span><span class="bas">ARAÇTA</span>${satirlar.join('')}</div></div>`;
+}
+
+// ---- Şube: sipariş verme ----
+let sipMamuller = null;
+const subeSecili = () => Number($('sb2-sube').value) || profil.sube_id;
+async function subeSiparisleri() {
+  const subeId = subeSecili(); if (!subeId) return;
+  const { data, error } = await sb.from('v_siparisler').select('*').eq('sube_id', subeId).order('created_at', { ascending: false }).limit(8);
+  if (error) return bildir(hataMesaji(error), true);
+  const { data: k } = data.length ? await sb.from('v_siparis_kalemleri').select('*').in('siparis_id', data.map(x => x.id)) : { data: [] };
+  $('sb2-siparisler').innerHTML = data.length ? data.map(s => siparisKartHtml(s, (k || []).filter(x => x.siparis_id === s.id), { sube: true })).join('')
+    : '<div class="bos">Henüz sipariş verilmedi. “Sipariş ver” ile baklava odasına liste gönderin.</div>';
+}
+async function siparisFormu(duzenleId = null) {
+  const subeId = subeSecili();
+  if (!subeId) return bildir('Önce şube seçin.', true);
+  if (!sipMamuller) { const { data } = await sb.from('mamuller').select('id,ad,dara_kod,grup').eq('aktif', true).order('grup').order('ad'); sipMamuller = data || []; }
+  let mevcut = {}, teslim = new Date().getHours() < 12 ? bugun() : yarin(), notu = '';
+  if (duzenleId) {
+    const [{ data: s }, { data: k }] = await Promise.all([sb.from('siparisler').select('*').eq('id', duzenleId).single(), sb.from('siparis_kalemleri').select('*').eq('siparis_id', duzenleId)]);
+    if (s) { teslim = s.teslim_tarihi; notu = s.notu || ''; } (k || []).forEach(x => { mevcut[x.mamul_id] = x.adet; });
+  }
+  const subeAd = subeler.find(x => x.id === subeId)?.ad || '';
+  modalAc(`${duzenleId ? 'Siparişi değiştir' : 'Sipariş ver'} · ${subeAd}`, `
+    <div class="satir" style="gap:10px;flex-wrap:wrap">
+      <label style="flex:1;min-width:150px">Teslim günü <input type="date" id="sp-teslim" value="${teslim}" min="${bugun()}"></label>
+      <label style="flex:2;min-width:180px">Ara <input type="search" id="sp-ara" placeholder="Ürün adı…"></label>
+    </div>
+    ${duzenleId ? '' : '<button type="button" class="kk-tam-dugme koyu" id="sp-son" style="margin-top:8px">Son siparişimi kopyala</button>'}
+    <div class="sip-form-liste" id="sp-liste">${sipMamuller.map(m => `<div class="sip-form-satir ${mevcut[m.id] ? 'dolu' : ''}" data-ad="${esc((m.ad + ' ' + (m.dara_kod || '')).toLocaleLowerCase('tr'))}">
+      <span><b>${esc(m.ad)}</b>${m.grup || m.dara_kod ? `<small>${esc([m.grup, m.dara_kod].filter(Boolean).join(' · '))}</small>` : ''}</span>
+      <span class="adim kucuk" style="flex:none"><button type="button" data-adim="-1" aria-label="Bir azalt">−</button><input type="number" min="0" max="999" inputmode="numeric" value="${mevcut[m.id] || ''}" placeholder="0" data-sp-mamul="${m.id}" aria-label="${esc(m.ad)} adet"><button type="button" data-adim="1" aria-label="Bir artır">+</button></span>
+    </div>`).join('')}</div>
+    <label>Not (isteğe bağlı) <input id="sp-not" value="${esc(notu)}" placeholder="Örn. öğlene kadar lazım"></label>
+    <div class="satir" style="justify-content:space-between;margin-top:12px;align-items:center">
+      <span id="sp-toplam" style="font-weight:700;color:var(--soluk)">0 tepsi</span>
+      <button class="btn" type="button" id="sp-gonder">${duzenleId ? 'Kaydet' : 'Siparişi odaya gönder'}</button>
+    </div>`);
+  const toplam = () => { let t = 0; document.querySelectorAll('[data-sp-mamul]').forEach(i => { const n = parseInt(i.value, 10) || 0; t += n; i.closest('.sip-form-satir').classList.toggle('dolu', n > 0); });
+    $('sp-toplam').textContent = `${t} tepsi`; return t; };
+  $('sp-liste').addEventListener('input', toplam);
+  $('sp-liste').addEventListener('click', () => setTimeout(toplam, 0));
+  toplam();
+  $('sp-ara').oninput = () => { const q = $('sp-ara').value.trim().toLocaleLowerCase('tr'); document.querySelectorAll('#sp-liste .sip-form-satir').forEach(r => r.classList.toggle('gizli', !!q && !r.dataset.ad.includes(q))); };
+  if ($('sp-son')) $('sp-son').onclick = async () => {
+    const { data: s } = await sb.from('siparisler').select('id').eq('sube_id', subeId).neq('durum', 'iptal').order('created_at', { ascending: false }).limit(1);
+    if (!s || !s.length) return bildir('Bu şubenin önceki siparişi yok.', true);
+    const { data: k } = await sb.from('siparis_kalemleri').select('mamul_id,adet').eq('siparis_id', s[0].id);
+    document.querySelectorAll('[data-sp-mamul]').forEach(i => { const x = (k || []).find(y => y.mamul_id === Number(i.dataset.spMamul)); i.value = x ? x.adet : ''; });
+    toplam();
+  };
+  $('sp-gonder').onclick = async () => {
+    const kalemler = [...document.querySelectorAll('[data-sp-mamul]')].map(i => ({ mamul_id: Number(i.dataset.spMamul), adet: parseInt(i.value, 10) || 0 })).filter(x => x.adet > 0);
+    if (!kalemler.length) return bildir('En az bir ürüne adet yazın.', true);
+    $('sp-gonder').disabled = true;
+    const { error } = await sb.rpc('siparis_kaydet', { p_id: duzenleId, p_sube_id: subeId, p_teslim: $('sp-teslim').value || bugun(), p_kalemler: kalemler, p_not: $('sp-not').value });
+    $('sp-gonder').disabled = false;
+    if (error) return bildir(hataMesaji(error), true);
+    modalKapat(); bildir(duzenleId ? 'Sipariş güncellendi.' : `Sipariş baklava odasına gönderildi · ${kalemler.reduce((t, x) => t + x.adet, 0)} tepsi`);
+    subeSiparisleri();
+  };
+}
+$('sb2-siparis-yeni').onclick = () => siparisFormu();
+
 async function odaYukle() {
   const gun = $('o-gun').value || bugun();
   const { data, error } = await sb.rpc('baklava_odasi', { p_tarih: gun });
   if (error) return bildir(hataMesaji(error), true);
   odaSatirlar = data;
   odaCiz();
+  odaUyarilari();
 }
 function odaCiz() {
   const toplamIe = odaSatirlar.reduce((s, r) => s + Number(r.is_emri), 0);
@@ -3641,6 +3948,13 @@ async function panoYukle() {
   if (o.arac_uygunsuz) ekle('sevkiyat', 'kirmizi', `Son 7 günde ${o.arac_uygunsuz} araç temizlik kontrolünden geçemedi`, 'Temizlikten sonra yeniden kontrol edilmeli');
   if (o.sevkiyat_acik) ekle('sevkiyat', 'mavi', `${o.sevkiyat_acik} araç yükleniyor`, 'Yükleme bitince “Yükleme bitti, yola çıktı” deyin');
   if (o.sevkiyat_yolda) ekle('sube', 'mavi', `${o.sevkiyat_yolda} araç yolda, şubede teslim bekleniyor`, 'Şube gelen tepsileri “Teslim al” ile okutmalı');
+  if (izin.includes('odastok')) {
+    const [{ data: os }, { data: sp }] = await Promise.all([sb.from('v_oda_stok').select('adet,uretim_tarihi').lt('uretim_tarihi', bugun()),
+      sb.from('v_siparisler').select('sube_ad,toplam_adet').in('durum', ['bekliyor', 'hazirlaniyor'])]);
+    const eski = (os || []).reduce((t, r) => t + Number(r.adet), 0);
+    if (eski) ekle('odastok', 'kirmizi', `Baklava odasında dünden kalan ${eski} tepsi var`, 'Bugünkülerden önce bunlar sevk edilmeli');
+    if ((sp || []).length) ekle('odastok', 'mavi', `${sp.length} şube siparişi bekliyor · ${sp.reduce((t, x) => t + Number(x.toplam_adet), 0)} tepsi`, [...new Set(sp.map(x => x.sube_ad))].join(', '));
+  }
   if (o.skt_hammadde) ekle('stok', '', `${o.skt_hammadde} paket hammaddenin SKT'sine 30 gün ya da daha az kaldı`, 'Üretime önce bunları verin', 'st-ozet:skt');
   $('pano-dikkat').innerHTML = d.length ? d.join('')
     : `<div class="her-sey-yolunda">${ikon('bitti', 20, 2)}Bekleyen iş yok.</div>`;
@@ -3746,13 +4060,13 @@ const ROLLER = {
       'Üretime giden her paketi Üretime Ver ekranında okutun. Stoktan düşer ve o günün tepsilerine bağlanır.'] },
   uretim: { ad: 'Üretime verme', alt: 'Depodan çıkan paketleri okutma', ekran: 'uretim', dugmeler: [['uretim', 'Okutmaya başla']],
     adimlar: ['Üretime giden her çuval / kova / tenekenin QR etiketini okutun.', 'Yeşil ses ve yazı: tamam. Kırmızı: o paket üretime verilemez, depoya bildirin.', 'Yanlış okutursanız “geri al” ile düzeltin.'] },
-  oda: { ad: 'Baklava odası', alt: 'Tepsilere QR etiket', ekran: 'oda', dugmeler: [['oda', 'Tepsi etiketi bas']],
+  oda: { ad: 'Baklava odası', alt: 'Tepsilere QR etiket', ekran: 'oda', dugmeler: [['oda', 'Tepsi etiketi bas'], ['odastok', 'Stok ve siparişler']],
     adimlar: ['Çıkan her tepsi için mamulü seçip adedi girin ve basın; Dara iş emri listesini beklemek zorunda değilsiniz.',
       'Her tepsiye kendi QR etiketini yapıştırın; tepsi o günün hammaddelerine bağlanır.', 'Liste gelince basılan ile iş emri karşılaştırılır, etiketsiz tepsi kalmaz.'] },
   sevkiyat: { ad: 'Sevkiyat', alt: 'Araç kontrolü ve yükleme', ekran: 'sevkiyat', dugmeler: [['sevkiyat', 'Sevkiyat başlat']],
     adimlar: ['Aracı ve şoförü seçin, temizlik kontrol formunu doldurun. Uygun olmayan araca yükleme yapılamaz.',
       'Araca konan her tepsinin QR’ını okutun.', 'Yükleme bitince “yola çıktı” deyin. Şube teslim alırken sayılar karşılaştırılır.'] },
-  sube: { ad: 'Şube', alt: 'Gelen tepsileri teslim alma', ekran: 'sube', dugmeler: [['sube', 'Teslim al']],
+  sube: { ad: 'Şube', alt: 'Teslim alma ve sipariş', ekran: 'sube', dugmeler: [['sube', 'Teslim al / sipariş ver']],
     adimlar: ['Araç gelince her tepsiyi “Teslim al” ile okutun.', 'Gönderilen ile teslim alınan tutmazsa eksik olarak kayda geçer.',
       'Biten tepsiyi “Bitti / satıldı”, bozulanı “Fire / imha” ile okutun.'] },
   muhendis: { ad: 'Gıda mühendisi', alt: 'Kabul ve araç kontrol formlarının onayı', ekran: 'muhendis', dugmeler: [['muhendis', 'Onay bekleyenler'], ['rapor', 'Firma ve araç karnesi']],
@@ -3831,7 +4145,7 @@ async function rolKartiYukle() {
 // Birlikte yapılan işler tek ekranda iki sekme: Depo (Mal Kabul + Üretime Ver), Oda & Sevkiyat (Baklava Odası + Sevkiyat)
 const GRUPLAR = {
   depo: { ad: 'Depo', ekranlar: ['kabul', 'uretim'], ikon: 'kabul' },
-  odasevk: { ad: 'Oda & Sevkiyat', ekranlar: ['oda', 'sevkiyat'], ikon: 'oda' }
+  odasevk: { ad: 'Oda & Sevkiyat', ekranlar: ['oda', 'odastok', 'sevkiyat'], ikon: 'oda' }
 };
 const grupBul = ad => Object.keys(GRUPLAR).find(k => GRUPLAR[k].ekranlar.includes(ad));
 (function gruplariKur() {
@@ -3881,6 +4195,7 @@ function sayfaAc(ad) {
   if (ad === 'muhendis') { muhendisYukle(); bekleyenSay(); }
   if (ad === 'sablon') sablonSayfasi();
   if (ad === 'oda') { if (!$('o-gun').value) $('o-gun').value = bugun(); odaYukle(); }
+  if (ad === 'odastok') odaStokYukle();
   if (ad === 'mamuller') mamullerYukle();
   if (ad === 'kullanicilar') { kullanicilarYukle(); yeniKullaniciFormu(); }
   if (ad === 'rapor') { if (!$('r-bas').value) { $('r-bit').value = bugun(); $('r-bas').value = gunEkle(bugun(), -90); } raporGetir(); }
