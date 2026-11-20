@@ -73,6 +73,8 @@
   .okut-durum small { display: block; font-size: 15px; font-weight: 600; margin-top: 4px; opacity: .85; }
   .okut-durum.bekle { background: #EFEBDD; color: var(--soluk); }
   .okut-durum.ok { background: #2E7D32; color: #fff; }
+  .okut-durum.bilgi { background: #2E7D32; color: #fff; }
+  .okut-durum.bilgi small { background: rgba(255,255,255,.18); border-radius: 8px; padding: 4px 8px; margin-top: 6px; display: inline-block; }
   .okut-durum.uyari { background: #F3C969; color: #3D2B00; }
   .okut-durum.hata { background: var(--hata); color: #fff; }
   .ozet-satir { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
@@ -777,7 +779,6 @@
           <label style="flex-direction:row;align-items:center;gap:8px">Üretim günü <input type="date" id="o-gun"></label>
           <button class="btn" type="button" id="o-hepsi">Tüm etiketsizleri bas</button>
         </div>
-        <div id="o-eski" class="eski-kap"></div>
         <div id="o-siparis-uyari"></div>
         <div id="o-ozet" class="ozet-satir"></div>
         <div class="arac-cubugu" data-filtre-hedef="o-liste">
@@ -792,8 +793,14 @@
 
     <!-- ODA STOĞU + ŞUBE SİPARİŞLERİ -->
     <section data-sayfa="odastok" class="gizli">
-      <h2>Oda Stoğu ve Şube Siparişleri</h2>
-      <div id="os-eski" class="eski-kap"></div>
+      <h2>Şube Siparişleri ve Oda Stoğu</h2>
+      <div class="kart">
+        <div class="satir" style="justify-content:space-between;margin-bottom:10px">
+          <h3 style="margin:0">Şube siparişleri</h3>
+          <div class="cipler" id="os-sip-filtre"><button type="button" class="cip secili" data-sf="acik">Bekleyen</button><button type="button" class="cip" data-sf="gonderildi">Gönderilen</button></div>
+        </div>
+        <div id="os-siparisler"></div>
+      </div>
       <div class="kart">
         <div class="satir" style="justify-content:space-between;margin-bottom:10px">
           <h3 style="margin:0">Odadaki tepsiler · şu an <span id="os-saat" style="color:var(--soluk);font-weight:600;font-size:14px"></span></h3>
@@ -802,17 +809,10 @@
         <div id="os-ozet" class="ozet-satir"></div>
         <div class="arac-cubugu" data-filtre-hedef="os-liste">
           <input class="ara" type="search" placeholder="Ara: mamul adı veya Dara kodu" aria-label="Mamul ara">
-          <div class="cipler"><button type="button" class="cip secili" data-f="">Hepsi</button><button type="button" class="cip" data-f="eski">Dünden kalan</button><button type="button" class="cip" data-f="eksik">Siparişe yetmeyen</button></div>
+          <div class="cipler"><button type="button" class="cip secili" data-f="">Hepsi</button><button type="button" class="cip" data-f="eski">Önceki günlerin üretimi</button><button type="button" class="cip" data-f="eksik">Siparişe yetmeyen</button></div>
           <span class="sonuc-say"></span>
         </div>
         <div id="os-liste"></div>
-      </div>
-      <div class="kart">
-        <div class="satir" style="justify-content:space-between;margin-bottom:10px">
-          <h3 style="margin:0">Şube siparişleri</h3>
-          <div class="cipler" id="os-sip-filtre"><button type="button" class="cip secili" data-sf="acik">Bekleyen</button><button type="button" class="cip" data-sf="gonderildi">Gönderilen</button></div>
-        </div>
-        <div id="os-siparisler"></div>
       </div>
     </section>
 
@@ -3226,7 +3226,6 @@ async function acikSiparisleriGetir() {
 // Baklava odası ekranının üstündeki uyarılar
 async function odaUyarilari() {
   const [stok, sip] = await Promise.all([odaStokGetir(), acikSiparisleriGetir()]);
-  if (stok) $('o-eski').innerHTML = eskiTepsiHtml(stok);
   const n = sip.length;
   $('o-siparis-uyari').innerHTML = n ? `<button type="button" class="dikkat mavi" data-git="odastok" style="margin-bottom:14px">${ikon('sevkiyat', 22, 2)}<span>${n} şube siparişi bekliyor · ${sip.reduce((t, x) => t + Number(x.toplam_adet), 0)} tepsi<small>${esc([...new Set(sip.map(x => x.sube_ad))].join(', '))} · stok ve siparişleri görmek için dokunun</small></span>${ikon('ileri', 18, 2)}</button>` : '';
   sekmeRozeti(n);
@@ -3244,7 +3243,6 @@ async function odaStokYukle() {
   if (!stok) return;
   siparisListe = sip; sekmeRozeti(sip.length);
   $('os-saat').textContent = '· ' + new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-  $('os-eski').innerHTML = eskiTepsiHtml(stok);
   // Mamul bazında topla: bugün / dün / daha eski + bekleyen sipariş
   const g = {};
   stok.forEach(r => {
@@ -3254,20 +3252,19 @@ async function odaStokYukle() {
     x.toplam += n; if (r.skt && (!x.skt || r.skt < x.skt)) x.skt = r.skt;
   });
   siparisKalemleri.forEach(k => { const x = g[k.mamul_id] ||= { ad: k.mamul_ad, kod: k.dara_kod, bugun: 0, dun: 0, eski: 0, toplam: 0, skt: null, siparis: 0 }; x.siparis += Number(k.adet); });
-  const satirlar = Object.values(g).sort((a, b) => (b.dun + b.eski) - (a.dun + a.eski) || b.toplam - a.toplam || a.ad.localeCompare(b.ad, 'tr'));
+  const satirlar = Object.values(g).sort((a, b) => b.siparis - a.siparis || b.toplam - a.toplam || a.ad.localeCompare(b.ad, 'tr'));
   const t = k => satirlar.reduce((s, x) => s + x[k], 0);
   const eksikToplam = satirlar.reduce((s, x) => s + Math.max(0, x.siparis - x.toplam), 0);
   $('os-ozet').innerHTML = `<div class="ozet"><b>${t('toplam')}</b>Odadaki tepsi</div>
     <div class="ozet"><b>${t('bugun')}</b>Bugün üretilen</div>
-    <div class="ozet ${t('dun') + t('eski') ? 'uyari' : 'iyi'}"><b>${t('dun') + t('eski')}</b>Dünden / önceden kalan</div>
     <div class="ozet"><b>${t('siparis')}</b>Bekleyen sipariş (tepsi)</div>
     ${t('siparis') ? `<div class="ozet ${eksikToplam ? 'uyari' : 'iyi'}"><b>${eksikToplam}</b>Siparişe yetmeyen</div>` : ''}`;
-  $('os-liste').innerHTML = satirlar.length ? `<table><tr><th>Mamul</th><th>Bugün</th><th>Dün</th><th>Daha eski</th><th>Odada toplam</th><th>En yakın SKT</th><th>Sipariş</th><th>Durum</th></tr>
+  $('os-liste').innerHTML = satirlar.length ? `<table><tr><th>Mamul</th><th>Bugün üretim</th><th>Dün üretim</th><th>Daha önce</th><th>Odada toplam</th><th>En yakın SKT</th><th>Sipariş</th><th>Durum</th></tr>
     ${satirlar.map(x => { const fark = x.toplam - x.siparis;
       const durum = !x.siparis ? '<span style="color:var(--soluk)">–</span>' : fark < 0 ? `<span class="fark-eksik">${-fark} eksik · üretilmeli</span>` : `<span class="fark-tamam">Yeter${fark ? ` (+${fark})` : ''}</span>`;
       return `<tr data-f="${[x.dun + x.eski ? 'eski' : '', x.siparis && fark < 0 ? 'eksik' : ''].join(' ')}">
         <td><b>${esc(x.ad)}</b>${x.kod ? `<div class="mono" style="font-size:12px;color:var(--soluk)">${esc(x.kod)}</div>` : ''}</td>
-        <td>${x.bugun || '–'}</td><td>${x.dun ? `<b class="fark-fazla">${x.dun}</b>` : '–'}</td><td>${x.eski ? `<b class="fark-eksik">${x.eski}</b>` : '–'}</td>
+        <td>${x.bugun || '–'}</td><td>${x.dun || '–'}</td><td>${x.eski || '–'}</td>
         <td><b>${x.toplam}</b></td><td>${x.skt ? `<span${x.skt <= yarin() ? ' class="fark-eksik"' : ''}>${tarih(x.skt)}</span>` : '–'}</td>
         <td>${x.siparis || '–'}</td><td>${durum}</td></tr>`; }).join('')}</table>`
     : '<div class="bos">Odada sevk bekleyen tepsi yok.</div>';
@@ -3330,12 +3327,12 @@ setInterval(() => {
 // Yüklemede: okutulan tepsiden daha eski aynı ürün odada kaldıysa uyar
 async function eskiTepsiKontrol(kod, mamulAd) {
   const gun = kodGunu(kod); if (!gun || !mamulAd) return;
-  const { data } = await sb.from('v_oda_stok').select('uretim_tarihi,adet,ilk_kod').eq('mamul_ad', mamulAd).lt('uretim_tarihi', gun).order('uretim_tarihi');
+  const { data } = await sb.from('v_oda_stok').select('uretim_tarihi,adet').eq('mamul_ad', mamulAd).lt('uretim_tarihi', gun).order('uretim_tarihi');
   if (!data || !data.length) return;
   const n = data.reduce((t, r) => t + Number(r.adet), 0);
-  ses('uyari');
-  svDurum('uyari', `✓ ${kod} yüklendi — ama odada daha eski ${mamulAd} var`,
-    `${data.map(r => `${kacGunOnce(r.uretim_tarihi)} parti (${tarih(r.uretim_tarihi)}): ${r.adet} tepsi`).join(' · ')}. Önce eskileri gönderin (toplam ${n}).`);
+  const gunler = [...new Set(data.map(r => r.uretim_tarihi))];
+  const gunAd = t => gunFarki(t, bugun()) === 1 ? `dün (${tarih(t).slice(0, 5)})` : tarih(t).slice(0, 5);
+  svDurum('bilgi', `✓ ${kod} okutuldu`, `Bu üründen üretimi ${gunler.map(gunAd).join(' ve ')} olan ${n} tepsi stokta var.`);
 }
 // Yüklemede: bu şubenin siparişi ile araçtaki tepsileri karşılaştır
 async function svSiparisCiz(aracta) {
@@ -3952,7 +3949,6 @@ async function panoYukle() {
     const [{ data: os }, { data: sp }] = await Promise.all([sb.from('v_oda_stok').select('adet,uretim_tarihi').lt('uretim_tarihi', bugun()),
       sb.from('v_siparisler').select('sube_ad,toplam_adet').in('durum', ['bekliyor', 'hazirlaniyor'])]);
     const eski = (os || []).reduce((t, r) => t + Number(r.adet), 0);
-    if (eski) ekle('odastok', 'kirmizi', `Baklava odasında dünden kalan ${eski} tepsi var`, 'Bugünkülerden önce bunlar sevk edilmeli');
     if ((sp || []).length) ekle('odastok', 'mavi', `${sp.length} şube siparişi bekliyor · ${sp.reduce((t, x) => t + Number(x.toplam_adet), 0)} tepsi`, [...new Set(sp.map(x => x.sube_ad))].join(', '));
   }
   if (o.skt_hammadde) ekle('stok', '', `${o.skt_hammadde} paket hammaddenin SKT'sine 30 gün ya da daha az kaldı`, 'Üretime önce bunları verin', 'st-ozet:skt');
