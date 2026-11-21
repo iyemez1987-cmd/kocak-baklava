@@ -1179,18 +1179,19 @@
               <option value="arac">Araç değerlendirme (sevkiyat)</option>
             </select>
           </label>
-          <label>Başlangıç <input type="date" id="r-bas"></label>
-          <label>Bitiş <input type="date" id="r-bit"></label>
-          <div class="satir" style="gap:6px">
-            <button class="btn ikincil kucuk" type="button" data-r-donem="bugun">Bugün</button>
-            <button class="btn ikincil kucuk" type="button" data-r-donem="hafta">Bu hafta</button>
-            <button class="btn ikincil kucuk" type="button" data-r-donem="ay">Bu ay</button>
-            <button class="btn ikincil kucuk" type="button" data-r-donem="gecenay">Geçen ay</button>
-            <button class="btn ikincil kucuk" type="button" data-r-gun="30">Son 30 gün</button>
-            <button class="btn ikincil kucuk" type="button" data-r-gun="90">Son 3 ay</button>
-            <button class="btn ikincil kucuk" type="button" data-r-gun="365">Son 1 yıl</button>
-          </div>
-          <button class="btn" type="button" id="r-getir">Raporla</button>
+          <label>Dönem
+            <select id="r-donem" style="min-width:170px">
+              <option value="bugun">Bugün</option>
+              <option value="ay" selected>Bu ay</option>
+              <option value="gecenay">Geçen ay</option>
+              <option value="3ay">Son 3 ay</option>
+              <option value="yil">Bu yıl</option>
+              <option value="ozel">Tarih seç…</option>
+            </select>
+          </label>
+          <label class="r-tarih gizli">Başlangıç <input type="date" id="r-bas"></label>
+          <label class="r-tarih gizli">Bitiş <input type="date" id="r-bit"></label>
+          <button class="btn gizli" type="button" id="r-getir">Raporla</button>
         </div>
         <div id="r-ozet" class="ozet-satir"></div>
         <div id="r-liste"></div>
@@ -3540,12 +3541,18 @@ function donemAraligi(d) {
   if (d === 'bugun') return [b, b];
   if (d === 'hafta') { const g = (new Date(b + 'T12:00:00').getDay() + 6) % 7; return [gunEkle(b, -g), b]; }
   if (d === 'ay') return [iso(y, m, 1), b];
+  if (d === '3ay') return [gunEkle(b, -90), b];
+  if (d === 'yil') return [iso(y, 1, 1), b];
   const py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return [iso(py, pm, 1), gunEkle(iso(y, m, 1), -1)];
 }
-document.addEventListener('click', ev => {
-  const b = ev.target.closest('[data-r-donem]'); if (!b) return;
-  [$('r-bas').value, $('r-bit').value] = donemAraligi(b.dataset.rDonem); raporGetir();
-});
+function donemUygula() {
+  const d = $('r-donem').value, ozel = d === 'ozel';
+  document.querySelectorAll('.r-tarih').forEach(l => l.classList.toggle('gizli', !ozel)); $('r-getir').classList.toggle('gizli', !ozel);
+  if (ozel) { if (!$('r-bas').value) [$('r-bas').value, $('r-bit').value] = donemAraligi('ay'); return; }
+  [$('r-bas').value, $('r-bit').value] = donemAraligi(d); raporGetir();
+}
+$('r-donem').addEventListener('change', donemUygula);
+['r-bas', 'r-bit'].forEach(id => $(id).addEventListener('change', () => { if ($('r-bas').value && $('r-bit').value) raporGetir(); }));
 let kullanimVeri = null;
 async function kullanimRaporu(bas, bit) {
   const { data, error } = await sb.rpc('hammadde_kullanim', { p_bas: bas, p_bit: bit });
@@ -4908,7 +4915,7 @@ function sayfaAc(ad) {
   if (ad === 'analiz') anYukle();
   if (ad === 'mamuller') mamullerYukle();
   if (ad === 'kullanicilar') { kullanicilarYukle(); yeniKullaniciFormu(); }
-  if (ad === 'rapor') { if (!$('r-bas').value) { $('r-bit').value = bugun(); $('r-bas').value = gunEkle(bugun(), -90); } raporGetir(); }
+  if (ad === 'rapor') { if (!$('r-bas').value || $('r-donem').value !== 'ozel') [$('r-bas').value, $('r-bit').value] = donemAraligi($('r-donem').value === 'ozel' ? 'ay' : $('r-donem').value); raporGetir(); }
   if (ad === 'sevkiyat') { if (!$('sv-gun').value) $('sv-gun').value = bugun(); sevkiyatSayfasi(); }
   if (ad === 'sube') subeSayfasi();
   if (ad === 'firmalar') subelerCiz();
