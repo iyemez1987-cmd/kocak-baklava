@@ -238,6 +238,26 @@
   .dikkat small { display: block; font-weight: 600; opacity: .85; font-size: 13.5px; margin-top: 2px; }
   .dikkat > .ik:last-child { margin-left: auto; opacity: .6; }
   .dikkat.mavi { background: #E7EEF7; color: #1F3A63; border-color: #C9D7EA; }
+  .hm-urunler { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .hm-urun { text-align: left; border: 2px solid var(--cizgi); background: var(--kart); border-radius: 14px; padding: 12px 14px; cursor: pointer; font: inherit; color: var(--metin); display: flex; flex-direction: column; gap: 3px; min-height: 84px; }
+  .hm-urun b { font-size: 16.5px; line-height: 1.2; }
+  .hm-urun small { color: var(--soluk); font-size: 13px; }
+  .hm-urun .hm-kalan { font-weight: 800; font-size: 15px; color: var(--ekran); margin-top: auto; }
+  .hm-urun.secili { border-color: var(--ekran); background: color-mix(in srgb, var(--ekran) 9%, var(--kart)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ekran) 22%, transparent); }
+  .hm-urun.bos { opacity: .55; }
+  .hm-urun.bos .hm-kalan { color: var(--soluk); }
+  .hm-panel { margin-top: 14px; border: 2px solid var(--ekran); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: color-mix(in srgb, var(--ekran) 5%, var(--kart)); }
+  .hm-baslik { display: flex; justify-content: space-between; align-items: center; font-size: 20px; }
+  .hm-kapat { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--soluk); padding: 4px 8px; }
+  .hm-parti { font-size: 14.5px; color: var(--soluk); }
+  .hm-parti b { color: var(--metin); }
+  .hm-giris { position: relative; }
+  .hm-giris .okut-input { font-family: inherit; text-transform: none; letter-spacing: 0; font-size: 32px; font-weight: 800; padding-right: 70px; text-align: left; }
+  .hm-giris .okut-input::placeholder { font-size: 20px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .hm-panel { margin: 0 0 14px; }
+  .hm-birim { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 22px; font-weight: 800; color: var(--soluk); pointer-events: none; }
+  .hm-ver { font-size: 18px; padding: 14px; justify-content: center; }
+  .miktar-yok { color: var(--hata); font-weight: 700; }
   .eski-kap:empty { display: none; }
   .eski-uyari { border-radius: 14px; border: 2px solid #E5A93A; background: #FFF4DC; color: #4A3200; padding: 14px 16px; margin-bottom: 14px; }
   .eski-uyari.kirmizi { border-color: #D9574B; background: #FDEBE8; color: #6E1810; }
@@ -742,8 +762,25 @@
     <!-- ÜRETİME VER -->
     <section data-sayfa="uretim" class="gizli">
       <h2>Üretime Ver</h2>
+      <div class="kart" id="hm-kart">
+        <div class="satir" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h3 style="margin:0">Hammadde seçin, miktarı yazın</h3>
+          <input type="search" id="hm-ara" placeholder="Ara…" aria-label="Hammadde ara" style="max-width:200px">
+        </div>
+        <form id="hm-form" class="hm-panel gizli" autocomplete="off">
+          <div class="hm-baslik"><b id="hm-ad"></b><button type="button" class="hm-kapat" id="hm-kapat" aria-label="Seçimi kapat">✕</button></div>
+          <div id="hm-parti" class="hm-parti"></div>
+          <div class="okut-satir hm-giris">
+            <input id="hm-miktar" class="okut-input" type="text" inputmode="decimal" placeholder="Ürün miktarını girin" aria-label="Ürün miktarı">
+            <span class="hm-birim" id="hm-birim">kg</span>
+          </div>
+          <button class="btn hm-ver" type="submit" id="hm-ver">Üretime ver</button>
+          <div id="hm-durum" class="okut-durum bekle gizli"></div>
+        </form>
+        <div id="hm-urunler" class="hm-urunler"></div>
+      </div>
       <form id="u-okut-form" class="kart okut-kart">
-        <label style="font-size:16px">Üretime verilecek çuval / kova / tenekenin QR'ını okutun
+        <label style="font-size:16px">Etiketle verilen ürünler ya da parti değiştirmek için QR okutun
         </label>
         <div class="okut-satir">
           <input id="u-okut" class="okut-input" placeholder="QR okutun…" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="QR kodu">
@@ -752,7 +789,7 @@
         <button type="button" id="u-elle" class="gizli" style="align-self:flex-start;background:none;border:0;color:var(--yesil);font-weight:700;text-decoration:underline;cursor:pointer;padding:0">⌨ Kodu elle yaz</button>
         <div id="u-durum" class="okut-durum bekle">Hazır. Okutmaya başlayabilirsiniz.</div>
         <div class="okut-ust">
-          <div class="buyuk-sayac"><b id="u-sayac">0</b><span id="u-sayac-yazi">paket bugün üretime verildi</span></div>
+          <div class="buyuk-sayac"><b id="u-sayac">0</b><span id="u-sayac-yazi">kayıt bugün üretime verildi</span></div>
           <button class="btn ikincil kucuk gizli" type="button" id="u-geri-son">Son okutulanı geri al</button>
         </div>
         <ul class="okut-gecmis" id="u-gecmis" aria-label="Son okutmalar"></ul>
@@ -766,6 +803,10 @@
             <button class="btn ikincil kucuk" type="button" id="u-yenile">Yenile</button>
           </div>
         </div>
+        <h4 id="u-kilo-baslik" class="gizli" style="margin:6px 0 8px">Miktarla verilenler</h4>
+        <div id="u-kilo-ozet" class="ozet-satir"></div>
+        <div id="u-kilo-liste"></div>
+        <h4 id="u-etiket-baslik" class="gizli" style="margin:18px 0 8px">Etiketle verilenler</h4>
         <div id="u-ozet" class="ozet-satir"></div>
         <div id="u-liste"></div>
       </div>
@@ -1051,6 +1092,7 @@
         <div class="satir" style="margin-bottom:14px;align-items:flex-end">
           <label>Rapor
             <select id="r-tur" style="min-width:230px">
+              <option value="kullanim">Hammadde kullanımı</option>
               <option value="firma">Tedarikçi değerlendirme (mal kabul)</option>
               <option value="arac">Araç değerlendirme (sevkiyat)</option>
             </select>
@@ -1058,6 +1100,10 @@
           <label>Başlangıç <input type="date" id="r-bas"></label>
           <label>Bitiş <input type="date" id="r-bit"></label>
           <div class="satir" style="gap:6px">
+            <button class="btn ikincil kucuk" type="button" data-r-donem="bugun">Bugün</button>
+            <button class="btn ikincil kucuk" type="button" data-r-donem="hafta">Bu hafta</button>
+            <button class="btn ikincil kucuk" type="button" data-r-donem="ay">Bu ay</button>
+            <button class="btn ikincil kucuk" type="button" data-r-donem="gecenay">Geçen ay</button>
             <button class="btn ikincil kucuk" type="button" data-r-gun="30">Son 30 gün</button>
             <button class="btn ikincil kucuk" type="button" data-r-gun="90">Son 3 ay</button>
             <button class="btn ikincil kucuk" type="button" data-r-gun="365">Son 1 yıl</button>
@@ -1257,6 +1303,7 @@
           <label>Ürün adı * <input id="u-ad" required placeholder="Antep Fıstığı (Kırık)"></label>
           <label>Kategori <input id="u-kategori" list="kategoriler" placeholder="Fıstık"></label>
           <label>Birim <select id="u-birim"><option>kg</option><option>adet</option><option>lt</option><option>çuval</option><option>teneke</option><option>kova</option><option>koli</option></select></label>
+          <label>Takip şekli <select id="u-takip"><option value="kg">Miktarla (tartıp ver)</option><option value="adet">Adetle (sayıp ver)</option><option value="parti">Parti / etiketle (paket paket)</option></select></label>
           <label>Varsayılan SKT (gün) <input type="number" min="0" id="u-skt" placeholder="örn. 365"></label>
           <label>Durum <select id="u-aktif"><option value="true">Aktif</option><option value="false">Pasif</option></select></label>
         </div>
@@ -1389,8 +1436,8 @@ async function urunleriYukle() {
   const aktif = urunler.filter(u => u.aktif), secili = $('k-urun').value;
   $('k-urun').innerHTML = '<option value="">Seçin…</option>' + aktif.map(u => `<option value="${u.id}">${esc(u.ad)} (${esc(u.kod)})</option>`).join('');
   if (secili && aktif.some(u => String(u.id) === secili)) $('k-urun').value = secili;
-  $('urun-liste').innerHTML = urunler.length ? `<table><tr><th>Kod</th><th>Ürün</th><th>Kategori</th><th>Birim</th><th>SKT (gün)</th><th>Parti sayısı</th><th>Durum</th><th></th></tr>
-    ${urunler.map(u => `<tr data-f="${u.aktif ? 'aktif' : 'pasif'}"><td class="mono">${esc(u.kod)}</td><td>${esc(u.ad)}</td><td>${esc(u.kategori || '')}</td><td>${esc(u.birim)}</td><td>${u.skt_gun ?? '–'}</td><td>${u.son_parti_sira}</td>
+  $('urun-liste').innerHTML = urunler.length ? `<table><tr><th>Kod</th><th>Ürün</th><th>Kategori</th><th>Birim</th><th>Takip</th><th>SKT (gün)</th><th>Parti sayısı</th><th>Durum</th><th></th></tr>
+    ${urunler.map(u => `<tr data-f="${u.aktif ? 'aktif' : 'pasif'}"><td class="mono">${esc(u.kod)}</td><td>${esc(u.ad)}</td><td>${esc(u.kategori || '')}</td><td>${esc(u.birim)}</td><td>${TAKIP_AD[u.takip_turu] || 'Miktarla'}</td><td>${u.skt_gun ?? '–'}</td><td>${u.son_parti_sira}</td>
       <td><span class="rozet ${u.aktif ? '' : 'pasif'}">${u.aktif ? 'Aktif' : 'Pasif'}</span></td><td><button class="btn kucuk ikincil" data-urun-duzenle="${u.id}">Düzenle</button></td></tr>`).join('')}</table>` : '<div class="bos">Henüz ürün yok.</div>';
   kabulOnizle();
   sonUrunleriCiz();
@@ -1735,6 +1782,10 @@ $('kabul-form').addEventListener('submit', async ev => {
   if ((karar !== 'kabul' || kontrol.some(k => !k.uygun)) && !$('k-aksiyon').value.trim()) { bildir('Uygunsuzluk / alınan aksiyon yazılmalı.', true); $('k-aksiyon').focus(); return; }
   if (karar === 'kabul' && kontrol.some(k => !k.uygun) && !confirm('Uygun olmayan madde var ama karar “Kabul”. Yine de kabul edilsin mi?')) return;
   if (karar === 'ret' && !confirm('Bu parti KARANTİNAYA alınacak ve mühendis onaylayana kadar üretime verilemeyecek. Devam edilsin mi?')) return;
+  const kUrun = urunler.find(u => String(u.id) === $('k-urun').value);
+  if (kUrun && kUrun.takip_turu !== 'parti' && !(Number($('k-miktar').value) > 0)) {
+    bildir(`${kUrun.ad} ${kUrun.takip_turu === 'adet' ? 'adetle' : 'miktarla'} takip ediliyor: toplam miktarı yazın (${kUrun.birim}).`, true); $('k-miktar').focus(); return;
+  }
   const btn = $('k-kaydet'); btn.disabled = true;
   try {
     const { data: partiId, error } = await sb.rpc('parti_olustur', {
@@ -1778,8 +1829,10 @@ function partiTablosu(liste) {
       <td style="white-space:nowrap"><span class="rozet ${p.kabul_karari}">${kararAd[p.kabul_karari]}</span><br><span class="rozet ${p.muhendis_durum}" style="margin-top:4px">${p.muhendis_durum === 'bekliyor' ? 'Onay bekliyor' : p.muhendis_durum === 'onaylandi' ? 'Onaylı' : 'Reddedildi'}</span></td>
       <td>${esc(p.tedarikci_parti_no || '–')}</td><td>${esc(p.irsaliye_no || '–')}</td>
       <td>${tarih(p.giris_tarihi)}</td><td>${tarih(p.skt)}</td>
-      <td>${p.toplam_miktar != null ? sayi(p.toplam_miktar) + ' ' + esc(p.birim) : '–'}</td>
-      <td style="white-space:nowrap">${p.depoda_adet} / ${p.paket_adedi}${p.depoda_miktar != null ? `<br><span style="color:var(--soluk);font-size:13px">${sayi(p.depoda_miktar)} ${esc(p.birim)}</span>` : ''}</td>
+      <td>${p.toplam_miktar != null ? sayi(p.toplam_miktar) + ' ' + esc(p.birim) : (p.takip_turu && p.takip_turu !== 'parti' ? `<button class="btn kucuk" data-miktar-gir="${p.id}" data-ad="${esc(p.parti_kodu)}" data-birim="${esc(p.birim)}">Miktar gir</button>` : '–')}</td>
+      <td style="white-space:nowrap">${p.takip_turu && p.takip_turu !== 'parti' && p.toplam_miktar != null
+        ? `<b>${sayi(p.kalan_miktar)} ${esc(p.birim)}</b><br><span style="color:var(--soluk);font-size:13px">kalan · ${sayi(p.kullanilan_miktar || 0)} verildi</span>`
+        : `${p.depoda_adet} / ${p.paket_adedi}${p.depoda_miktar != null ? `<br><span style="color:var(--soluk);font-size:13px">${sayi(p.depoda_miktar)} ${esc(p.birim)}</span>` : ''}`}</td>
       <td style="white-space:nowrap"><button class="btn kucuk ikincil" data-form="${p.id}">Form</button> <button class="btn kucuk ikincil" data-bas="${p.id}">Etiket</button></td>
     </tr>`).join('')}</table>`;
 }
@@ -1967,9 +2020,105 @@ $('u-okut-form').addEventListener('submit', ev => {
   okutKuyruk = okutKuyruk.then(() => uretimeVer(kod));
 });
 
+// ---- Miktarla üretime verme ----
+const TAKIP_AD = { kg: 'Miktarla', adet: 'Adetle', parti: 'Parti / etiket' };
+let hmUrunler = [], hmSecili = null, hmSon = null;
+const sayiOku = v => { const t = String(v || '').trim().replace(/\s/g, ''); if (!t) return NaN;
+  const n = t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t; return Number(n); };
+async function hmYukle() {
+  const [{ data: ur, error }, { data: kalan }, { data: acik }] = await Promise.all([
+    sb.from('urunler').select('id,kod,ad,kategori,birim,takip_turu,aktif').eq('aktif', true).neq('takip_turu', 'parti').order('ad'),
+    sb.from('v_parti_kalan').select('parti_id,urun_id,parti_kodu,toplam_miktar,kalan,skt,giris_tarihi,kullanilabilir'),
+    sb.from('acik_partiler').select('urun_id,parti_id')]);
+  if (error) return bildir(hataMesaji(error), true);
+  const kul = (kalan || []).filter(k => k.kullanilabilir);
+  hmUrunler = (ur || []).map(u => {
+    const pl = kul.filter(k => k.urun_id === u.id && k.toplam_miktar != null && Number(k.kalan) > 0)
+      .sort((a, b) => (a.skt || '9999').localeCompare(b.skt || '9999') || a.giris_tarihi.localeCompare(b.giris_tarihi) || a.parti_id - b.parti_id);
+    const a = (acik || []).find(x => x.urun_id === u.id);
+    const ac = (a && pl.find(k => k.parti_id === a.parti_id)) || pl[0] || null;
+    const miktarsiz = kul.filter(k => k.urun_id === u.id && k.toplam_miktar == null).length;
+    return { ...u, partiler: pl, acik: ac, toplam: pl.reduce((t, k) => t + Number(k.kalan), 0), miktarsiz };
+  }).sort((a, b) => (b.toplam > 0) - (a.toplam > 0) || a.ad.localeCompare(b.ad, 'tr'));
+  hmCiz();
+}
+function hmCiz() {
+  const q = ($('hm-ara').value || '').trim().toLocaleLowerCase('tr');
+  const l = hmUrunler.filter(u => !q || (u.ad + ' ' + u.kod + ' ' + (u.kategori || '')).toLocaleLowerCase('tr').includes(q));
+  $('hm-urunler').innerHTML = l.length ? l.map(u => `<button type="button" class="hm-urun ${u.toplam > 0 ? '' : 'bos'} ${hmSecili === u.id ? 'secili' : ''}" data-hm="${u.id}">
+      <b>${esc(u.ad)}</b><small>${u.acik ? esc(u.acik.parti_kodu) : u.miktarsiz ? `<span class="miktar-yok">${u.miktarsiz} partinin miktarı yok</span>` : 'Stok yok'}</small>
+      <span class="hm-kalan">${u.toplam > 0 ? sayi(u.toplam) + ' ' + esc(u.birim) : '–'}</span></button>`).join('')
+    : `<div class="bos">${hmUrunler.length ? 'Aramaya uyan hammadde yok.' : 'Miktarla takip edilen hammadde yok. Ürün kartında “Takip şekli”ni seçin.'}</div>`;
+  if (hmSecili) hmPanel();
+}
+function hmPanel() {
+  const u = hmUrunler.find(x => x.id === hmSecili); if (!u) return hmKapat();
+  $('hm-form').classList.remove('gizli');
+  $('hm-ad').textContent = u.ad; $('hm-birim').textContent = u.birim;
+  $('hm-miktar').placeholder = u.takip_turu === 'adet' ? 'Ürün adedini girin' : 'Ürün miktarını girin';
+  $('hm-parti').innerHTML = u.acik
+    ? `Açık parti <b class="mono">${esc(u.acik.parti_kodu)}</b> · kalan <b>${sayi(u.acik.kalan)} ${esc(u.birim)}</b>${u.partiler.length > 1 ? `<br><span style="font-size:13px">Sırada ${u.partiler.length - 1} parti daha · toplam ${sayi(u.toplam)} ${esc(u.birim)} · farklı parti açtıysanız etiketini okutun</span>` : '<br><span style="font-size:13px">Farklı parti açtıysanız etiketini okutun</span>'}`
+    : `<span class="miktar-yok">Bu hammaddeden verilebilecek stok yok.</span>${u.miktarsiz ? ` ${u.miktarsiz} partinin toplam miktarı girilmemiş; Partiler ekranından “Miktar gir” ile girin.` : ''}`;
+}
+function hmSec(id) {
+  hmSecili = id; $('hm-durum').classList.add('gizli');
+  document.querySelectorAll('.hm-urun').forEach(b => b.classList.toggle('secili', Number(b.dataset.hm) === id));
+  hmPanel(); $('hm-miktar').value = '';
+  setTimeout(() => { $('hm-miktar').focus(); $('hm-form').scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 30);
+}
+function hmKapat() { hmSecili = null; $('hm-form').classList.add('gizli'); document.querySelectorAll('.hm-urun.secili').forEach(b => b.classList.remove('secili')); }
+function hmDurum(tur, bas, alt = '') { const d = $('hm-durum'); d.className = 'okut-durum ' + tur; d.innerHTML = `${esc(bas)}${alt ? `<small>${alt}</small>` : ''}`; }
+$('hm-urunler').addEventListener('click', ev => { const b = ev.target.closest('[data-hm]'); if (b) hmSec(Number(b.dataset.hm)); });
+$('hm-ara').addEventListener('input', hmCiz);
+$('hm-kapat').onclick = hmKapat;
+$('hm-form').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const u = hmUrunler.find(x => x.id === hmSecili); if (!u) return;
+  const m = sayiOku($('hm-miktar').value);
+  if (!(m > 0)) { ses('hata'); hmDurum('hata', 'Geçerli bir miktar yazın', 'Örnek: 50 ya da 49,5'); $('hm-miktar').focus(); return; }
+  if (u.takip_turu === 'adet' && !Number.isInteger(m)) { ses('hata'); hmDurum('hata', 'Adet tam sayı olmalı'); return; }
+  $('hm-ver').disabled = true;
+  const { data, error } = await sb.rpc('uretime_miktar_ver', { p_urun_id: u.id, p_miktar: m });
+  $('hm-ver').disabled = false;
+  if (error) { ses('hata'); hmDurum('hata', hataMesaji(error)); $('hm-miktar').select(); return; }
+  ses('ok'); hmSon = data.grup; $('hm-miktar').value = '';
+  const kaynak = data.cikislar.map(c => `${c.parti_kodu}: ${sayi(c.miktar)}`).join(' + ');
+  const gecis = data.bitenler.length ? ` · ${data.bitenler.join(', ')} bitti${data.acik ? `, ${data.acik.parti_kodu} partisine geçildi` : ''}` : '';
+  hmDurum('ok', `✓ ${sayi(data.miktar)} ${data.birim} ${data.urun_ad} üretime verildi`,
+    `${esc(kaynak)} ${esc(data.birim)}${esc(gecis)}${data.acik ? ` · kalan ${sayi(data.acik.kalan)} ${esc(data.birim)}` : ''} <button type="button" class="btn kucuk ikincil" data-hm-geri="${data.grup}" style="margin-left:8px">Geri al</button>`);
+  if ($('u-gun').value !== bugun()) $('u-gun').value = bugun();
+  await hmYukle(); uretimListesiYukle(); $('hm-miktar').focus();
+});
+async function hmGeriAl(grup, btn) {
+  if (btn && !btn.dataset.onay) { btn.dataset.onay = '1'; btn.textContent = 'Emin misiniz?'; setTimeout(() => { if (btn.isConnected) { delete btn.dataset.onay; btn.textContent = 'Geri al'; } }, 4000); return; }
+  const { error } = await sb.rpc('uretim_miktar_geri_al', { p_grup: grup });
+  if (error) return bildir(hataMesaji(error), true);
+  bildir('Geri alındı, miktar stoğa döndü.');
+  if (hmSon === grup) $('hm-durum').classList.add('gizli');
+  await hmYukle(); uretimListesiYukle();
+}
+document.addEventListener('click', ev => { const b = ev.target.closest('[data-hm-geri]'); if (b) hmGeriAl(b.dataset.hmGeri, b); });
+
+// Partide toplam miktar yoksa (açılış stoğu) gir
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-miktar-gir]'); if (!b) return;
+  modalAc(`Parti miktarı · ${b.dataset.ad}`, `<p style="margin-top:0">Bu partinin depoya giren toplam miktarını yazın. Bundan sonra üretime verilenler bu miktardan düşer.</p>
+    <div class="okut-satir hm-giris"><input id="pm-miktar" class="okut-input" type="text" inputmode="decimal" placeholder="Toplam miktar"><span class="hm-birim">${esc(b.dataset.birim || 'kg')}</span></div>
+    <div class="satir" style="justify-content:flex-end;margin-top:12px"><button class="btn" type="button" id="pm-kaydet">Kaydet</button></div>`);
+  setTimeout(() => $('pm-miktar').focus(), 50);
+  const kaydet = async () => {
+    const m = sayiOku($('pm-miktar').value); if (!(m > 0)) return bildir('Geçerli bir miktar yazın.', true);
+    const { error } = await sb.rpc('parti_miktar_gir', { p_parti_id: Number(b.dataset.miktarGir), p_miktar: m });
+    if (error) return bildir(hataMesaji(error), true);
+    modalKapat(); bildir('Parti miktarı kaydedildi.');
+    if (aktifSayfa === 'partiler') partileriYukle(); else if (aktifSayfa === 'kabul') sonGirisleriYukle(); else if (aktifSayfa === 'stok') stokYukle();
+  };
+  $('pm-kaydet').onclick = kaydet; $('pm-miktar').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); kaydet(); } });
+});
+
 async function uretimeVer(kod) {
   kod = kodAyikla(kod);
-  const { data, error } = await sb.rpc('uretime_ver', { p_kod: kod });
+  const { data, error } = await sb.rpc('uretim_okut', { p_kod: kod });
   if (error) { ses('hata'); okutDurum('hata', 'Kaydedilemedi: ' + hataMesaji(error), 'İnternet bağlantısını kontrol edip tekrar okutun.'); return; }
   if (data.sonuc === 'ok') {
     ses('ok'); sonOkutulanId = data.etiket.id; sonOkutulanKod = data.etiket.kod;
@@ -1986,15 +2135,40 @@ async function uretimeVer(kod) {
     okutDurum('uyari', `${data.etiket.kod} ${ne}`, etiketOzet(data.etiket));
   } else if (data.sonuc === 'yok') {
     ses('hata'); okutDurum('hata', `“${kod}” sistemde bulunamadı`, 'Etiket bu sistemden basılmamış olabilir ya da okutma hatalı. Tekrar deneyin.');
+  } else if (data.sonuc === 'acik') {
+    ses('ok'); okutDurum('ok', `✓ ${data.urun_ad}: açık parti ${data.parti_kodu}`, `Kalan ${sayi(data.kalan)} ${esc(data.birim)}. Bundan sonra verilen miktar bu partiden düşer. Miktarı yukarıya yazın.`);
+    await hmYukle(); hmSec(data.urun_id);
+  } else if (data.sonuc === 'karantina') {
+    ses('hata'); okutDurum('hata', `⛔ ${data.parti_kodu} KARANTİNADA, üretime verilemez`, `${esc(data.urun_ad)} · Gıda mühendisine haber verin.`);
+  } else if (data.sonuc === 'miktarsiz') {
+    ses('uyari'); okutDurum('uyari', `${data.parti_kodu} partisinin toplam miktarı girilmemiş`, `${esc(data.urun_ad)} miktarla takip ediliyor. Partiler ekranından “Miktar gir” ile toplam miktarı girin.`);
+  } else if (data.sonuc === 'bitmis') {
+    ses('uyari'); okutDurum('uyari', `${data.parti_kodu} partisi bitmiş`, `${esc(data.urun_ad)} için bu partide kalan miktar yok.`);
   }
 }
 
 async function uretimListesiYukle() {
   const gun = $('u-gun').value || bugun();
-  const { data, error } = await sb.from('v_uretim_cikislari').select('*').eq('uretim_gunu', gun).order('tarih', { ascending: false });
+  const [{ data, error }, { data: kilo }] = await Promise.all([
+    sb.from('v_uretim_cikislari').select('*').eq('uretim_gunu', gun).order('tarih', { ascending: false }),
+    sb.from('v_hammadde_cikislari').select('*').eq('uretim_gunu', gun).eq('geri_alindi', false).order('tarih', { ascending: false })]);
   if (error) return bildir(hataMesaji(error), true);
-  $('u-sayac').textContent = data.length;
-  $('u-sayac-yazi').textContent = gun === bugun() ? 'paket bugün üretime verildi' : `paket ${tarih(gun)} günü üretime verildi`;
+  // Kiloyla verilenler: bir giriş birden çok partiye bölünmüş olabilir, grup olarak göster
+  const gr = {};
+  (kilo || []).forEach(r => { const g = gr[r.grup] ||= { grup: r.grup, tarih: r.tarih, urun: r.urun_ad, birim: r.birim, miktar: 0, partiler: [], kim: r.kullanici_ad, kullanici: r.kullanici };
+    g.miktar += Number(r.miktar); g.partiler.push(`${r.parti_kodu}${r.firma_kod ? ' (' + r.firma_kod + ')' : ''}`); });
+  const kiloGr = Object.values(gr).sort((a, b) => b.tarih.localeCompare(a.tarih));
+  const top = {};
+  kiloGr.forEach(g => { const t = top[g.urun] ||= { urun: g.urun, birim: g.birim, miktar: 0, adet: 0 }; t.miktar += g.miktar; t.adet++; });
+  $('u-sayac').textContent = data.length + kiloGr.length;
+  $('u-sayac-yazi').textContent = gun === bugun() ? 'kayıt bugün üretime verildi' : `kayıt ${tarih(gun)} günü üretime verildi`;
+  $('u-kilo-ozet').innerHTML = Object.values(top).sort((a, b) => a.urun.localeCompare(b.urun, 'tr')).map(t => `<div class="ozet"><b>${sayi(t.miktar)} ${esc(t.birim)}</b>${esc(t.urun)} · ${t.adet} giriş</div>`).join('');
+  $('u-kilo-liste').innerHTML = kiloGr.length ? `<table><tr><th>Saat</th><th>Hammadde</th><th>Miktar</th><th>Parti</th><th>Veren</th><th></th></tr>
+    ${kiloGr.map(g => `<tr class="${g.grup === hmSon ? 'yeni' : ''}"><td>${saat(g.tarih)}</td><td>${esc(g.urun)}</td><td><b>${sayi(g.miktar)} ${esc(g.birim)}</b></td>
+      <td class="mono">${esc([...new Set(g.partiler)].join(' + '))}</td><td>${esc(g.kim || '–')}</td>
+      <td>${gun === bugun() || profil.rol === 'yonetici' ? `<button class="btn kucuk ikincil" data-hm-geri="${g.grup}">Geri al</button>` : ''}</td></tr>`).join('')}</table>` : '';
+  $('u-kilo-baslik').classList.toggle('gizli', !kiloGr.length);
+  $('u-etiket-baslik').classList.toggle('gizli', !data.length || !kiloGr.length);
   // Parti bazında özet
   const gruplar = {};
   data.forEach(r => {
@@ -2013,7 +2187,7 @@ async function uretimListesiYukle() {
       <td><button class="btn kucuk ikincil" data-geri-al="${r.etiket_id}" data-kod="${esc(r.kod)}">Geri al</button></td>
     </tr>`).join('')}</table>
     <p style="color:var(--soluk);font-size:14px;margin:12px 0 0">Toplam ${data.length} paket.</p>`
-    : '<div class="bos">Bu gün üretime verilen ürün yok.</div>';
+    : (kiloGr.length ? '' : '<div class="bos">Bu gün üretime verilen ürün yok.</div>');
 }
 
 async function uretimdenGeriAl(etiketId, kod) {
@@ -2047,10 +2221,12 @@ async function stokYukle() {
       <td><b>${esc(s.urun_ad)}</b> <span class="mono" style="color:var(--soluk)">${esc(s.urun_kod)}</span></td>
       <td>${esc(s.kategori || '')}</td>
       <td><b>${s.depoda_paket}</b>${s.karantina_paket ? `<br><span class="rozet karantina" style="margin-top:4px">${s.karantina_paket} karantinada</span>` : ''}</td>
-      <td>${s.depoda_miktar != null ? '<b>' + sayi(s.depoda_miktar) + ' ' + esc(s.birim) + '</b>' : '–'}${s.miktarsiz_paket ? `<br><span style="color:var(--soluk);font-size:13px">+${s.miktarsiz_paket} paket miktarı girilmemiş</span>` : ''}</td>
+      <td>${s.takip_turu && s.takip_turu !== 'parti'
+        ? (s.kalan_miktar != null ? '<b>' + sayi(s.kalan_miktar) + ' ' + esc(s.birim) + '</b>' : '–') + (s.miktarsiz_paket ? `<br><span class="miktar-yok" style="font-size:13px">${s.miktarsiz_paket} paketin miktarı girilmemiş · Partiler'den girin</span>` : '')
+        : (s.depoda_miktar != null ? '<b>' + sayi(s.depoda_miktar) + ' ' + esc(s.birim) + '</b>' : '–') + (s.miktarsiz_paket ? `<br><span style="color:var(--soluk);font-size:13px">+${s.miktarsiz_paket} paket miktarı girilmemiş</span>` : '')}</td>
       <td>${s.acik_parti}</td>
       <td>${tarih(s.en_yakin_skt)}${sktUyari(s.en_yakin_skt)}</td>
-      <td>${s.uretime_verilen_paket} paket${s.uretime_verilen_miktar != null ? ' · ' + sayi(s.uretime_verilen_miktar) + ' ' + esc(s.birim) : ''}</td>
+      <td>${s.kilo_verilen ? sayi(s.kilo_verilen) + ' ' + esc(s.birim) + (s.uretime_verilen_paket ? '<br>' : '') : ''}${s.uretime_verilen_paket || !s.kilo_verilen ? s.uretime_verilen_paket + ' paket' + (s.uretime_verilen_miktar != null ? ' · ' + sayi(s.uretime_verilen_miktar) + ' ' + esc(s.birim) : '') : ''}</td>
       <td>${tarih(s.son_giris)}</td>
     </tr>`).join('')}</table>` : '<div class="bos">Henüz stok yok.</div>';
   const secili = $('sh-urun').value;
@@ -2879,8 +3055,57 @@ async function sevkiyatFormuAc(id) {
 const oranSinif = o => o >= 95 ? 'iyi' : o >= 80 ? 'orta' : 'kotu';
 const yuzde = (a, b) => b ? Math.round(a * 1000 / b) / 10 : 100;
 let raporVeri = null;
+function donemAraligi(d) {
+  const b = bugun(), [y, m] = b.split('-').map(Number), iso = (y, m, g) => `${y}-${String(m).padStart(2, '0')}-${String(g).padStart(2, '0')}`;
+  if (d === 'bugun') return [b, b];
+  if (d === 'hafta') { const g = (new Date(b + 'T12:00:00').getDay() + 6) % 7; return [gunEkle(b, -g), b]; }
+  if (d === 'ay') return [iso(y, m, 1), b];
+  const py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return [iso(py, pm, 1), gunEkle(iso(y, m, 1), -1)];
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-r-donem]'); if (!b) return;
+  [$('r-bas').value, $('r-bit').value] = donemAraligi(b.dataset.rDonem); raporGetir();
+});
+let kullanimVeri = null;
+async function kullanimRaporu(bas, bit) {
+  const { data, error } = await sb.rpc('hammadde_kullanim', { p_bas: bas, p_bit: bit });
+  if (error) return bildir(hataMesaji(error), true);
+  const gun = gunFarki(bas, bit) + 1;
+  kullanimVeri = { bas, bit, liste: data };
+  const kg = data.filter(x => x.birim === 'kg').reduce((t, x) => t + Number(x.miktar || 0), 0);
+  $('r-ozet').innerHTML = `<div class="ozet"><b>${data.length}</b>Hammadde çeşidi</div>${kg ? `<div class="ozet"><b>${sayi(kg)} kg</b>Toplam (kg olanlar)</div>` : ''}
+    <div class="ozet"><b>${data.reduce((t, x) => t + Number(x.cikis_sayisi), 0)}</b>Çıkış kaydı</div><div class="ozet"><b>${gun}</b>Gün (${tarih(bas)} – ${tarih(bit)})</div>`;
+  $('r-liste').innerHTML = data.length ? `<table><tr><th>Hammadde</th><th>Kategori</th><th>Kullanılan</th><th>Günlük ortalama</th><th>Parti</th><th>Kullanılan gün</th><th>Çıkış</th><th></th></tr>
+    ${data.map((x, i) => `<tr><td><b>${esc(x.urun_ad)}</b> <span class="mono" style="color:var(--soluk)">${esc(x.urun_kod)}</span></td><td>${esc(x.kategori || '')}</td>
+      <td><b>${x.miktar != null ? sayi(x.miktar) + ' ' + esc(x.birim) : '–'}</b>${Number(x.paket) ? `<br><span style="color:var(--soluk);font-size:13px">${x.paket} paket etiketle</span>` : ''}</td>
+      <td>${x.miktar != null ? sayi(Math.round(x.miktar / Math.max(1, x.gun_sayisi) * 10) / 10) + ' ' + esc(x.birim) : '–'}</td>
+      <td>${x.parti_sayisi}</td><td>${x.gun_sayisi}</td><td>${x.cikis_sayisi}</td>
+      <td><button class="btn kucuk ikincil" data-kul-detay="${i}">Detay</button></td></tr>`).join('')}</table>
+    <div class="satir" style="justify-content:flex-end;margin-top:12px"><button class="btn ikincil" type="button" id="kul-yazdir">Yazdır / PDF</button></div>`
+    : '<div class="bos">Bu tarihlerde üretime verilen hammadde yok.</div>';
+  if ($('kul-yazdir')) $('kul-yazdir').onclick = () => {
+    const html = `<h2 style="margin:0 0 4px">Hammadde kullanım raporu</h2><p style="margin:0 0 12px">${tarih(bas)} – ${tarih(bit)}</p>${$('r-liste').querySelector('table').outerHTML.replace(/<button[^>]*>Detay<\/button>/g, '')}`;
+    $('page-size').textContent = '@page { size: A4 portrait; margin: 12mm; }'; $('yazdir').innerHTML = `<div class="form-a4">${html}</div>`; setTimeout(() => window.print(), 150);
+  };
+}
+document.addEventListener('click', async ev => {
+  const b = ev.target.closest('[data-kul-detay]'); if (!b || !kullanimVeri) return;
+  const x = kullanimVeri.liste[Number(b.dataset.kulDetay)], { bas, bit } = kullanimVeri;
+  const [{ data: k }, { data: e }] = await Promise.all([
+    sb.from('v_hammadde_cikislari').select('uretim_gunu,miktar,parti_kodu,firma_ad,skt').eq('urun_id', x.urun_id).eq('geri_alindi', false).gte('uretim_gunu', bas).lte('uretim_gunu', bit),
+    sb.from('v_uretim_cikislari').select('uretim_gunu,miktar,parti_kodu,firma_ad,skt').eq('urun_id', x.urun_id).gte('uretim_gunu', bas).lte('uretim_gunu', bit)]);
+  const tum = [...(k || []), ...(e || [])];
+  const parti = {}, gun = {};
+  tum.forEach(r => { const p = parti[r.parti_kodu] ||= { kod: r.parti_kodu, firma: r.firma_ad, skt: r.skt, miktar: 0 }; p.miktar += Number(r.miktar || 0); gun[r.uretim_gunu] = (gun[r.uretim_gunu] || 0) + Number(r.miktar || 0); });
+  modalAc(`${x.urun_ad} · ${tarih(bas)} – ${tarih(bit)}`, `<h4 style="margin:0 0 8px">Partilere göre</h4>
+    <table><tr><th>Parti</th><th>Firma</th><th>SKT</th><th>Kullanılan</th></tr>${Object.values(parti).sort((a, b) => b.miktar - a.miktar).map(p => `<tr><td class="mono">${esc(p.kod)}</td><td>${esc(p.firma || '–')}</td><td>${tarih(p.skt)}</td><td><b>${sayi(p.miktar)} ${esc(x.birim)}</b></td></tr>`).join('')}</table>
+    <h4 style="margin:16px 0 8px">Günlere göre</h4>
+    <table><tr><th>Gün</th><th>Kullanılan</th></tr>${Object.entries(gun).sort((a, b) => b[0].localeCompare(a[0])).map(([g, m]) => `<tr><td>${tarih(g)}</td><td><b>${sayi(m)} ${esc(x.birim)}</b></td></tr>`).join('')}</table>`);
+});
+
 async function raporGetir() {
   const bas = $('r-bas').value, bit = $('r-bit').value;
+  if ($('r-tur').value === 'kullanim') return kullanimRaporu(bas, bit);
   if ($('r-tur').value === 'firma') {
     const [{ data: partiler, error }, { data: uyg }] = await Promise.all([
       sb.from('v_partiler').select('*').gte('giris_tarihi', bas).lte('giris_tarihi', bit).order('giris_tarihi', { ascending: false }).limit(5000),
@@ -3576,13 +3801,13 @@ function yenileAktifSayfa() {
 }
 
 // ================= ÜRÜN KARTLARI =================
-function urunFormTemizle() { ['u-id','u-kod','u-ad','u-kategori','u-skt'].forEach(id => $(id).value = ''); $('u-birim').value = 'kg'; $('u-aktif').value = 'true'; $('u-kod').disabled = false; $('u-kaydet').textContent = 'Ürünü kaydet'; }
+function urunFormTemizle() { ['u-id','u-kod','u-ad','u-kategori','u-skt'].forEach(id => $(id).value = ''); $('u-birim').value = 'kg'; $('u-takip').value = 'kg'; $('u-aktif').value = 'true'; $('u-kod').disabled = false; $('u-kaydet').textContent = 'Ürünü kaydet'; }
 $('u-temizle').onclick = urunFormTemizle;
 $('u-kod').addEventListener('input', () => { $('u-kod').value = trUpper($('u-kod').value).replace(/[^A-Z]/g, ''); });
 $('u-form').addEventListener('submit', async ev => {
   ev.preventDefault();
   const kayit = { ad: $('u-ad').value.trim(), kategori: $('u-kategori').value.trim() || null, birim: $('u-birim').value,
-    skt_gun: $('u-skt').value === '' ? null : Number($('u-skt').value), aktif: $('u-aktif').value === 'true' };
+    skt_gun: $('u-skt').value === '' ? null : Number($('u-skt').value), aktif: $('u-aktif').value === 'true', takip_turu: $('u-takip').value };
   const id = $('u-id').value;
   const { error } = id ? await sb.from('urunler').update(kayit).eq('id', id)
                        : await sb.from('urunler').insert({ ...kayit, kod: $('u-kod').value });
@@ -3631,7 +3856,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.urunDuzenle) {
     const u = urunler.find(x => x.id == t.dataset.urunDuzenle);
     $('u-id').value = u.id; $('u-kod').value = u.kod; $('u-kod').disabled = true; $('u-ad').value = u.ad;
-    $('u-kategori').value = u.kategori || ''; $('u-birim').value = u.birim; $('u-skt').value = u.skt_gun ?? '';
+    $('u-kategori').value = u.kategori || ''; $('u-birim').value = u.birim; $('u-skt').value = u.skt_gun ?? ''; $('u-takip').value = u.takip_turu || 'kg';
     $('u-aktif').value = String(u.aktif); $('u-kaydet').textContent = 'Değişiklikleri kaydet'; window.scrollTo(0, 0);
   }
   if (t.dataset.firmaDuzenle) {
@@ -3930,7 +4155,8 @@ async function panoYukle() {
   const fark = o.tepsi_basilan - o.is_emri;
   $('pano').innerHTML = [
     kutu('kabul', 'Mal kabul', o.kabul_parti, `parti · ${o.kabul_paket} paket${o.kabul_sorunlu ? ` · <b>${o.kabul_sorunlu} sorunlu</b>` : ''}`),
-    kutu('uretim', 'Üretime verilen', o.uretim_paket, o.uretim_paket ? `paket · ${o.uretim_urun} çeşit hammadde` : 'paket · henüz okutulmadı'),
+    kutu('uretim', 'Üretime verilen', o.uretim_kg_kayit ? sayi(o.uretim_kg_toplam) + ' kg' : o.uretim_paket,
+      o.uretim_kg_kayit || o.uretim_paket ? [o.uretim_kg_kayit ? `${o.uretim_kg_kayit} giriş` : '', o.uretim_paket ? `${o.uretim_paket} paket` : '', `${o.uretim_urun} çeşit hammadde`].filter(Boolean).join(' · ') : 'henüz verilmedi'),
     kutu('oda', 'Tepsi QR basılan', o.tepsi_basilan, o.is_emri ? `Dara iş emri ${o.is_emri} · ${fark === 0 ? 'eşleşti' : fark < 0 ? `<b>${-fark} etiketsiz</b>` : `<b>${fark} fazla</b>`}` : `tepsi · ${o.tepsi_odada} tanesi odada`),
     kutu('sevkiyat', 'Sevk edilen tepsi', o.sevk_tepsi, `${o.sevkiyat} sevkiyat${o.sevkiyat_acik ? ` · ${o.sevkiyat_acik} araç yükleniyor` : ''}`),
     kutu('sube', 'Şubede teslim alınan', o.sube_teslim, `tepsi · ${o.sube_satildi} bitti / satıldı${o.sube_fire ? ` · <b>${o.sube_fire} fire / iade</b>` : ''}`)
@@ -4192,6 +4418,7 @@ function sayfaAc(ad) {
   if (ad === 'sablon') sablonSayfasi();
   if (ad === 'oda') { if (!$('o-gun').value) $('o-gun').value = bugun(); odaYukle(); }
   if (ad === 'odastok') odaStokYukle();
+  if (ad === 'uretim') hmYukle();
   if (ad === 'mamuller') mamullerYukle();
   if (ad === 'kullanicilar') { kullanicilarYukle(); yeniKullaniciFormu(); }
   if (ad === 'rapor') { if (!$('r-bas').value) { $('r-bit').value = bugun(); $('r-bas').value = gunEkle(bugun(), -90); } raporGetir(); }
