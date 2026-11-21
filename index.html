@@ -268,6 +268,22 @@
   .ym-satir .ym-m span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--soluk); font-weight: 700; pointer-events: none; }
   .ym-satir .ym-sil { border: 0; background: none; color: var(--soluk); font-size: 18px; cursor: pointer; padding: 6px; }
   .iptal-satir td { opacity: .55; }
+  #ku-toplu { width: 100%; font: inherit; font-size: 15px; padding: 10px; border-radius: 10px; border: 1px solid var(--cizgi); background: var(--kart); color: var(--metin); }
+  .kur-serit { display: flex; align-items: center; gap: 10px; background: var(--kart); border: 1px solid var(--cizgi); border-radius: 14px; padding: 10px 12px; margin-bottom: 14px; }
+  .kur-serit > span:nth-child(2) { flex: 1; min-width: 0; font-size: 14.5px; }
+  .kur-serit > span[data-ikon] { flex: none; color: var(--ekran); }
+  .kur-serit b { display: block; font-size: 15.5px; }
+  .kur-serit .kapat { border: 0; background: none; font-size: 18px; color: var(--soluk); cursor: pointer; padding: 4px 6px; }
+  .kur-adimlar { margin: 8px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 16px; }
+  .giris-kartlari { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .giris-karti { border: 0.4mm dashed #888; border-radius: 3mm; padding: 5mm; display: flex; gap: 4mm; align-items: flex-start; break-inside: avoid; font-family: Inter, system-ui, sans-serif; color: #111; }
+  .giris-karti .qr { width: 26mm; height: 26mm; flex: none; }
+  .giris-karti .qr svg { width: 100%; height: 100%; }
+  .giris-karti h4 { margin: 0 0 1mm; font-size: 12pt; }
+  .giris-karti .gk-gorev { font-size: 9pt; color: #555; margin-bottom: 2mm; }
+  .giris-karti .gk-satir { font-size: 10pt; margin: 0.6mm 0; }
+  .giris-karti .gk-satir b { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11pt; }
+  .giris-karti .gk-not { font-size: 7.5pt; color: #555; margin-top: 2mm; line-height: 1.3; }
   .an-satir { display: grid; grid-template-columns: 1fr 150px; gap: 8px 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--cizgi); }
   .an-satir:last-child { border-bottom: 0; }
   .an-satir b { font-size: 15.5px; }
@@ -682,7 +698,7 @@
   <h2>Giriş</h2>
   <p class="aciklama">Depo, baklava odası, sevkiyat, şube, gıda mühendisi ve yönetim aynı uygulamadan girer. Herkes yalnızca kendi ekranlarını görür.</p>
   <form id="giris-form" method="post" action="#" style="display:flex;flex-direction:column;gap:14px">
-    <label>E-posta <input type="email" id="g-eposta" name="email" required autocomplete="username" inputmode="email" autocapitalize="off"></label>
+    <label>Kullanıcı adı veya e-posta <input type="text" id="g-eposta" name="username" required autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="örn. ahmet.depo"></label>
     <label>Şifre
       <div style="display:flex;gap:8px">
         <input type="password" id="g-sifre" name="password" required autocomplete="current-password" style="flex:1;min-width:0">
@@ -694,6 +710,7 @@
     </label>
     <button class="btn" type="submit">Giriş yap</button>
     <div id="g-hata" class="hata"></div>
+    <button type="button" class="btn ikincil kur-dugme gizli" data-kur="1"><span data-ikon="telefon"></span>Uygulamayı telefona yükle</button>
   </form>
  </div>
  <div class="giris-alt">İzlenebilirlik sistemi · POSİM Yazılım</div>
@@ -1004,6 +1021,7 @@
 
     <!-- ANA SAYFA (telefon) -->
     <section data-sayfa="ana" class="gizli">
+      <div class="kur-serit gizli" id="kur-serit"><span data-ikon="telefon"></span><span><b>Uygulamayı telefona yükleyin</b>Ana ekranda simgesiyle açılır, adres yazmaya gerek kalmaz.</span><button class="btn kucuk" type="button" data-kur="1">Yükle</button><button class="kapat" type="button" id="kur-kapat" aria-label="Kapat">✕</button></div>
       <div class="pano-serit">
         <div class="pano-serit-ic">
           <h2 id="ana-selam">Merhaba</h2>
@@ -1357,10 +1375,11 @@
         <h3 style="margin:0 0 12px">Yeni kullanıcı</h3>
         <div class="grid">
           <label>Ad soyad * <input id="ku-yeni-ad" required></label>
-          <label>E-posta (kullanıcı adı) * <input id="ku-yeni-eposta" type="email" required autocapitalize="off" autocomplete="off"></label>
-          <label>Şifre * (en az 6 karakter) <input id="ku-yeni-sifre" required minlength="6" autocomplete="new-password"></label>
+          <label>Kullanıcı adı veya e-posta * <input id="ku-yeni-eposta" required autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="örn. ahmet.depo"></label>
+          <label><span>Şifre * (en az 6) <button type="button" class="kk-tam-dugme koyu" id="ku-sifre-uret" style="margin-left:6px">Üret</button></span><input id="ku-yeni-sifre" required minlength="6" autocomplete="new-password"></label>
           <label>Rol <select id="ku-yeni-rol"><option value="depocu">Personel</option><option value="muhendis">Gıda mühendisi</option><option value="yonetici">Yönetici</option></select></label>
-          <label>Hazır ekran seti <select id="ku-yeni-hazir"></select></label>
+          <label>Görev (hazır ekran seti) <select id="ku-yeni-hazir"></select></label>
+          <label>Şube <select id="ku-yeni-sube"><option value="">—</option></select></label>
         </div>
         <div style="margin-top:14px">
           <div style="font-size:14px;font-weight:700;color:var(--soluk);margin-bottom:8px">Görebileceği ekranlar</div>
@@ -1368,6 +1387,14 @@
         </div>
         <div class="satir" style="margin-top:14px"><button class="btn" type="submit" id="ku-yeni-kaydet">Kullanıcıyı aç</button></div>
       </form>
+      <div class="kart" id="ku-toplu-kart">
+        <h3 style="margin:0 0 4px">Toplu hesap aç (saha personeli)</h3>
+        <p class="aciklama">Her satıra bir kişi: <b>Ad Soyad; kullanıcı adı; görev; şube</b>. Görev: depo, üretim, oda, sevkiyat, şube, mühendis. Kullanıcı adı boş bırakılırsa addan üretilir; şube yalnızca şube personelinde gerekir. Şifreler otomatik üretilir ve bir kez gösterilir, giriş kartı olarak yazdırılır.</p>
+        <textarea id="ku-toplu" rows="6" placeholder="Ahmet Yılmaz; ahmet.depo; depo&#10;Mehmet Kaya; ; oda&#10;Ayşe Demir; ayse.merkez; şube; Merkez&#10;Hasan Çelik; hasan.sevk; sevkiyat"></textarea>
+        <div id="ku-toplu-onizleme" style="margin-top:10px"></div>
+        <div class="satir" style="margin-top:10px"><button class="btn ikincil" type="button" id="ku-toplu-kontrol">Kontrol et</button><button class="btn gizli" type="button" id="ku-toplu-ac">Hesapları aç</button></div>
+        <div id="ku-toplu-sonuc" style="margin-top:12px"></div>
+      </div>
       </div>
     </section>
 
@@ -2960,6 +2987,7 @@ const rolAd = { yonetici: 'Yönetici', depocu: 'Personel', muhendis: 'Gıda müh
 // Çizgi simgeler (24×24, renk yazı renginden gelir)
 const IK = {
   kabul: '<path d="M12 3v10"/><path d="m8 9 4 4 4-4"/><path d="M3 15h4l2 3h6l2-3h4"/><path d="M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/>',
+  telefon: '<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>',
   analiz: '<path d="M9 3h6"/><path d="M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
   yarimamul: '<path d="M6 3h12l-1 6H7Z"/><path d="M7 9c0 6 2 9 5 12 3-3 5-6 5-12"/><path d="M10 13h4"/>',
   uretim: '<path d="M3 21V10l5 3.5V10l5 3.5V6a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v15"/><path d="M2 21h20"/><path d="M7 17.5h1.5M12 17.5h1.5M16.5 17.5H18"/><path d="M16 5V2.5"/>',
@@ -3097,16 +3125,30 @@ async function kullanicilarYukle() {
   kuListe = data;
   $('ku-liste').innerHTML = `<table><tr><th style="width:22%">Kullanıcı</th><th style="width:150px">Rol</th><th>Görebileceği ekranlar</th><th style="width:150px">Şube</th><th style="width:110px">Durum</th><th></th></tr>
     ${data.map(u => `<tr>
-      <td><input id="ku-ad-${u.id}" value="${esc(u.ad || '')}" style="min-height:38px;padding:7px 9px;width:100%"><div style="color:var(--soluk);font-size:13px;margin-top:4px">${esc(u.email || '–')}</div></td>
+      <td><input id="ku-ad-${u.id}" value="${esc(u.ad || '')}" style="min-height:38px;padding:7px 9px;width:100%"><div style="color:var(--soluk);font-size:13px;margin-top:4px" class="mono">${esc(gorunurKullanici(u.email))}</div></td>
       <td><select id="ku-rol-${u.id}" style="min-height:38px;padding:6px">${Object.entries(rolAd).map(([k, v]) => `<option value="${k}" ${u.rol === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
       <td>${ekranSecHtml('u' + u.id.slice(0, 8), izinliEkranlar(u))}</td>
       <td><select id="ku-sube-${u.id}" style="min-height:38px;padding:6px;max-width:150px"><option value="">—</option>${subeler.map(x => `<option value="${x.id}" ${u.sube_id === x.id ? 'selected' : ''}>${esc(x.ad)}</option>`).join('')}</select></td>
       <td><select id="ku-aktif-${u.id}" style="min-height:38px;padding:6px"><option value="true" ${u.aktif !== false ? 'selected' : ''}>Aktif</option><option value="false" ${u.aktif === false ? 'selected' : ''}>Kapalı</option></select></td>
-      <td><button class="btn kucuk" data-ku="${u.id}">Kaydet</button></td>
+      <td style="white-space:nowrap"><button class="btn kucuk" data-ku="${u.id}">Kaydet</button> <button class="btn kucuk ikincil" data-ku-sifre="${u.id}">Şifre yenile</button></td>
     </tr>`).join('')}</table>
     <p style="color:var(--soluk);font-size:14px;margin:10px 0 0">Mühendis Onayı ve Kontrol Listeleri sadece Gıda mühendisi / Yönetici rolünde, Kullanıcılar sadece Yönetici rolünde çalışır.</p>`;
 }
 $('ku-liste').addEventListener('click', async ev => {
+  const sf = ev.target.closest('[data-ku-sifre]');
+  if (sf) {
+    const u = kuListe.find(x => x.id === sf.dataset.kuSifre); if (!u) return;
+    if (!sf.dataset.onay) { sf.dataset.onay = '1'; sf.textContent = 'Emin misiniz?'; setTimeout(() => { if (sf.isConnected) { delete sf.dataset.onay; sf.textContent = 'Şifre yenile'; } }, 4000); return; }
+    const sifre = sifreUret();
+    const { data, error } = await sb.functions.invoke('kullanici-olustur', { body: { islem: 'sifre', id: u.id, sifre } });
+    let hata = data?.hata; if (error && !hata) { try { hata = (await error.context.json()).hata; } catch (e) { hata = error.message; } }
+    if (hata) return bildir(hata, true);
+    window.__sonKartlar = [{ ad: u.ad, kullanici: gorunurKullanici(u.email), sifre, gorev: rolAd[u.rol], sube: subeler.find(x => x.id === u.sube_id)?.ad }];
+    modalAc(`Yeni şifre · ${esc(u.ad || '')}`, `<div class="detay"><div>Kullanıcı adı</div><div class="mono"><b>${esc(gorunurKullanici(u.email))}</b></div><div>Yeni şifre</div><div class="mono" style="font-size:22px"><b>${sifre}</b></div></div>
+      <p style="color:var(--soluk);font-size:14px">Eski şifre artık çalışmaz. Yeni şifre yalnızca şimdi görünür.</p>
+      <div class="satir" style="justify-content:flex-end"><button class="btn" type="button" data-kart-bas="1">Giriş kartını yazdır</button></div>`);
+    return;
+  }
   const id = ev.target.dataset.ku; if (!id) return;
   const { error } = await sb.rpc('profil_guncelle3', { p_id: id, p_ad: $('ku-ad-' + id).value, p_rol: $('ku-rol-' + id).value,
     p_ekranlar: secilenEkranlar('u' + id.slice(0, 8)), p_aktif: $('ku-aktif-' + id).value === 'true',
@@ -3118,23 +3160,92 @@ $('ku-liste').addEventListener('click', async ev => {
 function yeniKullaniciFormu() {
   $('ku-yeni-hazir').innerHTML = Object.entries(HAZIR_SETLER).map(([k, v]) => `<option value="${k}">${esc(v.ad)}</option>`).join('');
   $('ku-yeni-ekranlar').innerHTML = ekranSecHtml('yeni', HAZIR_SETLER.depo.ekranlar);
+  $('ku-yeni-sube').innerHTML = '<option value="">—</option>' + subeler.map(x => `<option value="${x.id}">${esc(x.ad)}</option>`).join('');
 }
+// ---- Saha personeli: kullanıcı adı, şifre üretme, giriş kartı ----
+const IC_ALAN = 'kocak.izl';
+const kullaniciAdiYap = t => String(t || '').trim().toLocaleLowerCase('tr').replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c').replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, '');
+const girisEposta = t => { t = String(t || '').trim(); return t.includes('@') ? t.toLowerCase() : `${kullaniciAdiYap(t)}@${IC_ALAN}`; };
+const gorunurKullanici = e => String(e || '').endsWith('@' + IC_ALAN) ? String(e).slice(0, -IC_ALAN.length - 1) : (e || '–');
+const sifreUret = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return String(100000 + a[0] % 900000); };
+const uygulamaAdresi = () => ayar.uygulama_adresi || (/^https:/.test(location.href) ? location.href.split(/[?#]/)[0].replace(/index\.html$/, '') : 'https://iyemez1987-cmd.github.io/kocak-baklava/');
+$('ku-sifre-uret').onclick = () => { $('ku-yeni-sifre').value = sifreUret(); };
+const GOREV_ESLE = [['depo', /^(depo|mal ?kabul|depocu)/], ['uretim', /^(uretim|üretim|hamur|uretime)/], ['oda', /^(oda|baklava|usta)/], ['sevkiyat', /^(sevk|sofor|şoför|arac|araç)/], ['sube', /^(sube|şube|satis|satış)/], ['muhendis', /^(muh|müh|gida|gıda|kalite)/]];
+let topluSatirlar = [];
+function topluCoz() {
+  const satirlar = $('ku-toplu').value.split(/\n/).map(x => x.trim()).filter(Boolean);
+  const gorulen = new Set();
+  topluSatirlar = satirlar.map(l => {
+    const [ad = '', kad = '', gorev = '', sube = ''] = l.split(/\s*[;\t]\s*/);
+    const g = gorev.toLocaleLowerCase('tr'), gk = (GOREV_ESLE.find(([, r]) => r.test(g)) || [null])[0];
+    const s = sube ? subeler.find(x => x.ad.toLocaleLowerCase('tr').startsWith(sube.toLocaleLowerCase('tr'))) : null;
+    const kullanici = kullaniciAdiYap(kad || ad);
+    let hata = !ad.trim() ? 'Ad yok' : !gk ? `Görev anlaşılmadı: “${gorev || 'boş'}”` : gk === 'sube' && !s ? `Şube bulunamadı: “${sube || 'boş'}”` : !kullanici ? 'Kullanıcı adı yok'
+      : gorulen.has(kullanici) ? 'Kullanıcı adı tekrar ediyor' : kuListe.some(u => gorunurKullanici(u.email) === kullanici) ? 'Bu kullanıcı adı zaten var' : '';
+    gorulen.add(kullanici);
+    return { ad: ad.trim(), kullanici, gorev: gk, sube: s, hata };
+  });
+  $('ku-toplu-onizleme').innerHTML = topluSatirlar.length ? `<table><tr><th>Ad soyad</th><th>Kullanıcı adı</th><th>Görev</th><th>Şube</th><th>Durum</th></tr>
+    ${topluSatirlar.map(r => `<tr><td>${esc(r.ad)}</td><td class="mono">${esc(r.kullanici)}</td><td>${r.gorev ? esc(HAZIR_SETLER[r.gorev].ad) : '–'}</td><td>${r.sube ? esc(r.sube.ad) : '–'}</td>
+      <td>${r.hata ? `<span class="rozet ret">${esc(r.hata)}</span>` : '<span class="rozet kabul">Hazır</span>'}</td></tr>`).join('')}</table>` : '';
+  const hazir = topluSatirlar.filter(r => !r.hata).length;
+  $('ku-toplu-ac').classList.toggle('gizli', !hazir); $('ku-toplu-ac').textContent = `${hazir} hesabı aç`;
+}
+$('ku-toplu-kontrol').onclick = topluCoz;
+$('ku-toplu').addEventListener('input', () => $('ku-toplu-ac').classList.add('gizli'));
+$('ku-toplu-ac').onclick = async () => {
+  topluCoz(); const liste = topluSatirlar.filter(r => !r.hata); if (!liste.length) return;
+  $('ku-toplu-ac').disabled = true; const acilan = [], hatali = [];
+  for (const r of liste) {
+    const sifre = sifreUret();
+    $('ku-toplu-sonuc').innerHTML = `<div class="okut-durum bekle">Açılıyor: ${esc(r.ad)} (${acilan.length + hatali.length + 1}/${liste.length})…</div>`;
+    const { data, error } = await sb.functions.invoke('kullanici-olustur', { body: { ad: r.ad, kullanici: r.kullanici, sifre, rol: r.gorev === 'muhendis' ? 'muhendis' : 'depocu',
+      ekranlar: HAZIR_SETLER[r.gorev].ekranlar, sube_id: r.sube ? r.sube.id : null } });
+    let hata = data?.hata; if (error && !hata) { try { hata = (await error.context.json()).hata; } catch (e) { hata = error.message; } }
+    if (hata) hatali.push({ ...r, hata }); else acilan.push({ ad: r.ad, kullanici: r.kullanici, sifre, gorev: HAZIR_SETLER[r.gorev].ad, sube: r.sube?.ad });
+  }
+  $('ku-toplu-ac').disabled = false; window.__sonKartlar = acilan;
+  $('ku-toplu-sonuc').innerHTML = `${acilan.length ? `<div class="okut-durum ok">${acilan.length} hesap açıldı. Şifreler yalnızca şimdi görünür; giriş kartlarını yazdırın ya da not alın.</div>
+    <table style="margin-top:8px"><tr><th>Ad soyad</th><th>Kullanıcı adı</th><th>Şifre</th><th>Görev</th></tr>${acilan.map(r => `<tr><td>${esc(r.ad)}</td><td class="mono">${esc(r.kullanici)}</td><td class="mono"><b>${r.sifre}</b></td><td>${esc(r.gorev)}${r.sube ? ' · ' + esc(r.sube) : ''}</td></tr>`).join('')}</table>
+    <div class="satir" style="margin-top:10px"><button class="btn" type="button" data-kart-bas="1">Giriş kartlarını yazdır</button></div>` : ''}
+    ${hatali.length ? `<div class="okut-durum hata" style="margin-top:8px">${hatali.length} hesap açılamadı: ${esc(hatali.map(r => `${r.ad} (${r.hata})`).join(', '))}</div>` : ''}`;
+  if (acilan.length) { $('ku-toplu').value = hatali.map(r => [r.ad, r.kullanici, r.gorev, r.sube?.ad || ''].join('; ')).join('\n'); $('ku-toplu-onizleme').innerHTML = ''; $('ku-toplu-ac').classList.add('gizli'); }
+  kullanicilarYukle();
+};
+function girisKartlariBas(liste) {
+  const adres = uygulamaAdresi(), qr = qrSvg(adres);
+  const html = `<div class="giris-kartlari">${liste.map(r => `<div class="giris-karti"><div class="qr">${qr}</div><div style="flex:1;min-width:0">
+      <h4>${esc(r.ad)}</h4><div class="gk-gorev">Koçak Baklava İzlenebilirlik · ${esc(r.gorev || '')}${r.sube ? ' · ' + esc(r.sube) : ''}</div>
+      <div class="gk-satir">Kullanıcı adı: <b>${esc(r.kullanici)}</b></div><div class="gk-satir">Şifre: <b>${esc(r.sifre)}</b></div>
+      <div class="gk-not">1. QR'ı telefon kamerasıyla okutun, uygulama açılır.<br>2. Kullanıcı adı ve şifreyle girin, “Beni hatırla” işaretli kalsın.<br>3. “Uygulamayı telefona yükle” ile ana ekrana ekleyin.<br>${esc(adres)}</div>
+    </div></div>`).join('')}</div>`;
+  $('page-size').textContent = '@page { size: A4 portrait; margin: 10mm; }'; $('yazdir').innerHTML = html; setTimeout(() => window.print(), 150);
+}
+document.addEventListener('click', ev => { if (ev.target.closest('[data-kart-bas]') && window.__sonKartlar?.length) girisKartlariBas(window.__sonKartlar); });
 $('ku-yeni-hazir').addEventListener('change', () => {
   const k = $('ku-yeni-hazir').value;
   $('ku-yeni-ekranlar').innerHTML = ekranSecHtml('yeni', HAZIR_SETLER[k].ekranlar);
+  if (k !== 'sube') $('ku-yeni-sube').value = '';
   if (k === 'muhendis') $('ku-yeni-rol').value = 'muhendis';
 });
 $('ku-form').addEventListener('submit', async ev => {
   ev.preventDefault();
   const btn = $('ku-yeni-kaydet'); btn.disabled = true;
   try {
+    const gorev = $('ku-yeni-hazir').value;
+    if (gorev === 'sube' && !$('ku-yeni-sube').value) { bildir('Şube personeli için şube seçin.', true); return; }
     const { data, error } = await sb.functions.invoke('kullanici-olustur', { body: {
-      ad: $('ku-yeni-ad').value.trim(), email: $('ku-yeni-eposta').value.trim(), sifre: $('ku-yeni-sifre').value,
-      rol: $('ku-yeni-rol').value, ekranlar: secilenEkranlar('yeni') } });
+      ad: $('ku-yeni-ad').value.trim(), email: girisEposta($('ku-yeni-eposta').value), sifre: $('ku-yeni-sifre').value,
+      rol: $('ku-yeni-rol').value, ekranlar: secilenEkranlar('yeni'), sube_id: $('ku-yeni-sube').value ? Number($('ku-yeni-sube').value) : null } });
     let hata = data?.hata;
     if (error && !hata) { try { hata = (await error.context.json()).hata; } catch (e) { hata = error.message; } }
     if (hata) return bildir(hata, true);
-    bildir(`Kullanıcı açıldı: ${$('ku-yeni-eposta').value.trim()}`);
+    window.__sonKartlar = [{ ad: $('ku-yeni-ad').value.trim(), kullanici: gorunurKullanici(data.email), sifre: $('ku-yeni-sifre').value,
+      gorev: HAZIR_SETLER[$('ku-yeni-hazir').value]?.ad, sube: subeler.find(x => String(x.id) === $('ku-yeni-sube').value)?.ad }];
+    bildir(`Kullanıcı açıldı: ${gorunurKullanici(data.email)}`);
+    modalAc('Kullanıcı açıldı', `<div class="detay"><div>Ad soyad</div><div>${esc(window.__sonKartlar[0].ad)}</div><div>Kullanıcı adı</div><div class="mono"><b>${esc(window.__sonKartlar[0].kullanici)}</b></div>
+      <div>Şifre</div><div class="mono"><b>${esc(window.__sonKartlar[0].sifre)}</b></div></div><p style="color:var(--soluk);font-size:14px">Şifre yalnızca şimdi görünür.</p>
+      <div class="satir" style="justify-content:flex-end"><button class="btn" type="button" data-kart-bas="1">Giriş kartını yazdır</button></div>`);
     ['ku-yeni-ad', 'ku-yeni-eposta', 'ku-yeni-sifre'].forEach(id => $(id).value = '');
     kullanicilarYukle();
   } finally { btn.disabled = false; }
@@ -4967,6 +5078,29 @@ function oturumGoster(oturum) {
   if (oturum && aktifKullanici !== oturum.user.id) { aktifKullanici = oturum.user.id; const u = oturum.user; setTimeout(() => basla(u.id, u.email), 0); }
   if (!oturum) aktifKullanici = null;
 }
+// ---- Telefona yükleme (ana ekrana ekle) ----
+let kurulumOlayi = null;
+const uygulamadaMi = () => !!window.izlYazici || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const iosMu = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const mobilCihazMi = () => /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) || iosMu();
+function kurDugmeleri() {
+  const goster = !uygulamadaMi() && (kurulumOlayi || iosMu() || mobilCihazMi());
+  document.querySelectorAll('.kur-dugme').forEach(b => b.classList.toggle('gizli', !goster));
+  let kapali = false; try { kapali = localStorage.getItem('kurSeritKapali') === '1'; } catch (e) {}
+  $('kur-serit')?.classList.toggle('gizli', !goster || kapali);
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); kurulumOlayi = e; kurDugmeleri(); });
+window.addEventListener('appinstalled', () => { kurulumOlayi = null; kurDugmeleri(); bildir('Uygulama telefona yüklendi. Ana ekrandaki simgeden açabilirsiniz.'); });
+document.addEventListener('click', async ev => {
+  if (ev.target.closest('#kur-kapat')) { try { localStorage.setItem('kurSeritKapali', '1'); } catch (e) {} return kurDugmeleri(); }
+  if (!ev.target.closest('[data-kur]')) return;
+  if (kurulumOlayi) { kurulumOlayi.prompt(); const r = await kurulumOlayi.userChoice.catch(() => null); if (r?.outcome === 'accepted') kurulumOlayi = null; return kurDugmeleri(); }
+  modalAc('Uygulamayı telefona yükleyin', iosMu()
+    ? `<p style="margin-top:0">iPhone / iPad'de <b>Safari</b> ile açın, sonra:</p><ol class="kur-adimlar"><li>Alttaki <b>Paylaş</b> düğmesine dokunun (ok çıkan kare).</li><li><b>Ana Ekrana Ekle</b>'yi seçin.</li><li>Sağ üstte <b>Ekle</b>'ye dokunun.</li></ol><p style="color:var(--soluk);font-size:14px">Simge ana ekranda “Koçak Baklava” adıyla görünür ve uygulama gibi tam ekran açılır.</p>`
+    : `<p style="margin-top:0">Android'de <b>Chrome</b> ile açın, sonra:</p><ol class="kur-adimlar"><li>Sağ üstteki <b>⋮</b> menüsüne dokunun.</li><li><b>Uygulamayı yükle</b> ya da <b>Ana ekrana ekle</b>'yi seçin.</li><li><b>Yükle</b>'ye dokunun.</li></ol><p style="color:var(--soluk);font-size:14px">Uygulama, uygulamalar listesine ve ana ekrana “Koçak Baklava” adıyla eklenir.</p>`);
+});
+kurDugmeleri();
+
 let aktifKullanici = null;
 $('giris-form').addEventListener('submit', async ev => {
   ev.preventDefault(); $('g-hata').textContent = '';
@@ -4975,13 +5109,13 @@ $('giris-form').addEventListener('submit', async ev => {
     localStorage.setItem('beniHatirla', hatirla ? '1' : '0');
     if (hatirla) localStorage.setItem('sonEposta', $('g-eposta').value.trim()); else localStorage.removeItem('sonEposta');
   } catch (e) {}
-  const { error } = await sb.auth.signInWithPassword({ email: $('g-eposta').value.trim(), password: $('g-sifre').value });
+  const { error } = await sb.auth.signInWithPassword({ email: girisEposta($('g-eposta').value), password: $('g-sifre').value });
   if (error) {
     const m = String(error.message || '');
     const ag = error.status === 0 || /fetch|network|load failed|NetworkError/i.test(m) || error.name === 'AuthRetryableFetchError';
     $('g-hata').textContent = ag
       ? 'Sunucuya ulaşılamadı. İnternet bağlantısını kontrol edin; dosyayı bir uygulamanın içinden açtıysanız Chrome ile açın.'
-      : /confirm/i.test(m) ? 'Bu hesap henüz onaylanmamış.' : 'Giriş başarısız: e-posta veya şifre hatalı.';
+      : /confirm/i.test(m) ? 'Bu hesap henüz onaylanmamış.' : 'Giriş başarısız: kullanıcı adı veya şifre hatalı.';
     return;
   }
   // Tarayıcının "şifreyi kaydet" önerisini tetikle (destekleyen tarayıcılarda)
