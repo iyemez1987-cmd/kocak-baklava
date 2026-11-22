@@ -1589,7 +1589,7 @@ async function firmalariYukle() {
 // Her hammadde ve mamul kendi şablonunu kullanır; seçilmemişse varsayılan şablon gelir.
 let etiketSablonlari = [], mamulListesi = [], onekGovde = '';
 const ayar = { qr_adres_oneki: 'HTTPS://TATLIYOLCULUGU.COM/D/', yazici_dpi: 203, varsayilan_hammadde_sablon: null, varsayilan_tepsi_sablon: null };
-const izlYazici = window.izlYazici || null;   // Windows uygulamasında (Electron) gelir
+const yaziciKopru = window.izlYazici || null;   // Windows uygulamasında (Electron) gelir
 const ALANLAR = [
   { id: 'marka', ad: 'Firma adı (marka)' },
   { id: 'ad', ad: 'Ürün adı' },
@@ -1729,20 +1729,20 @@ async function fiseBas(gruplar, f) {
   $('page-size').textContent = `@page { size: ${f.kagit}mm ${L}mm; margin: 0; }`;
   $('yazdir').innerHTML = `<div class="fis-sayfa" style="width:${f.kagit}mm">${parcalar.join('')}</div>`;
   await new Promise(r => setTimeout(r, 150));
-  if (izlYazici) {
-    const r = await izlYazici.bas({ yazici: '', genislik: f.kagit, yukseklik: L });
+  if (yaziciKopru) {
+    const r = await yaziciKopru.bas({ yazici: '', genislik: f.kagit, yukseklik: L });
     if (r && !r.ok && r.hata && !/cancel/i.test(r.hata)) bildir('Yazdırılamadı: ' + r.hata, true);
   } else window.print();
 }
 async function gruplariBas(gruplar) {
   const f = FIS_YAZICI[yaziciTuru()];
   if (f) return fiseBas(gruplar, f);
-  if (izlYazici) {
+  if (yaziciKopru) {
     for (const g of gruplar) {
       $('page-size').textContent = `@page { size: ${g.s.genislik_mm}mm ${g.s.yukseklik_mm}mm; margin: 0; }`;
       $('yazdir').innerHTML = g.l.map(v => etiketCiz(v, g.s)).join('');
       await new Promise(r => setTimeout(r, 150));
-      const r = await izlYazici.bas({ yazici: g.s.yazici || '', genislik: Number(g.s.genislik_mm), yukseklik: Number(g.s.yukseklik_mm) });
+      const r = await yaziciKopru.bas({ yazici: g.s.yazici || '', genislik: Number(g.s.genislik_mm), yukseklik: Number(g.s.yukseklik_mm) });
       if (r && !r.ok && r.hata && !/cancel/i.test(r.hata)) bildir('Yazdırılamadı: ' + r.hata, true);
       else if (r && r.ok && g.s.yazici) bildir(`${g.l.length} etiket ${g.s.yazici} yazıcısına gönderildi.`);
     }
@@ -4488,7 +4488,7 @@ async function parametreleriAc() {
   $('pr-v-ham').innerHTML = sablonSecenek('— Seçin —', 'hammadde'); $('pr-v-ham').value = ayar.varsayilan_hammadde_sablon ?? '';
   $('pr-v-tepsi').innerHTML = sablonSecenek('— Seçin —', 'tepsi'); $('pr-v-tepsi').value = ayar.varsayilan_tepsi_sablon ?? '';
   sablonListesiCiz(); urunEtiketleriCiz(); markaOnizle();
-  if (izlYazici && !yazicilar) { try { yazicilar = await izlYazici.liste(); } catch (e) { yazicilar = []; } }
+  if (yaziciKopru && !yazicilar) { try { yazicilar = await yaziciKopru.liste(); } catch (e) { yazicilar = []; } }
 }
 
 function sablonListesiCiz() {
@@ -4568,7 +4568,7 @@ function sablonFormuAc(s) {
   $('pr-id').value = s.id || ''; $('pr-ad').value = s.ad; $('pr-gen').value = s.genislik_mm; $('pr-yuk').value = s.yukseklik_mm;
   $('pr-yer').value = s.yerlesim; $('pr-qr').value = s.qr_icerik; $('pr-kopya').value = s.kopya || 1; $('pr-aktif').value = String(s.aktif !== false);
   const yz = $('pr-yazici');
-  if (izlYazici) {
+  if (yaziciKopru) {
     yz.disabled = false;
     yz.innerHTML = '<option value="">Her seferinde sor</option>' + (yazicilar || []).map(p => `<option value="${esc(p.ad)}">${esc(p.ad)}${p.varsayilan ? ' (varsayılan)' : ''}</option>`).join('');
     if (s.yazici && ![...yz.options].some(o => o.value === s.yazici)) yz.insertAdjacentHTML('beforeend', `<option value="${esc(s.yazici)}">${esc(s.yazici)} (bulunamadı)</option>`);
@@ -4586,7 +4586,7 @@ $('pr-deneme').onclick = () => { const s = formSablonu(); const v = s.tur === 't
 $('pr-form').addEventListener('submit', async ev => {
   ev.preventDefault();
   const s = formSablonu(); const kayit = { ad: s.ad, genislik_mm: s.genislik_mm, yukseklik_mm: s.yukseklik_mm, yerlesim: s.yerlesim, alanlar: s.alanlar,
-    qr_icerik: s.qr_icerik, yazici: izlYazici ? s.yazici : (etiketSablonlari.find(x => x.id == $('pr-id').value)?.yazici ?? null), kopya: s.kopya, aktif: s.aktif, tur: s.tur };
+    qr_icerik: s.qr_icerik, yazici: yaziciKopru ? s.yazici : (etiketSablonlari.find(x => x.id == $('pr-id').value)?.yazici ?? null), kopya: s.kopya, aktif: s.aktif, tur: s.tur };
   if (!kayit.ad) return bildir('Şablona bir ad verin.', true);
   const id = Number($('pr-id').value);
   const { error } = id ? await sb.from('etiket_sablonlari').update(kayit).eq('id', id) : await sb.from('etiket_sablonlari').insert(kayit);
