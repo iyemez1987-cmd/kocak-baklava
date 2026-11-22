@@ -257,6 +257,13 @@
   .hm-panel { margin: 0 0 14px; }
   .hm-birim { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 22px; font-weight: 800; color: var(--soluk); pointer-events: none; }
   .hm-ver { font-size: 18px; padding: 14px; justify-content: center; }
+  .hm-fire-satir { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .hm-fire-satir label { font-weight: 800; font-size: 15px; }
+  .hm-fire-kutu { position: relative; width: 130px; }
+  .hm-fire-kutu input { width: 100%; font-size: 18px; font-weight: 700; padding: 8px 34px 8px 10px; }
+  .hm-fire-kutu span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--soluk); font-weight: 700; pointer-events: none; }
+  .hm-fire-satir small { color: var(--soluk); font-size: 13px; flex: 1; min-width: 140px; }
+  .fire-asim { color: var(--hata) !important; font-weight: 700; }
   .miktar-yok { color: var(--hata); font-weight: 700; }
   .ym-bolum { font-size: 12.5px; font-weight: 800; letter-spacing: .5px; color: var(--soluk); text-transform: uppercase; }
   .ym-girdiler { display: flex; flex-direction: column; gap: 8px; }
@@ -823,6 +830,7 @@
             <input id="hm-miktar" class="okut-input" type="text" inputmode="decimal" placeholder="Ürün miktarını girin" aria-label="Ürün miktarı">
             <span class="hm-birim" id="hm-birim">kg</span>
           </div>
+          <div class="hm-fire-satir"><label for="hm-fire">Fire</label><span class="hm-fire-kutu"><input id="hm-fire" type="text" inputmode="decimal" placeholder="0" aria-label="Fire miktarı"><span id="hm-fire-birim">kg</span></span><small id="hm-fire-not"></small></div>
           <button class="btn hm-ver" type="submit" id="hm-ver">Üretime ver</button>
           <div id="hm-durum" class="okut-durum bekle gizli"></div>
         </form>
@@ -878,6 +886,7 @@
             <input id="ym-cikan" class="okut-input" type="text" inputmode="decimal" placeholder="Çıkan miktarı girin" aria-label="Çıkan miktar">
             <span class="hm-birim" id="ym-birim">kg</span>
           </div>
+          <div class="hm-fire-satir"><label for="ym-fire">Fire</label><span class="hm-fire-kutu"><input id="ym-fire" type="text" inputmode="decimal" placeholder="0" aria-label="Fire"><span id="ym-fire-birim">kg</span></span><small id="ym-verim"></small></div>
           <input id="ym-not" placeholder="Not (isteğe bağlı)" aria-label="Not">
           <button class="btn hm-ver" type="submit" id="ym-kaydet">Kaydet ve etiketi bas</button>
           <div id="ym-durum" class="okut-durum bekle gizli"></div>
@@ -901,6 +910,7 @@
             <label>Adı * <input id="ymt-adi" required placeholder="Baklava hamuru"></label>
             <label>Birim <select id="ymt-birim"><option>kg</option><option>lt</option><option>adet</option></select></label>
             <label>Raf ömrü (gün) <input type="number" min="0" id="ymt-skt" placeholder="örn. 1"></label>
+            <label>Beklenen fire oranı (%) <input type="text" inputmode="decimal" id="ymt-fire" placeholder="örn. 3"></label>
             <label>Durum <select id="ymt-aktif"><option value="true">Aktif</option><option value="false">Pasif</option></select></label>
           </div>
           <div class="ym-bolum" style="margin-top:12px">Reçete (her üretimde önerilen hammaddeler ve miktarları)</div>
@@ -1435,6 +1445,7 @@
           <label>Birim <select id="u-birim"><option>kg</option><option>adet</option><option>lt</option><option>çuval</option><option>teneke</option><option>kova</option><option>koli</option></select></label>
           <label>Takip şekli <select id="u-takip"><option value="kg">Miktarla (tartıp ver)</option><option value="adet">Adetle (sayıp ver)</option><option value="parti">Parti / etiketle (paket paket)</option></select></label>
           <label>Varsayılan SKT (gün) <input type="number" min="0" id="u-skt" placeholder="örn. 365"></label>
+          <label>Standart fire oranı (%) <input type="text" inputmode="decimal" id="u-fire" placeholder="örn. 2"></label>
           <label>Durum <select id="u-aktif"><option value="true">Aktif</option><option value="false">Pasif</option></select></label>
         </div>
         <datalist id="kategoriler"><option>Fıstık</option><option>Yağ</option><option>Un</option><option>Kaymak</option><option>Şeker</option><option>Ambalaj</option><option>Diğer</option></datalist>
@@ -2160,7 +2171,7 @@ const sayiOku = v => { const t = String(v || '').trim().replace(/\s/g, ''); if (
   const n = t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t; return Number(n); };
 async function hmYukle() {
   const [{ data: ur, error }, { data: kalan }, { data: acik }] = await Promise.all([
-    sb.from('urunler').select('id,kod,ad,kategori,birim,takip_turu,aktif').eq('aktif', true).neq('takip_turu', 'parti').order('ad'),
+    sb.from('urunler').select('id,kod,ad,kategori,birim,takip_turu,aktif,fire_orani').eq('aktif', true).neq('takip_turu', 'parti').order('ad'),
     sb.from('v_parti_kalan').select('parti_id,urun_id,parti_kodu,toplam_miktar,kalan,skt,giris_tarihi,kullanilabilir,analiz_durum'),
     sb.from('acik_partiler').select('urun_id,parti_id')]);
   if (error) return bildir(hataMesaji(error), true);
@@ -2197,9 +2208,20 @@ function hmPanel() {
 function hmSec(id) {
   hmSecili = id; $('hm-durum').classList.add('gizli');
   document.querySelectorAll('.hm-urun').forEach(b => b.classList.toggle('secili', Number(b.dataset.hm) === id));
-  hmPanel(); $('hm-miktar').value = '';
+  hmPanel(); $('hm-miktar').value = ''; hmFireSifirla();
   setTimeout(() => { $('hm-miktar').focus(); $('hm-form').scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 30);
 }
+let hmFireElle = false;
+function hmFireSifirla() {
+  hmFireElle = false; $('hm-fire').value = '';
+  const u = hmUrunler.find(x => x.id === hmSecili); $('hm-fire-birim').textContent = u?.birim || 'kg';
+  $('hm-fire-not').textContent = u?.fire_orani != null ? `Standart fire %${sayi(u.fire_orani)} · miktar yazılınca kendiliğinden hesaplanır` : 'İsteğe bağlı · ürün kartında standart fire oranı tanımlı değil';
+}
+$('hm-miktar').addEventListener('input', () => {
+  const u = hmUrunler.find(x => x.id === hmSecili); if (!u || hmFireElle || u.fire_orani == null) return;
+  const m = sayiOku($('hm-miktar').value); $('hm-fire').value = m > 0 ? String(Math.round(m * u.fire_orani) / 100).replace('.', ',') : '';
+});
+$('hm-fire').addEventListener('input', () => { hmFireElle = String($('hm-fire').value).trim() !== ''; });
 function hmKapat() { hmSecili = null; $('hm-form').classList.add('gizli'); document.querySelectorAll('.hm-urun.secili').forEach(b => b.classList.remove('secili')); }
 function hmDurum(tur, bas, alt = '') { const d = $('hm-durum'); d.className = 'okut-durum ' + tur; d.innerHTML = `${esc(bas)}${alt ? `<small>${alt}</small>` : ''}`; }
 $('hm-urunler').addEventListener('click', ev => { const b = ev.target.closest('[data-hm]'); if (b) hmSec(Number(b.dataset.hm)); });
@@ -2211,15 +2233,17 @@ $('hm-form').addEventListener('submit', async ev => {
   const m = sayiOku($('hm-miktar').value);
   if (!(m > 0)) { ses('hata'); hmDurum('hata', 'Geçerli bir miktar yazın', 'Örnek: 50 ya da 49,5'); $('hm-miktar').focus(); return; }
   if (u.takip_turu === 'adet' && !Number.isInteger(m)) { ses('hata'); hmDurum('hata', 'Adet tam sayı olmalı'); return; }
+  const fireYazi = String($('hm-fire').value).trim(), fire = fireYazi === '' ? null : sayiOku(fireYazi);
+  if (fire != null && !(fire >= 0 && fire <= m)) { ses('hata'); hmDurum('hata', 'Fire 0 ile verilen miktar arasında olmalı'); return $('hm-fire').focus(); }
   $('hm-ver').disabled = true;
-  const { data, error } = await sb.rpc('uretime_miktar_ver', { p_urun_id: u.id, p_miktar: m });
+  const { data, error } = await sb.rpc('uretime_miktar_ver', { p_urun_id: u.id, p_miktar: m, p_fire: fire });
   $('hm-ver').disabled = false;
   if (error) { ses('hata'); hmDurum('hata', hataMesaji(error)); $('hm-miktar').select(); return; }
-  ses('ok'); hmSon = data.grup; $('hm-miktar').value = '';
+  ses('ok'); hmSon = data.grup; $('hm-miktar').value = ''; hmFireSifirla();
   const kaynak = data.cikislar.map(c => `${c.parti_kodu}: ${sayi(c.miktar)}`).join(' + ');
   const gecis = data.bitenler.length ? ` · ${data.bitenler.join(', ')} bitti${data.acik ? `, ${data.acik.parti_kodu} partisine geçildi` : ''}` : '';
   hmDurum('ok', `✓ ${sayi(data.miktar)} ${data.birim} ${data.urun_ad} üretime verildi`,
-    `${esc(kaynak)} ${esc(data.birim)}${esc(gecis)}${data.acik ? ` · kalan ${sayi(data.acik.kalan)} ${esc(data.birim)}` : ''} <button type="button" class="btn kucuk ikincil" data-hm-geri="${data.grup}" style="margin-left:8px">Geri al</button>`);
+    `${esc(kaynak)} ${esc(data.birim)}${data.fire != null ? ` · fire ${sayi(data.fire)} ${esc(data.birim)}` : ''}${esc(gecis)}${data.acik ? ` · kalan ${sayi(data.acik.kalan)} ${esc(data.birim)}` : ''} <button type="button" class="btn kucuk ikincil" data-hm-geri="${data.grup}" style="margin-left:8px">Geri al</button>`);
   if ($('u-gun').value !== bugun()) $('u-gun').value = bugun();
   await hmYukle(); uretimListesiYukle(); $('hm-miktar').focus();
 });
@@ -2280,14 +2304,28 @@ function ymSec(id) {
   ymSecili = id; const m = ymTanimlar.find(x => x.id === id);
   document.querySelectorAll('[data-ym]').forEach(b => b.classList.toggle('secili', Number(b.dataset.ym) === id));
   ymGirdi = ymRecete.filter(x => x.yari_mamul_id === id).map(x => ({ urun_id: x.urun_id, miktar: x.miktar != null ? String(x.miktar).replace('.', ',') : '' }));
-  $('ym-ad').textContent = m.ad; $('ym-birim').textContent = m.birim; $('ym-cikan').value = ''; $('ym-not').value = '';
-  $('ym-durum').classList.add('gizli'); $('ym-form').classList.remove('gizli'); ymGirdiCiz();
+  $('ym-ad').textContent = m.ad; $('ym-birim').textContent = m.birim; $('ym-fire-birim').textContent = m.birim; $('ym-cikan').value = ''; $('ym-not').value = ''; ymFireElle = false; $('ym-fire').value = '';
+  $('ym-durum').classList.add('gizli'); $('ym-form').classList.remove('gizli'); ymGirdiCiz(); ymVerim();
   setTimeout(() => { $('ym-form').scrollIntoView({ block: 'start', behavior: 'smooth' }); (document.querySelector('[data-ym-i]') || $('ym-cikan')).focus(); }, 30);
 }
 function ymKapat() { ymSecili = null; $('ym-form').classList.add('gizli'); document.querySelectorAll('[data-ym].secili').forEach(b => b.classList.remove('secili')); }
 $('ym-tanimlar').addEventListener('click', ev => { const b = ev.target.closest('[data-ym]'); if (b) ymSec(Number(b.dataset.ym)); });
 $('ym-kapat').onclick = ymKapat;
-$('ym-girdiler').addEventListener('input', ev => { const i = ev.target.dataset.ymI; if (i != null) ymGirdi[i].miktar = ev.target.value; });
+$('ym-girdiler').addEventListener('input', ev => { const i = ev.target.dataset.ymI; if (i != null) { ymGirdi[i].miktar = ev.target.value; ymVerim(); } });
+let ymFireElle = false;
+function ymVerim() {
+  const m = ymTanimlar.find(x => x.id === ymSecili); if (!m) return;
+  const girdi = ymGirdi.reduce((t, g) => { const u = hmUrunler.find(x => x.id === g.urun_id); const v = sayiOku(g.miktar); return t + ((u?.birim || 'kg') === m.birim && v > 0 ? v : 0); }, 0);
+  const cikan = sayiOku($('ym-cikan').value);
+  if (!ymFireElle) $('ym-fire').value = girdi > 0 && cikan > 0 && girdi > cikan ? String(Math.round((girdi - cikan) * 100) / 100).replace('.', ',') : '';
+  const fire = sayiOku($('ym-fire').value) || 0, oran = girdi > 0 ? fire / girdi * 100 : 0;
+  const asim = m.fire_orani != null && girdi > 0 && oran > Number(m.fire_orani);
+  $('ym-verim').className = asim ? 'fire-asim' : '';
+  $('ym-verim').textContent = !(girdi > 0) ? (m.fire_orani != null ? `Beklenen fire %${sayi(m.fire_orani)}` : 'Girdi ve çıkan yazılınca fire hesaplanır')
+    : `Girdi ${sayi(girdi)} ${m.birim}${cikan > 0 ? ` · çıkan ${sayi(cikan)} · verim %${sayi(Math.round(cikan / girdi * 1000) / 10)}` : ''}${fire ? ` · fire %${sayi(Math.round(oran * 10) / 10)}` : ''}${m.fire_orani != null ? ` (beklenen %${sayi(m.fire_orani)})` : ''}${asim ? ' · beklenenin üstünde!' : ''}`;
+}
+$('ym-cikan').addEventListener('input', ymVerim);
+$('ym-fire').addEventListener('input', () => { ymFireElle = String($('ym-fire').value).trim() !== ''; ymVerim(); });
 $('ym-girdiler').addEventListener('click', ev => { const b = ev.target.closest('[data-ym-sil]'); if (b) { ymGirdi.splice(Number(b.dataset.ymSil), 1); ymGirdiCiz(); } });
 $('ym-ekle').onchange = () => { const id = Number($('ym-ekle').value); $('ym-ekle').value = ''; if (!id || ymGirdi.some(g => g.urun_id === id)) return;
   ymGirdi.push({ urun_id: id, miktar: '' }); ymGirdiCiz(); document.querySelector(`[data-ym-i="${ymGirdi.length - 1}"]`)?.focus(); };
@@ -2302,13 +2340,15 @@ $('ym-form').addEventListener('submit', async ev => {
   const cikan = sayiOku($('ym-cikan').value);
   if (!(cikan > 0)) { ses('hata'); ymDurum('hata', 'Çıkan miktarı yazın', `Örnek: 100 ${esc(m.birim)}`); return $('ym-cikan').focus(); }
   $('ym-kaydet').disabled = true;
-  const { data, error } = await sb.rpc('yari_mamul_uret', { p_yari_mamul_id: m.id, p_girdiler: girdiler, p_cikan: cikan, p_not: $('ym-not').value });
+  const fy = String($('ym-fire').value).trim(), fire = fy === '' ? null : sayiOku(fy);
+  if (fire != null && !(fire >= 0)) { ses('hata'); return ymDurum('hata', 'Fire geçersiz'); }
+  const { data, error } = await sb.rpc('yari_mamul_uret', { p_yari_mamul_id: m.id, p_girdiler: girdiler, p_cikan: cikan, p_not: $('ym-not').value, p_fire: fire });
   $('ym-kaydet').disabled = false;
   if (error) { ses('hata'); return ymDurum('hata', hataMesaji(error)); }
   ses('ok');
   const gecis = data.girdiler.flatMap(g => g.bitenler || []);
   ymDurum('ok', `✓ ${data.kod} · ${sayi(data.miktar)} ${data.birim} ${data.ad}`,
-    `${esc(data.girdiler.map(g => `${g.urun_ad} ${sayi(g.miktar)} ${g.birim}`).join(' + '))}${gecis.length ? ` · ${esc(gecis.join(', '))} bitti, sıradaki partiye geçildi` : ''}`);
+    `${esc(data.girdiler.map(g => `${g.urun_ad} ${sayi(g.miktar)} ${g.birim}`).join(' + '))}${data.fire ? ` · fire ${sayi(data.fire)} ${esc(data.birim)}${data.girdi_toplam > 0 ? ` (%${sayi(Math.round(data.fire / data.girdi_toplam * 1000) / 10)})` : ''}` : ''}${gecis.length ? ` · ${esc(gecis.join(', '))} bitti, sıradaki partiye geçildi` : ''}`);
   etiketleriBas([yariEtiketVeri(data)]);
   $('ym-gun').value = bugun(); await ymYukle(); ymSec(m.id); $('ym-durum').classList.remove('gizli');
 });
@@ -2318,7 +2358,7 @@ async function ymListe() {
   if (error) return bildir(hataMesaji(error), true);
   $('ym-liste').innerHTML = data.length ? `<table><tr><th>Saat</th><th>Parti</th><th>Yarı mamul</th><th>Miktar</th><th>Hammaddeler</th><th>Giren</th><th></th></tr>
     ${data.map(y => `<tr class="${y.iptal ? 'iptal-satir' : ''}"><td>${saat(y.created_at)}</td><td class="mono">${esc(y.kod)}</td><td><b>${esc(y.yari_mamul_ad)}</b>${y.iptal ? ' <span class="rozet ret">İptal</span>' : analizRozet(y.analiz_durum)}</td>
-      <td><b>${sayi(y.miktar)} ${esc(y.birim)}</b></td><td>${esc(y.girdi_adlari || '–')}</td><td>${esc(y.olusturan_ad || '–')}</td>
+      <td><b>${sayi(y.miktar)} ${esc(y.birim)}</b>${y.fire_miktar ? `<div style="font-size:12.5px" class="${y.beklenen_fire_orani != null && y.girdi_toplam > 0 && y.fire_miktar / y.girdi_toplam * 100 > y.beklenen_fire_orani ? 'fire-asim' : ''}">fire ${sayi(y.fire_miktar)}${y.girdi_toplam > 0 ? ` (%${sayi(Math.round(y.fire_miktar / y.girdi_toplam * 1000) / 10)})` : ''}</div>` : ''}</td><td>${esc(y.girdi_adlari || '–')}</td><td>${esc(y.olusturan_ad || '–')}</td>
       <td style="white-space:nowrap">${y.iptal ? '' : `<button class="btn kucuk ikincil" data-yari-sorgu="${esc(y.kod)}">İçeriği</button> <button class="btn kucuk ikincil" data-yari-etiket="${y.id}">Etiket</button>${gun === bugun() || profil.rol === 'yonetici' ? ` <button class="btn kucuk ikincil" data-yari-iptal="${y.id}">İptal</button>` : ''}`}</td></tr>`).join('')}</table>`
     : '<div class="bos">Bu gün yarı mamul üretilmedi.</div>';
   window.__ymListe = data;
@@ -2378,10 +2418,10 @@ async function yariSorgula(y) {
 
 // ---- Yarı mamul tanımları ----
 function ymtListe() {
-  $('ymt-liste').innerHTML = ymTanimlar.length ? `<table><tr><th>Kod</th><th>Adı</th><th>Reçete</th><th>Raf ömrü</th><th>Durum</th><th></th></tr>
+  $('ymt-liste').innerHTML = ymTanimlar.length ? `<table><tr><th>Kod</th><th>Adı</th><th>Reçete</th><th>Raf ömrü</th><th>Fire</th><th>Durum</th><th></th></tr>
     ${ymTanimlar.map(m => `<tr><td class="mono">${esc(m.kod)}</td><td><b>${esc(m.ad)}</b></td>
       <td>${esc(ymRecete.filter(x => x.yari_mamul_id === m.id).map(x => { const u = hmUrunler.find(u => u.id === x.urun_id) || urunler.find(u => u.id === x.urun_id); return (u?.ad || '?') + (x.miktar ? ' ' + sayi(x.miktar) + ' ' + (u?.birim || '') : ''); }).join(', ') || '–')}</td>
-      <td>${m.skt_gun != null ? m.skt_gun + ' gün' : '–'}</td><td><span class="rozet ${m.aktif ? '' : 'pasif'}">${m.aktif ? 'Aktif' : 'Pasif'}</span></td>
+      <td>${m.skt_gun != null ? m.skt_gun + ' gün' : '–'}</td><td>${m.fire_orani != null ? '%' + sayi(m.fire_orani) : '–'}</td><td><span class="rozet ${m.aktif ? '' : 'pasif'}">${m.aktif ? 'Aktif' : 'Pasif'}</span></td>
       <td><button class="btn kucuk ikincil" data-ymt-duzenle="${m.id}">Düzenle</button></td></tr>`).join('')}</table>` : '<div class="bos">Henüz tanım yok.</div>';
 }
 function ymtReceteCiz() {
@@ -2389,7 +2429,7 @@ function ymtReceteCiz() {
     return `<div class="ymt-satir"><span><b>${esc(u.ad || '?')}</b></span><input type="text" inputmode="decimal" placeholder="Miktar" value="${r.miktar ?? ''}" data-ymt-i="${i}" aria-label="Önerilen miktar"><span style="flex:none;color:var(--soluk)">${esc(u.birim || 'kg')}</span><button type="button" class="ym-sil" data-ymt-sil="${i}" aria-label="Çıkar">✕</button></div>`; }).join('')
     : '<div style="color:var(--soluk);font-size:14px">Reçete boş. Miktarlar zorunlu değil; yazılırsa üretimde hazır gelir.</div>';
 }
-function ymtTemizle() { ['ymt-id', 'ymt-kod', 'ymt-adi', 'ymt-skt'].forEach(id => $(id).value = ''); $('ymt-birim').value = 'kg'; $('ymt-aktif').value = 'true'; $('ymt-kod').disabled = false; ymtRecete = []; ymtReceteCiz(); }
+function ymtTemizle() { ['ymt-id', 'ymt-kod', 'ymt-adi', 'ymt-skt', 'ymt-fire'].forEach(id => $(id).value = ''); $('ymt-birim').value = 'kg'; $('ymt-aktif').value = 'true'; $('ymt-kod').disabled = false; ymtRecete = []; ymtReceteCiz(); }
 $('ymt-yeni').onclick = ymtTemizle;
 $('ymt-kod').addEventListener('input', () => { $('ymt-kod').value = trUpper($('ymt-kod').value).replace(/[^A-Z0-9]/g, ''); });
 $('ymt-ekle').onchange = () => { const id = Number($('ymt-ekle').value); $('ymt-ekle').value = ''; if (!id || ymtRecete.some(r => r.urun_id === id)) return; ymtRecete.push({ urun_id: id, miktar: '' }); ymtReceteCiz(); };
@@ -2399,7 +2439,7 @@ document.addEventListener('click', ev => {
   const b = ev.target.closest('[data-ymt-duzenle]'); if (!b) return;
   const m = ymTanimlar.find(x => x.id === Number(b.dataset.ymtDuzenle)); if (!m) return;
   $('ymt-id').value = m.id; $('ymt-kod').value = m.kod; $('ymt-kod').disabled = true; $('ymt-adi').value = m.ad; $('ymt-birim').value = m.birim;
-  $('ymt-skt').value = m.skt_gun ?? ''; $('ymt-aktif').value = String(m.aktif);
+  $('ymt-skt').value = m.skt_gun ?? ''; $('ymt-aktif').value = String(m.aktif); $('ymt-fire').value = m.fire_orani != null ? String(m.fire_orani).replace('.', ',') : '';
   ymtRecete = ymRecete.filter(x => x.yari_mamul_id === m.id).map(x => ({ urun_id: x.urun_id, miktar: x.miktar != null ? String(x.miktar).replace('.', ',') : '' }));
   ymtReceteCiz(); $('ymt-form').scrollIntoView({ block: 'start', behavior: 'smooth' });
 });
@@ -2409,7 +2449,8 @@ $('ymt-form').addEventListener('submit', async ev => {
   if (bad) return bildir('Reçetedeki miktarlardan biri geçersiz.', true);
   const { error } = await sb.rpc('yari_mamul_kaydet', { p_id: $('ymt-id').value ? Number($('ymt-id').value) : null, p_kod: $('ymt-kod').value, p_ad: $('ymt-adi').value,
     p_birim: $('ymt-birim').value, p_skt_gun: $('ymt-skt').value === '' ? null : Number($('ymt-skt').value), p_aktif: $('ymt-aktif').value === 'true',
-    p_recete: ymtRecete.map(r => ({ urun_id: r.urun_id, miktar: String(r.miktar).trim() ? sayiOku(r.miktar) : null })) });
+    p_recete: ymtRecete.map(r => ({ urun_id: r.urun_id, miktar: String(r.miktar).trim() ? sayiOku(r.miktar) : null })),
+    p_fire_orani: String($('ymt-fire').value).trim() === '' ? null : sayiOku($('ymt-fire').value) });
   if (error) return bildir(hataMesaji(error), true);
   bildir('Yarı mamul kaydedildi.'); ymtTemizle(); ymYukle();
 });
@@ -2650,16 +2691,16 @@ async function uretimListesiYukle() {
   if (error) return bildir(hataMesaji(error), true);
   // Kiloyla verilenler: bir giriş birden çok partiye bölünmüş olabilir, grup olarak göster
   const gr = {};
-  (kilo || []).forEach(r => { const g = gr[r.grup] ||= { grup: r.grup, tarih: r.tarih, urun: r.urun_ad, birim: r.birim, miktar: 0, partiler: [], kim: r.kullanici_ad, kullanici: r.kullanici, yari: r.yari_kod };
+  (kilo || []).forEach(r => { const g = gr[r.grup] ||= { grup: r.grup, tarih: r.tarih, urun: r.urun_ad, birim: r.birim, miktar: 0, partiler: [], kim: r.kullanici_ad, kullanici: r.kullanici, yari: r.yari_kod, fire: r.grup_fire };
     g.miktar += Number(r.miktar); g.partiler.push(`${r.parti_kodu}${r.firma_kod ? ' (' + r.firma_kod + ')' : ''}`); });
   const kiloGr = Object.values(gr).sort((a, b) => b.tarih.localeCompare(a.tarih));
   const top = {};
-  kiloGr.forEach(g => { const t = top[g.urun] ||= { urun: g.urun, birim: g.birim, miktar: 0, adet: 0 }; t.miktar += g.miktar; t.adet++; });
+  kiloGr.forEach(g => { const t = top[g.urun] ||= { urun: g.urun, birim: g.birim, miktar: 0, adet: 0, fire: 0 }; t.miktar += g.miktar; t.adet++; t.fire += Number(g.fire || 0); });
   $('u-sayac').textContent = data.length + kiloGr.length;
   $('u-sayac-yazi').textContent = gun === bugun() ? 'kayıt bugün üretime verildi' : `kayıt ${tarih(gun)} günü üretime verildi`;
-  $('u-kilo-ozet').innerHTML = Object.values(top).sort((a, b) => a.urun.localeCompare(b.urun, 'tr')).map(t => `<div class="ozet"><b>${sayi(t.miktar)} ${esc(t.birim)}</b>${esc(t.urun)} · ${t.adet} giriş</div>`).join('');
+  $('u-kilo-ozet').innerHTML = Object.values(top).sort((a, b) => a.urun.localeCompare(b.urun, 'tr')).map(t => `<div class="ozet"><b>${sayi(t.miktar)} ${esc(t.birim)}</b>${esc(t.urun)} · ${t.adet} giriş${t.fire ? ` · fire ${sayi(Math.round(t.fire * 100) / 100)} ${esc(t.birim)}` : ''}</div>`).join('');
   $('u-kilo-liste').innerHTML = kiloGr.length ? `<table><tr><th>Saat</th><th>Hammadde</th><th>Miktar</th><th>Parti</th><th>Veren</th><th></th></tr>
-    ${kiloGr.map(g => `<tr class="${g.grup === hmSon ? 'yeni' : ''}"><td>${saat(g.tarih)}</td><td>${esc(g.urun)}${g.yari ? `<div style="font-size:12.5px;color:var(--soluk)">→ ${esc(g.yari)}</div>` : ''}</td><td><b>${sayi(g.miktar)} ${esc(g.birim)}</b></td>
+    ${kiloGr.map(g => `<tr class="${g.grup === hmSon ? 'yeni' : ''}"><td>${saat(g.tarih)}</td><td>${esc(g.urun)}${g.yari ? `<div style="font-size:12.5px;color:var(--soluk)">→ ${esc(g.yari)}</div>` : ''}</td><td><b>${sayi(g.miktar)} ${esc(g.birim)}</b>${g.fire != null ? `<div style="font-size:12.5px;color:var(--soluk)">fire ${sayi(g.fire)} ${esc(g.birim)}</div>` : ''}</td>
       <td class="mono">${esc([...new Set(g.partiler)].join(' + '))}</td><td>${esc(g.kim || '–')}</td>
       <td>${!g.yari && (gun === bugun() || profil.rol === 'yonetici') ? `<button class="btn kucuk ikincil" data-hm-geri="${g.grup}">Geri al</button>` : ''}</td></tr>`).join('')}</table>` : '';
   $('u-kilo-baslik').classList.toggle('gizli', !kiloGr.length);
@@ -3672,10 +3713,12 @@ async function kullanimRaporu(bas, bit) {
   kullanimVeri = { bas, bit, liste: data };
   const kg = data.filter(x => x.birim === 'kg').reduce((t, x) => t + Number(x.miktar || 0), 0);
   $('r-ozet').innerHTML = `<div class="ozet"><b>${data.length}</b>Hammadde çeşidi</div>${kg ? `<div class="ozet"><b>${sayi(kg)} kg</b>Toplam (kg olanlar)</div>` : ''}
+    ${data.some(x => x.fire) ? `<div class="ozet"><b>${sayi(Math.round(data.filter(x => x.birim === 'kg').reduce((t, x) => t + Number(x.fire || 0), 0) * 100) / 100)} kg</b>Toplam fire</div>` : ''}
     <div class="ozet"><b>${data.reduce((t, x) => t + Number(x.cikis_sayisi), 0)}</b>Çıkış kaydı</div><div class="ozet"><b>${gun}</b>Gün (${tarih(bas)} – ${tarih(bit)})</div>`;
-  $('r-liste').innerHTML = data.length ? `<table><tr><th>Hammadde</th><th>Kategori</th><th>Kullanılan</th><th>Günlük ortalama</th><th>Parti</th><th>Kullanılan gün</th><th>Çıkış</th><th></th></tr>
+  $('r-liste').innerHTML = data.length ? `<table><tr><th>Hammadde</th><th>Kategori</th><th>Kullanılan</th><th>Fire</th><th>Günlük ortalama</th><th>Parti</th><th>Kullanılan gün</th><th>Çıkış</th><th></th></tr>
     ${data.map((x, i) => `<tr><td><b>${esc(x.urun_ad)}</b> <span class="mono" style="color:var(--soluk)">${esc(x.urun_kod)}</span></td><td>${esc(x.kategori || '')}</td>
       <td><b>${x.miktar != null ? sayi(x.miktar) + ' ' + esc(x.birim) : '–'}</b>${Number(x.paket) ? `<br><span style="color:var(--soluk);font-size:13px">${x.paket} paket etiketle</span>` : ''}</td>
+      <td>${x.fire ? `${sayi(Math.round(x.fire * 100) / 100)} ${esc(x.birim)}${x.miktar ? `<br><span style="color:var(--soluk);font-size:13px">%${sayi(Math.round(x.fire / x.miktar * 1000) / 10)}</span>` : ''}` : '–'}</td>
       <td>${x.miktar != null ? sayi(Math.round(x.miktar / Math.max(1, x.gun_sayisi) * 10) / 10) + ' ' + esc(x.birim) : '–'}</td>
       <td>${x.parti_sayisi}</td><td>${x.gun_sayisi}</td><td>${x.cikis_sayisi}</td>
       <td><button class="btn kucuk ikincil" data-kul-detay="${i}">Detay</button></td></tr>`).join('')}</table>
@@ -4399,13 +4442,15 @@ function yenileAktifSayfa() {
 }
 
 // ================= ÜRÜN KARTLARI =================
-function urunFormTemizle() { ['u-id','u-kod','u-ad','u-kategori','u-skt'].forEach(id => $(id).value = ''); $('u-birim').value = 'kg'; $('u-takip').value = 'kg'; $('u-aktif').value = 'true'; $('u-kod').disabled = false; $('u-kaydet').textContent = 'Ürünü kaydet'; }
+function urunFormTemizle() { ['u-id','u-kod','u-ad','u-kategori','u-skt','u-fire'].forEach(id => $(id).value = ''); $('u-birim').value = 'kg'; $('u-takip').value = 'kg'; $('u-aktif').value = 'true'; $('u-kod').disabled = false; $('u-kaydet').textContent = 'Ürünü kaydet'; }
 $('u-temizle').onclick = urunFormTemizle;
 $('u-kod').addEventListener('input', () => { $('u-kod').value = trUpper($('u-kod').value).replace(/[^A-Z]/g, ''); });
 $('u-form').addEventListener('submit', async ev => {
   ev.preventDefault();
   const kayit = { ad: $('u-ad').value.trim(), kategori: $('u-kategori').value.trim() || null, birim: $('u-birim').value,
-    skt_gun: $('u-skt').value === '' ? null : Number($('u-skt').value), aktif: $('u-aktif').value === 'true', takip_turu: $('u-takip').value };
+    skt_gun: $('u-skt').value === '' ? null : Number($('u-skt').value), aktif: $('u-aktif').value === 'true', takip_turu: $('u-takip').value,
+    fire_orani: String($('u-fire').value).trim() === '' ? null : sayiOku($('u-fire').value) };
+  if (kayit.fire_orani != null && !(kayit.fire_orani >= 0 && kayit.fire_orani < 100)) return bildir('Fire oranı 0 ile 100 arasında olmalı.', true);
   const id = $('u-id').value;
   const { error } = id ? await sb.from('urunler').update(kayit).eq('id', id)
                        : await sb.from('urunler').insert({ ...kayit, kod: $('u-kod').value });
@@ -4454,7 +4499,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.urunDuzenle) {
     const u = urunler.find(x => x.id == t.dataset.urunDuzenle);
     $('u-id').value = u.id; $('u-kod').value = u.kod; $('u-kod').disabled = true; $('u-ad').value = u.ad;
-    $('u-kategori').value = u.kategori || ''; $('u-birim').value = u.birim; $('u-skt').value = u.skt_gun ?? ''; $('u-takip').value = u.takip_turu || 'kg';
+    $('u-kategori').value = u.kategori || ''; $('u-birim').value = u.birim; $('u-skt').value = u.skt_gun ?? ''; $('u-takip').value = u.takip_turu || 'kg'; $('u-fire').value = u.fire_orani != null ? String(u.fire_orani).replace('.', ',') : '';
     $('u-aktif').value = String(u.aktif); $('u-kaydet').textContent = 'Değişiklikleri kaydet'; window.scrollTo(0, 0);
   }
   if (t.dataset.firmaDuzenle) {
