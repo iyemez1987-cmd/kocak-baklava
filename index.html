@@ -257,6 +257,21 @@
   .hm-panel { margin: 0 0 14px; }
   .hm-birim { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 22px; font-weight: 800; color: var(--soluk); pointer-events: none; }
   .hm-ver { font-size: 18px; padding: 14px; justify-content: center; }
+  .akis-secim { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  @media (max-width: 700px) { .akis-secim { grid-template-columns: 1fr; } }
+  .akis-kart { display: flex; flex-direction: row !important; gap: 10px; align-items: flex-start; font-weight: 400 !important; color: var(--metin) !important; border: 2px solid var(--cizgi); border-radius: 14px; padding: 14px; cursor: pointer; background: var(--kart); }
+  .akis-kart:has(input:checked) { border-color: var(--ekran); background: color-mix(in srgb, var(--ekran) 7%, var(--kart)); }
+  .akis-kart input { width: 20px; height: 20px; min-height: 0; margin-top: 2px; flex: none; }
+  .akis-kart b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .akis-kart small { color: var(--soluk); font-size: 13.5px; line-height: 1.45; font-weight: 400; }
+  .akis-kart > span { display: block; }
+  .rapor-a4 { font-family: Arial, "Segoe UI", sans-serif; color: #111; font-size: 10pt; }
+  .rapor-a4 h2 { font-size: 15pt; margin: 0 0 2mm; } .rapor-a4 h3 { font-size: 11.5pt; margin: 5mm 0 2mm; border-bottom: 0.4mm solid #333; padding-bottom: 1mm; }
+  .rapor-a4 table { width: 100%; border-collapse: collapse; margin-bottom: 2mm; } .rapor-a4 th, .rapor-a4 td { border: 0.2mm solid #999; padding: 1.2mm 1.6mm; text-align: left; vertical-align: top; font-size: 9pt; }
+  .rapor-a4 th { background: #eee; } .rapor-a4 .alt { color: #555; font-size: 8.5pt; }
+  .rapor-a4 .uygun { color: #1E5A22; font-weight: 700; } .rapor-a4 .degil { color: #B42318; font-weight: 700; }
+  .rapor-blok { border: 1px solid var(--cizgi); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+  .rapor-blok h4 { margin: 0 0 6px; }
   .hm-duzen { display: flex; flex-direction: column-reverse; gap: 16px; }
   .hm-sag { min-width: 0; }
   .hm-sol { min-width: 0; }
@@ -823,6 +838,7 @@
         </div>
         <p class="aciklama" style="margin:10px 0 0">Kaydettikten sonra firma, irsaliye, plaka, giriş tarihi ve konum kalır; aynı araçtan gelen bir sonraki ürünü hemen girebilirsiniz.</p>
       </form>
+      <div id="k-son-analiz"></div>
       <div class="kart">
         <h3 style="margin:0 0 12px">Son girişler</h3>
         <div id="son-girisler"></div>
@@ -1321,11 +1337,25 @@
       <h2>Kullanıcılar</h2>
       <div class="sekmeler" role="tablist">
         <button type="button" class="sekme secili" data-sekme="ku-kisiler">Kişiler ve yetkiler</button>
-        <button type="button" class="sekme" data-sekme="ku-param">Etiket ve QR parametreleri</button>
+        <button type="button" class="sekme" data-sekme="ku-param">Parametreler</button>
       </div>
 
       <!-- PARAMETRELER -->
       <div id="ku-param" class="gizli">
+        <div class="kart">
+          <h3 style="margin:0 0 4px">Üretim akışı ve analiz</h3>
+          <p class="aciklama">İşletmenin çalışma şekline göre seçin. Değişiklik herkesin ekranına bir sonraki açılışta yansır.</p>
+          <div class="akis-secim" id="pr-akis">
+            <label class="akis-kart"><input type="radio" name="pr-akis" value="dogrudan"><span><b>Doğrudan üretim</b><small>Hammadde (kiloyla ya da QR ile) üretime verilir. O gün çıkan tepsiler, o gün üretime verilen hammaddelere bağlanır. Yarı mamul ekranı görünmez.</small></span></label>
+            <label class="akis-kart"><input type="radio" name="pr-akis" value="yari_mamul"><span><b>Yarı mamullü üretim</b><small>Hammadde → yarı mamul (hamur, şerbet, çekilmiş fıstık) → üretim → baklava. Tepsi; o gün kullanılan yarı mamullere ve onların hammadde partilerine bağlanır.</small></span></label>
+          </div>
+          <div class="grid" style="margin-top:14px">
+            <label>Analiz tuşları kimlere görünsün
+              <select id="pr-analiz-gor"><option value="herkes">Herkese (sonuçları herkes görür)</option><option value="muhendis">Yalnızca gıda mühendisi ve yönetici</option><option value="kapali">Kimseye (analiz kapalı)</option></select></label>
+          </div>
+          <p class="aciklama" style="margin-top:8px">Analizi yalnızca <b>gıda mühendisi</b> ve <b>yönetici</b> girer. Başka birinin girmesi gerekirse Kişiler ve yetkiler'den ona “Analiz” ekranını açın.</p>
+          <div class="satir" style="margin-top:12px"><button class="btn" type="button" id="pr-akis-kaydet">Kaydet</button></div>
+        </div>
         <div class="kart">
           <h3 style="margin:0 0 4px">Genel</h3>
           <p class="aciklama">QR kodlar her telefonun kamerasıyla okunacak şekilde basılır: çevresinde 4 kare beyaz boşluk bırakılır, kareler yazıcının nokta boyuna oturtulur, mümkün olan en küçük kod kullanılır.</p>
@@ -1878,6 +1908,9 @@ async function etiketAyarlariniYukle() {
   } catch (e) {}
   if (typeof markaUygula === 'function') markaUygula();
   etiketSecimleriniDoldur();
+  if (profil?.id) ekranlariUygula();
+  document.querySelectorAll('input[name="pr-akis"]').forEach(r => r.checked = r.value === (ayar.uretim_akisi || 'yari_mamul'));
+  if ($('pr-analiz-gor')) $('pr-analiz-gor').value = ayar.analiz_gorunurluk || 'herkes';
 }
 
 // Etiket seçimi sadece etiket basılan iki ekranda ve sadece o ekranın etiketleriyle:
@@ -2058,6 +2091,14 @@ $('kabul-form').addEventListener('submit', async ev => {
     bekleyenSay();
     await urunleriYukle();
     sonGirisleriYukle();
+    // Mal kabulde analiz: kaydedilen partiye hemen analiz girilebilsin
+    if (analizGorunur()) {
+      const { data: pp } = await sb.from('v_partiler').select('id,parti_kodu,urun_ad,analiz_durum').eq('id', partiId).maybeSingle();
+      if (pp) $('k-son-analiz').innerHTML = `<div class="kart" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-color:var(--ekran)">
+        <div style="flex:1;min-width:220px"><b>${esc(pp.parti_kodu)} · ${esc(pp.urun_ad)} kaydedildi.</b><div style="color:var(--soluk);font-size:14px">${pp.analiz_durum === 'bekliyor' ? 'Bu hammadde için analiz bekleniyor. Numune alındıysa şimdi girebilir ya da sonuç gelince bu partinin “Analiz” tuşundan ekleyebilirsiniz.' : 'Analiz gerekiyorsa bu partinin “Analiz” tuşundan ekleyebilirsiniz.'}</div></div>
+        ${analizTusu({ parti_id: pp.id, kod: pp.parti_kodu, ad: pp.urun_ad }, analizGirebilir() ? 'Analiz gir' : 'Analiz')}
+        <button type="button" class="btn kucuk ikincil" onclick="this.closest('.kart').remove()">Kapat</button></div>`;
+    }
   } catch (e) { bildir(hataMesaji(e), true); }
   finally { btn.disabled = false; }
 });
@@ -2309,6 +2350,7 @@ function hmCiz() {
   const l = hmUrunler.filter(uy), y = hmYarilar.filter(uy);
   $('hm-urunler').innerHTML = l.length ? l.map(u => hmKutu(u, 'h')).join('')
     : `<div class="bos">${hmUrunler.length ? 'Aramaya uyan hammadde yok.' : 'Miktarla takip edilen hammadde yok. Ürün kartında “Takip şekli”ni seçin.'}</div>`;
+  $('hm-yarilar').classList.toggle('gizli', !yariAkis()); $('hm-yarilar').previousElementSibling?.classList.toggle('gizli', !yariAkis());
   $('hm-yarilar').innerHTML = y.length ? y.map(u => hmKutu(u, 'y')).join('')
     : `<div class="bos">${hmYarilar.length ? 'Aramaya uyan yarı mamul yok.' : 'Yarı mamul tanımı yok.'}</div>`;
   if (hmSecili) hmPanel();
@@ -2319,7 +2361,7 @@ function hmPanel() {
   $('hm-tur').textContent = u.tur === 'y' ? 'Yarı mamul' : 'Hammadde';
   $('hm-ad').textContent = u.ad; $('hm-birim').textContent = u.birim;
   $('hm-miktar').placeholder = u.takip_turu === 'adet' ? 'Ürün adedini girin' : 'Ürün miktarını girin';
-  $('hm-analiz').classList.toggle('gizli', !u.acik);
+  $('hm-analiz').classList.toggle('gizli', !u.acik || !analizGorunur());
   $('hm-parti').innerHTML = u.acik
     ? `Açık parti <b class="mono">${esc(u.acik.parti_kodu)}</b> · kalan <b>${sayi(u.acik.kalan)} ${esc(u.birim)}</b>${u.partiler.length > 1 ? `<br><span style="font-size:13px">Sırada ${u.partiler.length - 1} parti daha · toplam ${sayi(u.toplam)} ${esc(u.birim)} · farklı parti açtıysanız etiketini okutun</span>` : '<br><span style="font-size:13px">Farklı parti açtıysanız etiketini okutun</span>'}`
     : `<span class="miktar-yok">Verilebilecek stok yok.</span>${u.kapali ? ` ${u.kapali} parti analiz nedeniyle kapalı.` : ''}${u.miktarsiz ? ` ${u.miktarsiz} partinin toplam miktarı girilmemiş; Partiler ekranından “Miktar gir” ile girin.` : ''}`;
@@ -2765,7 +2807,7 @@ document.addEventListener('click', ev => {
   const b = ev.target.closest('[data-analiz]'); if (!b) return;
   try { analizPenceresi(JSON.parse(b.dataset.analiz)); } catch (e) {}
 });
-const analizTusu = (h, yazi = 'Analiz') => `<button type="button" class="btn kucuk ikincil" data-analiz='${JSON.stringify(h).replace(/'/g, '&#39;')}'>${yazi}</button>`;
+const analizTusu = (h, yazi = 'Analiz') => !analizGorunur() ? '' : `<button type="button" class="btn kucuk ikincil" data-analiz='${JSON.stringify(h).replace(/'/g, '&#39;')}'>${yazi}</button>`;
 async function analizDetay(id) {
   const [{ data: a }, { data: d }] = await Promise.all([sb.from('v_analizler').select('*').eq('id', id).single(), sb.from('analiz_degerleri').select('*').eq('analiz_id', id).order('id')]);
   if (!a) return;
@@ -2774,7 +2816,7 @@ async function analizDetay(id) {
     <td>${x.uygun ? '<span class="rozet kabul">Uygun</span>' : '<span class="rozet ret">Sınır dışı</span>'}</td></tr>`).join('')}</table>`;
   const ust = `<div class="detay" style="margin-bottom:12px"><div>Parti</div><div class="mono">${esc(a.hedef_kod)} · ${esc(a.hedef_ad)}</div>${a.firma_ad ? `<div>Tedarikçi</div><div>${esc(a.firma_ad)}</div>` : ''}
     ${a.numune_tarihi ? `<div>Numune alındı</div><div>${tarih(a.numune_tarihi)}${a.numune_alan ? ' · ' + esc(a.numune_alan) : ''}</div>` : ''}
-    <div>Sonuç tarihi</div><div>${tarih(a.tarih)}</div><div>Laboratuvar</div><div>${a.lab_turu === 'dis' ? 'Dış · ' : a.lab_turu === 'ic' ? 'İç · ' : ''}${esc(a.laboratuvar || '–')}</div><div>Giren</div><div>${esc(a.giren_ad || '–')} · ${tarihSaat(a.created_at)}</div>
+    <div>Sonuç tarihi</div><div>${tarih(a.tarih)}</div><div>Laboratuvar</div><div>${esc(labYazi(a))}</div><div>Giren</div><div>${esc(a.giren_ad || '–')} · ${tarihSaat(a.created_at)}</div>
     <div>Sonuç</div><div>${a.sonuc === 'uygun' ? '<span class="rozet kabul">Uygun</span>' : '<span class="rozet ret">Uygun değil</span>'}</div>
     ${a.notu ? `<div>Not</div><div>${esc(a.notu)}</div>` : ''}${a.muhendis_onay ? `<div>Mühendis kararı</div><div>Kullanıma açtı · ${esc(a.muhendis_ad || '')} · ${tarihSaat(a.muhendis_tarih)}<br>${esc(a.muhendis_notu || '')}</div>` : ''}</div>`;
   const muh = a.sonuc === 'uygun_degil' && !a.muhendis_onay && ['muhendis', 'yonetici'].includes(profil.rol);
@@ -2794,20 +2836,98 @@ async function analizDetay(id) {
     modalKapat(); bildir('Parti kullanıma açıldı.'); if (aktifSayfa === 'analiz') anYukle();
   };
 }
-async function analizOzetiCiz(kap, h, pencere = false) {
+async function analizOzetiCiz(kap, h, pencere = false, baslik = 'Analiz') {
   if (!kap) return;
+  if (!analizGorunur()) { kap.innerHTML = ''; return; }
   let q = sb.from('v_analizler').select('*').order('created_at', { ascending: false });
   q = h.parti_id ? q.eq('parti_id', h.parti_id) : h.yari_parti_id ? q.eq('yari_parti_id', h.yari_parti_id) : q.eq('mamul_id', h.mamul_id).eq('mamul_tarih', h.mamul_tarih);
   const { data } = await q;
-  const izin = ['yonetici', 'muhendis', 'depocu'].includes(profil.rol);
+  const izin = analizGirebilir();
   const hj = JSON.stringify({ ...h, donus: undefined }).replace(/'/g, '&#39;');
-  kap.innerHTML = `${pencere ? '' : '<div style="font-weight:800;margin-bottom:6px">Analiz</div>'}${(data || []).length ? data.map(a => `<div class="an-kart"><div>
-      <b>${tarih(a.tarih)}</b> · ${a.lab_turu === 'dis' ? 'Dış lab' : a.lab_turu === 'ic' ? 'İç lab' : 'Laboratuvar'}${a.laboratuvar ? ': ' + esc(a.laboratuvar) : ''}
+  kap.innerHTML = `${pencere ? '' : `<div style="font-weight:800;margin-bottom:6px">${esc(baslik)}</div>`}${(data || []).length ? data.map(a => `<div class="an-kart"><div>
+      <b>${tarih(a.tarih)}</b> · ${esc(labYazi(a))}
       <div style="color:var(--soluk);font-size:13px">${a.numune_tarihi ? `Numune ${tarih(a.numune_tarihi)}${a.numune_alan ? ' · ' + esc(a.numune_alan) : ''}` : ''}${a.rapor_yolu ? ' · 📎 rapor' : ''}</div>
       <div style="margin-top:3px">${a.sonuc === 'uygun' ? '<span class="rozet kabul">Uygun</span>' : a.muhendis_onay ? '<span class="rozet sartli">Uygun değil · mühendis açtı</span>' : '<span class="rozet ret">Uygun değil</span>'}</div></div>
       <button class="btn kucuk ikincil" data-an-detay="${a.id}">Detay</button></div>`).join('') : '<div style="color:var(--soluk);font-size:14px;margin-bottom:6px">Bu parti için henüz analiz girilmedi.</div>'}
     ${izin ? `<button class="btn kucuk" style="margin-top:6px" data-an-gir='${hj}'>+ Analiz gir</button>` : ''}`;
 }
+
+// ================= ÜRÜN VE ANALİZ RAPORU (bir tepsi baklavanın içinde ne var, analizleri ne) =================
+async function sonAnalizler(filtre) {
+  // filtre: { parti: [id], yari: [id], mamul: [mamul_id, tarih] } → son analiz + değerleri
+  const sorgular = [];
+  if (filtre.parti?.length) sorgular.push(sb.from('v_analizler').select('*').in('parti_id', filtre.parti));
+  if (filtre.yari?.length) sorgular.push(sb.from('v_analizler').select('*').in('yari_parti_id', filtre.yari));
+  if (filtre.mamul) sorgular.push(sb.from('v_analizler').select('*').eq('mamul_id', filtre.mamul[0]).eq('mamul_tarih', filtre.mamul[1]));
+  const tum = (await Promise.all(sorgular)).flatMap(r => r.data || []).sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const son = {}; tum.forEach(a => { const k = a.parti_id ? 'p' + a.parti_id : a.yari_parti_id ? 'y' + a.yari_parti_id : 'm'; if (!son[k]) son[k] = a; });
+  const ids = Object.values(son).map(a => a.id);
+  const { data: d } = ids.length ? await sb.from('analiz_degerleri').select('*').in('analiz_id', ids).order('id') : { data: [] };
+  Object.values(son).forEach(a => { a.degerler = (d || []).filter(x => x.analiz_id === a.id); a.tum_sayi = tum.filter(x => (x.parti_id && x.parti_id === a.parti_id) || (x.yari_parti_id && x.yari_parti_id === a.yari_parti_id) || (!x.parti_id && !x.yari_parti_id && !a.parti_id && !a.yari_parti_id)).length; });
+  return son;
+}
+const labYazi = a => { const n = String(a.laboratuvar || '').trim(), t = a.lab_turu === 'dis' ? 'Dış' : a.lab_turu === 'ic' ? 'İç' : '';
+  if (!n) return t ? t + ' laboratuvar' : 'Laboratuvar'; return t && !n.toLocaleLowerCase('tr').startsWith(t.toLocaleLowerCase('tr')) ? `${n} (${t.toLocaleLowerCase('tr')})` : n; };
+const analizSonucYazi = (a, yazdir = false) => !a ? (yazdir ? '<span class="alt">Analiz yok</span>' : '<span style="color:var(--soluk)">Analiz yok</span>')
+  : `${a.sonuc === 'uygun' ? `<span class="${yazdir ? 'uygun' : 'rozet kabul'}">Uygun</span>` : a.muhendis_onay ? `<span class="${yazdir ? 'degil' : 'rozet sartli'}">Uygun değil · mühendis açtı</span>` : `<span class="${yazdir ? 'degil' : 'rozet ret'}">Uygun değil</span>`}
+     <div class="${yazdir ? 'alt' : ''}" style="${yazdir ? '' : 'color:var(--soluk);font-size:12.5px'}">${tarih(a.tarih)} · ${esc(labYazi(a))}${a.numune_tarihi ? ` · numune ${tarih(a.numune_tarihi)}` : ''}</div>
+     ${a.degerler?.length ? `<div class="${yazdir ? 'alt' : ''}" style="${yazdir ? '' : 'font-size:12.5px'}">${a.degerler.map(x => `${esc(x.ad)}: <b>${x.tur === 'gozlem' ? (x.gozlem ? 'uygun' : 'uygun değil') : sayi(x.deger) + ' ' + esc(x.birim || '')}</b>${x.uygun ? '' : ' ⚠'}`).join(' · ')}</div>` : ''}`;
+async function urunRaporu(tepsiId) {
+  const { data: t } = await sb.from('v_tepsiler').select('*').eq('id', tepsiId).single(); if (!t) return;
+  const gun = t.uretim_tarihi;
+  const [{ data: tanim }, { data: kilo }, { data: etk }, { data: yari }, { data: sev }, { data: hareket }] = await Promise.all([
+    sb.from('mamul_hammaddeleri').select('urun_id').eq('mamul_id', t.mamul_id),
+    sb.from('v_hammadde_cikislari').select('*').eq('uretim_gunu', gun).eq('geri_alindi', false),
+    sb.from('v_uretim_cikislari').select('*').eq('uretim_gunu', gun),
+    sb.from('v_tepsi_yari_partileri').select('*').eq('tepsi_id', t.id),
+    sb.from('v_sevkiyat_tepsileri').select('*').eq('tepsi_id', t.id).maybeSingle(),
+    sb.from('v_tepsi_hareketleri').select('*').eq('tepsi_id', t.id).order('tarih')]);
+  const mh = new Set((tanim || []).map(x => x.urun_id));
+  // Doğrudan giren hammaddeler (yarı mamule gitmeyen), mamulün reçetesinde olanlar
+  const dog = {};
+  [...(kilo || []).filter(r => !r.yari_parti_id), ...(etk || [])].filter(r => !mh.size || mh.has(r.urun_id)).forEach(r => {
+    const x = dog[r.parti_id] ||= { parti_id: r.parti_id, parti_kodu: r.parti_kodu, urun_ad: r.urun_ad, firma_ad: r.firma_ad, tedarikci_parti_no: r.tedarikci_parti_no, skt: r.skt, miktar: 0, birim: r.birim };
+    x.miktar += Number(r.miktar || 0); });
+  const dogList = Object.values(dog).sort((a, b) => a.urun_ad.localeCompare(b.urun_ad, 'tr'));
+  const yariList = yari || [];
+  const { data: yariGirdi } = yariList.length ? await sb.from('v_hammadde_cikislari').select('*').in('yari_parti_id', yariList.map(y => y.yari_parti_id)).eq('geri_alindi', false) : { data: [] };
+  const partiIds = [...new Set([...dogList.map(x => x.parti_id), ...(yariGirdi || []).map(x => x.parti_id)])];
+  const [an, { data: kabul }] = await Promise.all([
+    sonAnalizler({ parti: partiIds, yari: yariList.map(y => y.yari_parti_id), mamul: [t.mamul_id, gun] }),
+    partiIds.length ? sb.from('v_partiler').select('id,kabul_karari,muhendis_durum,uygunsuz_madde,kontrol_madde,giris_tarihi,irsaliye_no').in('id', partiIds) : { data: [] }]);
+  const kb = Object.fromEntries((kabul || []).map(p => [p.id, p]));
+  const kabulYazi = (id, yz) => { const p = kb[id]; if (!p) return ''; return `${kararAd[p.kabul_karari] || ''}${p.kontrol_madde ? ` · kontrol ${p.kontrol_madde - p.uygunsuz_madde}/${p.kontrol_madde} uygun` : ''} · ${p.muhendis_durum === 'onaylandi' ? 'mühendis onaylı' : p.muhendis_durum === 'reddedildi' ? 'mühendis reddetti' : 'onay bekliyor'}`; };
+  const goster = analizGorunur();
+  const hamTablo = (liste, yz) => `<table><tr><th>Hammadde</th><th>Parti</th><th>Tedarikçi</th><th>Miktar</th><th>Mal kabul</th>${goster ? '<th>Analiz</th>' : ''}${yz ? '' : '<th></th>'}</tr>
+    ${liste.map(x => `<tr><td><b>${esc(x.urun_ad)}</b></td><td>${esc(x.parti_kodu)}${x.tedarikci_parti_no ? `<div class="${yz ? 'alt' : ''}" style="${yz ? '' : 'color:var(--soluk);font-size:12.5px'}">T. parti ${esc(x.tedarikci_parti_no)}</div>` : ''}</td>
+      <td>${esc(x.firma_ad || '–')}</td><td>${x.miktar ? sayi(Math.round(x.miktar * 100) / 100) + ' ' + esc(x.birim || '') : '–'}</td><td style="font-size:${yz ? '8.5pt' : '13px'}">${kabulYazi(x.parti_id)}</td>
+      ${goster ? `<td>${analizSonucYazi(an['p' + x.parti_id], yz)}</td>` : ''}
+      ${yz ? '' : `<td style="white-space:nowrap"><button class="btn kucuk ikincil" data-form="${x.parti_id}">Kabul formu</button> ${analizTusu({ parti_id: x.parti_id, kod: x.parti_kodu, ad: x.urun_ad })}${an['p' + x.parti_id]?.rapor_yolu ? ` <button class="btn kucuk ikincil" data-lab-rapor="${esc(an['p' + x.parti_id].rapor_yolu)}">Lab raporu</button>` : ''}</td>`}</tr>`).join('')}</table>`;
+  const icerik = yz => `
+    ${yz ? `<h2>Ürün ve Analiz Raporu</h2><div class="alt">${esc(FIRMA_ADI)} · rapor tarihi ${tarihSaat(new Date().toISOString())}</div>` : ''}
+    <h3 style="${yz ? '' : 'margin:0 0 6px'}">Ürün</h3>
+    <table><tr><th>Mamul</th><th>Tepsi kodu</th><th>Üretim</th><th>SKT</th><th>Dara kodu</th>${goster ? '<th>Ürün analizi</th>' : ''}</tr>
+      <tr><td><b>${esc(t.mamul_ad)}</b></td><td>${esc(t.kod)}</td><td>${tarih(gun)}</td><td>${tarih(t.skt)}</td><td>${esc(t.dara_kod || '–')}</td>${goster ? `<td>${analizSonucYazi(an.m, yz)}</td>` : ''}</tr></table>
+    ${yariList.length ? `<h3>Yarı mamuller</h3>${yariList.map(y => { const g = (yariGirdi || []).filter(x => x.yari_parti_id === y.yari_parti_id);
+        const gl = Object.values(g.reduce((o, r) => { const x = o[r.parti_id] ||= { parti_id: r.parti_id, parti_kodu: r.parti_kodu, urun_ad: r.urun_ad, firma_ad: r.firma_ad, tedarikci_parti_no: r.tedarikci_parti_no, miktar: 0, birim: r.birim }; x.miktar += Number(r.miktar); return o; }, {}));
+        return `<div class="${yz ? '' : 'rapor-blok'}" style="${yz ? 'margin-bottom:3mm' : ''}"><${yz ? 'div' : 'h4'} style="${yz ? 'font-weight:700;margin:2mm 0 1mm' : ''}">${esc(y.yari_ad)} · ${esc(y.yari_kod)} · ${sayi(y.miktar)} ${esc(y.birim)}</${yz ? 'div' : 'h4'}>
+          ${goster ? `<div style="margin-bottom:${yz ? '1.5mm' : '6px'}">Yarı mamul analizi: ${analizSonucYazi(an['y' + y.yari_parti_id], yz)}${yz ? '' : ` ${analizTusu({ yari_parti_id: y.yari_parti_id, kod: y.yari_kod, ad: y.yari_ad })}`}</div>` : ''}
+          ${gl.length ? hamTablo(gl, yz) : `<div class="${yz ? 'alt' : ''}">İçindeki hammadde kaydı yok.</div>`}</div>`; }).join('')}` : ''}
+    <h3>${yariList.length ? 'Doğrudan giren hammaddeler' : 'Giren hammaddeler'}</h3>
+    ${dogList.length ? hamTablo(dogList, yz) : `<div class="${yz ? 'alt' : 'bos'}">O gün bu mamul için doğrudan üretime verilen hammadde kaydı yok.</div>`}
+    <h3>Sevkiyat ve yolculuk</h3>
+    <table><tr><th>Tarih</th><th>İşlem</th><th>Yer</th></tr><tr><td>${tarihSaat(t.created_at)}</td><td>QR basıldı (baklava odası)</td><td>Üretim</td></tr>
+      ${sev ? `<tr><td>${tarihSaat(sev.yukleme_zamani)}</td><td>Araca yüklendi · ${esc(sev.sevkiyat_kod || '')} · ${esc(sev.plaka || '')}</td><td>${esc(sev.sevk_noktasi || '')}</td></tr>` : ''}
+      ${(hareket || []).map(x => `<tr><td>${tarihSaat(x.tarih)}</td><td>${tepsiHareketAd[x.tip] || x.tip}</td><td>${esc(x.sube_ad || '–')}</td></tr>`).join('')}</table>
+    ${yz ? '<p class="alt" style="margin-top:4mm">Bağlantı kuralı: tepsi, üretim günü üretime verilen hammaddelere ve o gün kullanılan / üretilen yarı mamullere bağlanır. Analiz sütununda her partinin son analizi gösterilir.</p>' : ''}`;
+  modalAc(`Ürün ve analiz raporu · ${t.kod}`, `${icerik(false)}<div class="satir" style="justify-content:flex-end;margin-top:14px"><button class="btn" type="button" id="ur-yazdir">Yazdır / PDF</button></div>`);
+  $('ur-yazdir').onclick = () => { $('page-size').textContent = '@page { size: A4 portrait; margin: 12mm; }'; $('yazdir').innerHTML = `<div class="rapor-a4">${icerik(true)}</div>`; setTimeout(() => window.print(), 200); };
+}
+document.addEventListener('click', async ev => {
+  const r = ev.target.closest('[data-urun-rapor]'); if (r) return urunRaporu(Number(r.dataset.urunRapor));
+  const l = ev.target.closest('[data-lab-rapor]');
+  if (l) { const { data: u, error } = await sb.storage.from('analiz-raporlari').createSignedUrl(l.dataset.labRapor, 600); if (error) return bildir(hataMesaji(error), true); window.open(u.signedUrl, '_blank'); }
+});
 
 async function uretimeVer(kod) {
   kod = kodAyikla(kod);
@@ -3262,6 +3382,10 @@ const ekranRengi = id => (EKRANLAR.find(e => e.id === id) || {}).renk || '#2F5A4
   });
   document.querySelectorAll('[data-ikon]').forEach(el => { el.innerHTML = ikon(el.dataset.ikon, 18, 2); });
 })();
+// Üretim akışı ve analiz görünürlüğü (Parametreler)
+const yariAkis = () => (ayar.uretim_akisi || 'yari_mamul') === 'yari_mamul';
+const analizGorunur = () => { const g = ayar.analiz_gorunurluk || 'herkes'; return g === 'herkes' || (g === 'muhendis' && ['muhendis', 'yonetici'].includes(profil?.rol)); };
+const analizGirebilir = () => analizGorunur() && (['muhendis', 'yonetici'].includes(profil?.rol) || (Array.isArray(profil?.ekranlar) && profil.ekranlar.includes('analiz')));
 const HAZIR_SETLER = {
   depo: { ad: 'Depo / mal kabul', ekranlar: ['kabul', 'stok', 'partiler', 'sorgula', 'firmalar'] },
   uretim: { ad: 'Üretime veren', ekranlar: ['uretim', 'yarimamul', 'sorgula'] },
@@ -3278,8 +3402,9 @@ function izinliEkranlar(p = profil) {
         : p.rol === 'muhendis' ? HAZIR_SETLER.muhendis.ekranlar.slice()
         : EKRANLAR.map(e => e.id).filter(e => !SADECE_MUHENDIS.includes(e) && !SADECE_YONETICI.includes(e));
   if (p.rol === 'yonetici' && !l.includes('kullanicilar')) l.push('kullanicilar');
-  // Yarı mamul, üretime veren herkese açık
+  // Yarı mamul, üretime veren herkese açık; doğrudan üretim akışında hiç görünmez
   if (l.includes('uretim') && !l.includes('yarimamul')) l.push('yarimamul');
+  if (!yariAkis()) l = l.filter(x => x !== 'yarimamul');
   // Analiz, mühendis onayını gören herkese açık
   if (l.includes('muhendis') && !l.includes('analiz')) l.push('analiz');
   // Oda stoğu, odayı ya da sevkiyatı gören herkese açık (siparişler buradan izlenir)
@@ -3490,7 +3615,7 @@ async function tepsiSorgula(kodNorm) {
           <div>Etiket basıldı</div><div>${tarihSaat(t.created_at)}</div>
           <div>Durum</div><div><span class="rozet ${['imha', 'iade'].includes(t.durum) ? 'ret' : ['tuketildi', 'subede', 'sevk'].includes(t.durum) ? 'kabul' : ''}">${tepsiDurumAd[t.durum] || t.durum}</span>${t.sube_ad ? ' · ' + esc(t.sube_ad) : ''}</div>
         </div>
-        <div class="satir" style="margin-top:16px"><button class="btn ikincil" data-tepsi-tekrar="1">Bu etiketi tekrar bas</button></div>
+        <div class="satir" style="margin-top:16px"><button class="btn" data-urun-rapor="${t.id}">Ürün ve analiz raporu</button><button class="btn ikincil" data-tepsi-tekrar="1">Bu etiketi tekrar bas</button></div>
         <div id="s-mamul-analiz" style="margin-top:12px"></div>
       </div>
     </div>
@@ -3522,7 +3647,7 @@ async function tepsiSorgula(kodNorm) {
     </table>
     <p style="color:var(--soluk);font-size:14px;margin:12px 0 0">Bağlantı kuralı: Tepsi, üretim günü üretime verilen (kiloyla ya da etiketle) ve bu mamulün kullandığı hammaddelerin partilerine, o gün kullanılan ya da üretilen yarı mamullere bağlanır.</p>
   </div>`;
-  analizOzetiCiz($('s-mamul-analiz'), { mamul_id: t.mamul_id, mamul_tarih: t.uretim_tarihi, kod: `${t.dara_kod || ''} · ${tarih(t.uretim_tarihi)}`, ad: t.mamul_ad });
+  analizOzetiCiz($('s-mamul-analiz'), { mamul_id: t.mamul_id, mamul_tarih: t.uretim_tarihi, kod: `${t.dara_kod || ''} · ${tarih(t.uretim_tarihi)}`, ad: t.mamul_ad }, false, 'Ürün analizi');
 }
 
 // ================= SEVKİYAT =================
@@ -4739,6 +4864,13 @@ $('ku-param').addEventListener('change', async ev => {
   bildir('Etiket seçimi kaydedildi.'); sablonListesiCiz();
 });
 
+$('pr-akis-kaydet').onclick = async () => {
+  const akis = document.querySelector('input[name="pr-akis"]:checked')?.value || 'yari_mamul', gor = $('pr-analiz-gor').value;
+  const { error } = await sb.from('ayarlar').upsert([{ anahtar: 'uretim_akisi', deger: akis }, { anahtar: 'analiz_gorunurluk', deger: gor }].map(r => ({ ...r, updated_at: new Date().toISOString() })));
+  if (error) return bildir(hataMesaji(error), true);
+  ayar.uretim_akisi = akis; ayar.analiz_gorunurluk = gor; ekranlariUygula();
+  bildir(`Kaydedildi: ${akis === 'yari_mamul' ? 'Yarı mamullü üretim' : 'Doğrudan üretim'} · analiz ${gor === 'herkes' ? 'herkese açık' : gor === 'muhendis' ? 'yalnızca mühendis ve yöneticiye açık' : 'kapalı'}.`);
+};
 $('pr-genel-kaydet').onclick = async () => {
   const onek = trUpper($('pr-onek').value).trim();
   const satirlar = [
