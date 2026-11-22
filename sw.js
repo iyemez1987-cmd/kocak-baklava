@@ -1,6 +1,6 @@
 // İzlenebilirlik - basit servis çalışanı (telefona yüklenebilir uygulama için).
 // Uygulama dosyaları önbelleğe alınır; veriler her zaman canlı sunucudan gelir.
-const SURUM = 'izl-v0.20.0';
+const SURUM = 'izl-v0.21.0';
 const DOSYALAR = ['./', './index.html', './lib/supabase.js', './lib/qrcode.js', './lib/jsQR.js', './manifest.json', './simge-192.png', './simge-512.png', './img/kocak-logo.png', './img/kocak-baklava.jpg', './img/kocak-serit.jpg'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SURUM).then(c => c.addAll(DOSYALAR)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

@@ -1727,23 +1727,94 @@ async function etiketleriBas(liste, sablonFn = etiketHtml) {
 // Fiş yazıcısında etiketler kâğıt genişliğine sığdırılır, dik ve alt alta tek uzun sayfa olarak basılır
 // (yatay sayfa gönderilirse sürücü döndürüp küçültür, kâğıt boşa gider).
 const FIS_YAZICI = { fis80: { kagit: 80, baski: 72, ad: 'Fiş yazıcısı 80 mm' }, fis58: { kagit: 58, baski: 48, ad: 'Fiş yazıcısı 58 mm' } };
-const yaziciTuru = () => { try { return localStorage.getItem('yaziciTuru') || 'etiket'; } catch (e) { return 'etiket'; } };
+const yaziciTuru = () => { try { return localStorage.getItem('yaziciTuru') || 'fis80'; } catch (e) { return 'fis80'; } };
+// ---- Fiş yazıcısı etiketi: müşteri bilgi fişi gibi, 80/58 mm ruloya, ayarlanabilir yükseklikte ----
+const FIS_VARSAYILAN = { genislik: 80, yukseklik: 35, qr: 25, yazici: '' };
+function fisAyar() { let a = {}; try { a = JSON.parse(localStorage.getItem('fisAyar') || '{}'); } catch (e) {} return { ...FIS_VARSAYILAN, ...a }; }
+function fisAyarYaz(a) { try { localStorage.setItem('fisAyar', JSON.stringify(a)); } catch (e) {} }
+function fisEtiket(v, s, a) {
+  const baski = a.genislik === 58 ? 48 : 72, H = sinirla(Number(a.yukseklik) || 35, 20, 80);
+  const qr = sinirla(Math.min(Number(a.qr) || 25, H - 3, baski * 0.5), 12, 45);
+  const adPt = sinirla(H * 0.3, 9, 14), yPt = sinirla(H * 0.21, 7, 10), mPt = sinirla(yPt * 0.85, 6, 8.5);
+  const ad = v.urun_ad || v.mamul_ad || '';
+  const tarihSatir = v.uretim_tarihi ? ['Üretim', tarih(v.uretim_tarihi)] : v.giris_tarihi ? ['Giriş', tarih(v.giris_tarihi)] : null;
+  const satirlar = [
+    v.parti_kodu && v.parti_kodu !== v.kod ? ['Parti', v.parti_kodu] : null,
+    tarihSatir, v.skt ? ['SKT', tarih(v.skt)] : null,
+    v.miktar != null ? ['Miktar', sayi(v.miktar) + ' ' + (v.birim || '')] : null,
+    v.seri != null && v.paket_adedi ? ['Paket', `${v.seri} / ${v.paket_adedi}`] : null,
+    v.firma_kod ? ['Firma', v.firma_kod] : null].filter(Boolean);
+  const kalanMm = H - 2 - mPt * 0.3528 * 1.3 - adPt * 0.3528 * 1.2 * (ad.length > 22 ? 2 : 1) - yPt * 0.3528 * 1.35;
+  const sigan = Math.max(0, Math.floor(kalanMm / (yPt * 0.3528 * 1.3)));
+  return `<div class="fe" style="width:${baski}mm;height:${H}mm">
+    <div class="fe-qr" style="width:${qr}mm;height:${qr}mm">${qrSvgTag(qrUret(qrIcerik(v, s)), 2)}</div>
+    <div class="fe-y"><div class="fe-m" style="font-size:${mPt}pt">${esc(FIRMA_ADI)}</div>
+      <div class="fe-ad" style="font-size:${adPt}pt">${esc(ad)}</div>
+      <div class="fe-kod" style="font-size:${yPt}pt">${esc(v.kod || '')}</div>
+      ${satirlar.slice(0, sigan).map(([e, d]) => `<div class="fe-s" style="font-size:${yPt}pt"><span>${e}</span><b>${esc(d)}</b></div>`).join('')}
+    </div></div>`;
+}
+function fisBelgesi(etiketler, a) {
+  const L = Math.max(etiketler.length * (Number(a.yukseklik) + 3) + 6, a.genislik + 2);
+  const css = `@page{size:${a.genislik}mm ${L}mm;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{width:${a.genislik}mm;font-family:Arial,"Segoe UI",Helvetica,sans-serif}.kap{padding:2mm 0 4mm ${(a.genislik - (a.genislik === 58 ? 48 : 72)) / 2}mm}
+    .fe{display:flex;gap:2.5mm;align-items:center;overflow:hidden;padding:1mm 0;break-inside:avoid;page-break-inside:avoid}
+    .fe+.fe{border-top:0.3mm dashed #000;margin-top:2mm;padding-top:2mm}
+    .fe-qr{flex:none}.fe-qr svg{width:100%;height:100%;display:block}
+    .fe-y{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;line-height:1.2}
+    .fe-m{font-weight:700;letter-spacing:.4pt}.fe-ad{font-weight:800;line-height:1.15;max-height:2.35em;overflow:hidden}
+    .fe-kod{font-family:Consolas,"Courier New",monospace;font-weight:700;margin:.5mm 0}
+    .fe-s{display:flex;gap:1.5mm;white-space:nowrap;overflow:hidden}.fe-s span{min-width:12mm}.fe-s b{overflow:hidden;text-overflow:ellipsis}`;
+  return { html: `<!doctype html><html lang="tr"><head><meta charset="utf-8"><style>${css}</style></head><body><div class="kap">${etiketler.join('')}</div></body></html>`, L, css };
+}
 async function fiseBas(gruplar, f) {
-  const parcalar = []; let toplam = 4;
-  gruplar.forEach(g => {
-    const W = Number(g.s.genislik_mm), H = Number(g.s.yukseklik_mm);
-    const w = Math.min(W, f.baski), h = Math.round(H * w / W * 10) / 10;
-    const s2 = { ...g.s, genislik_mm: w, yukseklik_mm: h };
-    g.l.forEach(v => { parcalar.push(`<div class="fis-etiket" style="width:${f.kagit}mm;padding-left:${((f.kagit - w) / 2).toFixed(1)}mm">${etiketCiz(v, s2)}</div>`); toplam += h + 5; });
+  let a = fisAyar(); a.genislik = f.kagit;
+  if (yaziciKopru && yaziciKopru.fisBas && !a.yazici) { const k = await fisAyarAc(true); if (!k) return; a = { ...fisAyar(), genislik: f.kagit }; }
+  const etiketler = [];
+  gruplar.forEach(g => g.l.forEach(v => etiketler.push(fisEtiket(v, g.s, a))));
+  const { html, L, css } = fisBelgesi(etiketler, a);
+  if (yaziciKopru && yaziciKopru.fisBas) {
+    const r = await yaziciKopru.fisBas({ html, yazici: a.yazici || '', genislik: a.genislik, yukseklik: L });
+    if (r && !r.ok && r.hata && !/cancel/i.test(r.hata)) return bildir('Yazdırılamadı: ' + r.hata + ' · Fiş yazıcısı ayarlarından yazıcıyı kontrol edin.', true);
+    if (r && r.ok && a.yazici) bildir(`${etiketler.length} etiket ${a.yazici} yazıcısına gönderildi.`);
+    return;
+  }
+  $('page-size').textContent = `@page { size: ${a.genislik}mm ${L}mm; margin: 0; }`;
+  $('yazdir').innerHTML = `<style>${css.replace(/@page\{[^}]*\}/, '').replace(/html,body\{[^}]*\}/, '').replace(/body\{[^}]*\}/, '')}</style><div class="kap" style="width:${a.genislik}mm">${etiketler.join('')}</div>`;
+  await new Promise(r => setTimeout(r, 150)); window.print();
+}
+// Bu bilgisayarın fiş yazıcısı ayarı (yazıcı adı, genişlik, etiket yüksekliği, QR boyutu)
+async function fisAyarAc(basmadanOnce = false) {
+  const a = fisAyar(); let liste = [];
+  if (yaziciKopru) { try { liste = await yaziciKopru.liste(); } catch (e) {} }
+  const ornek = { kod: 'FST-0007-012', kod_norm: 'FST0007012', urun_ad: 'Antep Fıstığı (Boz İç)', parti_kodu: 'FST-0007', giris_tarihi: bugun(), skt: gunEkle(bugun(), 365), miktar: 25, birim: 'kg', seri: 12, paket_adedi: 24, firma_kod: 'FSTK01' };
+  return new Promise(coz => {
+    modalAc('Fiş yazıcısı ayarları · bu bilgisayar', `
+      ${basmadanOnce ? '<p style="margin-top:0">Etiketlerin pencere açmadan doğrudan basılması için bu bilgisayardaki fiş yazıcısını bir kez seçin.</p>' : ''}
+      ${yaziciKopru ? `<label>Yazıcı <select id="fa-yazici"><option value="">Her seferinde sor (yazdırma penceresi açılır)</option>${liste.map(y => `<option value="${esc(y.ad)}"${y.ad === a.yazici ? ' selected' : ''}>${esc(y.ad)}${y.varsayilan ? ' (varsayılan)' : ''}</option>`).join('')}</select></label>`
+        : '<p class="aciklama" style="margin-top:0">Tarayıcıda/telefonda yazıcı seçilemez; her baskıda yazdırma penceresi açılır. Doğrudan basmak için Windows uygulamasını kullanın.</p>'}
+      <div class="grid" style="margin-top:10px">
+        <label>Kâğıt genişliği <select id="fa-gen"><option value="80"${a.genislik === 80 ? ' selected' : ''}>80 mm</option><option value="58"${a.genislik === 58 ? ' selected' : ''}>58 mm</option></select></label>
+        <label>Etiket yüksekliği (mm) <input id="fa-yuk" type="number" min="20" max="80" step="1" value="${a.yukseklik}"></label>
+        <label>QR boyutu (mm) <input id="fa-qr" type="number" min="12" max="45" step="1" value="${a.qr}"></label>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:var(--soluk)">Önizleme (gerçek boyut)</div>
+      <div id="fa-on" style="background:#fff;border:1px solid var(--cizgi);border-radius:8px;padding:8px 0;overflow:auto"></div>
+      <div class="satir" style="justify-content:flex-end;margin-top:12px;gap:8px">
+        ${yaziciKopru ? '<button class="btn ikincil" type="button" id="fa-deneme">Deneme etiketi bas</button>' : ''}<button class="btn" type="button" id="fa-kaydet">Kaydet</button></div>`);
+    const oku = () => ({ yazici: $('fa-yazici') ? $('fa-yazici').value : '', genislik: Number($('fa-gen').value), yukseklik: sinirla(Number($('fa-yuk').value) || 35, 20, 80), qr: sinirla(Number($('fa-qr').value) || 25, 12, 45) });
+    const onizle = () => { const x = oku(); const { css } = fisBelgesi([], x);
+      $('fa-on').innerHTML = `<style>#fa-on ${css.replace(/@page\{[^}]*\}/, '').replace(/html,body\{[^}]*\}/, '').replace(/body\{[^}]*\}/, '').replace(/\}(?=.)/g, '} #fa-on ')}</style><div class="kap" style="width:${x.genislik}mm;margin:0 auto;font-family:Arial,sans-serif;color:#000">${fisEtiket(ornek, { qr_icerik: 'kod' }, x)}</div>`; };
+    ['fa-gen', 'fa-yuk', 'fa-qr'].forEach(id => $(id).addEventListener('input', onizle)); onizle();
+    let bitti = false; const kapat = v => { if (!bitti) { bitti = true; coz(v); } };
+    $('fa-kaydet').onclick = () => { const x = oku(); fisAyarYaz(x); modalKapat(); bildir(x.yazici ? `Etiketler artık doğrudan “${x.yazici}” yazıcısına basılacak.` : 'Fiş ayarı kaydedildi.'); kapat(true); };
+    if ($('fa-deneme')) $('fa-deneme').onclick = async () => {
+      const x = oku(); const { html, L } = fisBelgesi([fisEtiket(ornek, { qr_icerik: 'kod' }, x)], x);
+      const r = await yaziciKopru.fisBas({ html, yazici: x.yazici || '', genislik: x.genislik, yukseklik: L });
+      if (r && !r.ok && r.hata && !/cancel/i.test(r.hata)) bildir('Yazdırılamadı: ' + r.hata, true); else if (r && r.ok) bildir('Deneme etiketi gönderildi.');
+    };
+    const izle = setInterval(() => { if (!document.getElementById('fa-kaydet')) { clearInterval(izle); kapat(false); } }, 400);
   });
-  const L = Math.max(Math.ceil(toplam + 8), f.kagit + 2);   // sayfa her zaman dik (boy > en) olsun
-  $('page-size').textContent = `@page { size: ${f.kagit}mm ${L}mm; margin: 0; }`;
-  $('yazdir').innerHTML = `<div class="fis-sayfa" style="width:${f.kagit}mm">${parcalar.join('')}</div>`;
-  await new Promise(r => setTimeout(r, 150));
-  if (yaziciKopru) {
-    const r = await yaziciKopru.bas({ yazici: '', genislik: f.kagit, yukseklik: L });
-    if (r && !r.ok && r.hata && !/cancel/i.test(r.hata)) bildir('Yazdırılamadı: ' + r.hata, true);
-  } else window.print();
 }
 async function gruplariBas(gruplar) {
   const f = FIS_YAZICI[yaziciTuru()];
@@ -1797,12 +1868,15 @@ function etiketSecimleriniDoldur() {
     let bar = sec.querySelector('.etiket-bar');
     if (!bar) {
       sec.querySelector('h2').insertAdjacentHTML('afterend', `<div class="etiket-bar">${ikon('etiket', 16, 2)}<span>${e.yazi}</span><select class="etiket-sec" id="etiket-sec-${id}" aria-label="${e.yazi}"></select>
-        <span>Yazıcı</span><select class="yazici-turu" id="yazici-turu-${id}" aria-label="Bu bilgisayardaki yazıcı türü"><option value="etiket">Etiket yazıcısı</option><option value="fis80">Fiş yazıcısı 80 mm</option><option value="fis58">Fiş yazıcısı 58 mm</option></select></div>`);
+        <span>Yazıcı</span><select class="yazici-turu" id="yazici-turu-${id}" aria-label="Bu bilgisayardaki yazıcı türü"><option value="etiket">Etiket yazıcısı</option><option value="fis80">Fiş yazıcısı 80 mm</option><option value="fis58">Fiş yazıcısı 58 mm</option></select><button type="button" class="btn ikincil kucuk fis-ayar-dugme" data-fis-ayar="1">Fiş ayarı</button></div>`);
       bar = sec.querySelector('.etiket-bar');
       bar.querySelector('select').onchange = ev => { try { localStorage.setItem('etiketSec-' + id, ev.target.value); } catch (e) {} };
     }
     const yt = bar.querySelector('.yazici-turu'); yt.value = yaziciTuru();
+    bar.querySelector('.fis-ayar-dugme')?.classList.toggle('gizli', yt.value === 'etiket');
     yt.onchange = () => { try { localStorage.setItem('yaziciTuru', yt.value); } catch (e) {} document.querySelectorAll('.yazici-turu').forEach(x => x.value = yt.value);
+      document.querySelectorAll('.fis-ayar-dugme').forEach(x => x.classList.toggle('gizli', yt.value === 'etiket'));
+      if (yt.value !== 'etiket') { const a = fisAyar(); a.genislik = FIS_YAZICI[yt.value].kagit; fisAyarYaz(a); }
       bildir(yt.value === 'etiket' ? 'Bu bilgisayar etiket yazıcısına basacak.' : `Bu bilgisayar ${FIS_YAZICI[yt.value].ad} kullanacak; etiketler alt alta basılır.`); };
     const sel = bar.querySelector('select.etiket-sec'); const once = sel.value;
     sel.innerHTML = secenek;
@@ -1810,6 +1884,8 @@ function etiketSecimleriniDoldur() {
     sel.value = [...sel.options].some(o => o.value === k) ? k : 'oto';
   });
 }
+
+document.addEventListener('click', ev => { if (ev.target.closest('[data-fis-ayar]')) fisAyarAc(); });
 
 async function partiEtiketleriniBas(partiId, sadeceDepoda = false) {
   let q = sb.from('v_etiketler').select('*').eq('parti_id', partiId).order('seri');
