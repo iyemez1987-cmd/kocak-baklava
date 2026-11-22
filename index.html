@@ -132,6 +132,10 @@
 
   /* Pencere (modal) */
   .modal-zemin { position: fixed; inset: 0; background: rgba(20,30,24,.55); z-index: 40; display: flex; justify-content: center; align-items: flex-start; padding: 24px 12px; overflow-y: auto; }
+  .onay-zemin { position: fixed; inset: 0; background: rgba(20,30,24,.55); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .onay-kutu { background: var(--kart); border-radius: 16px; max-width: 440px; width: 100%; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .onay-kutu p { margin: 0 0 18px; font-size: 16px; line-height: 1.5; }
+  .onay-dugmeler { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
   .modal { background: var(--kart); border-radius: 16px; width: 100%; max-width: 1000px; padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
   .modal-ust { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
   .modal-ust h3 { margin: 0; }
@@ -378,7 +382,7 @@
   /* ---------- Marka: giriş ekranı ve üst çubuk ---------- */
   #giris.giris-sahne { max-width: none; margin: 0; min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
   #giris.giris-sahne.gizli { display: none; }
-  .giris-marka { background: linear-gradient(180deg, rgba(14,30,20,.78) 0%, rgba(14,30,20,.5) 45%, rgba(14,30,20,.9) 100%), var(--foto, none) center / cover no-repeat, #1E3A2A; color: #F5F0E1; display: flex; align-items: center; justify-content: center;
+  .giris-marka { background: linear-gradient(180deg, rgba(14,30,20,.62) 0%, rgba(14,30,20,.28) 45%, rgba(14,30,20,.78) 100%), var(--foto, none) center / cover no-repeat, #1E3A2A; color: #F5F0E1; display: flex; align-items: center; justify-content: center;
                  padding-block: 40px; padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: 32px; }
   .giris-marka-ic { max-width: 460px; width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; }
   .giris-yazi-marka { display: flex; flex-direction: column; font-family: Georgia, "Times New Roman", serif; line-height: 1; }
@@ -744,7 +748,7 @@
     <label style="flex-direction:row;align-items:center;gap:10px;color:var(--yazi);font-size:15px;cursor:pointer">
       <input type="checkbox" id="g-hatirla" checked style="width:22px;height:22px;min-height:0"> Beni hatırla (bu cihazda açık kalsın)
     </label>
-    <button class="btn" type="submit">Giriş yap</button>
+    <button class="btn" type="submit" id="g-dugme">Giriş yap</button>
     <div id="g-hata" class="hata"></div>
     <button type="button" class="btn ikincil kur-dugme gizli" data-kur="1"><span data-ikon="telefon"></span>Uygulamayı telefona yükle</button>
   </form>
@@ -1655,6 +1659,23 @@ async function firmalariYukle() {
 let etiketSablonlari = [], mamulListesi = [], onekGovde = '';
 const ayar = { qr_adres_oneki: 'HTTPS://TATLIYOLCULUGU.COM/D/', yazici_dpi: 203, varsayilan_hammadde_sablon: null, varsayilan_tepsi_sablon: null };
 const yaziciKopru = window.izlYazici || null;   // Windows uygulamasında (Electron) gelir
+// Android uygulaması (APK): yazdırma Android'in yazdırma servisine, geri tuşu uygulama içinde
+const androidUygulama = /KocakBaklavaApp/.test(navigator.userAgent);
+(function androidKoprusu() {
+  const cap = window.Capacitor;
+  if (!androidUygulama || !cap) return;
+  const eklenti = ad => (cap.Plugins && cap.Plugins[ad]) || (cap.registerPlugin ? cap.registerPlugin(ad) : null);
+  const yazdir = eklenti('Yazdir');
+  if (yazdir) window.print = () => { yazdir.yazdir({ ad: document.title || 'Koçak Baklava' }).catch(e => bildir('Yazdırılamadı: ' + (e && e.message || e), true)); };
+  const uyg = eklenti('App');
+  if (uyg && uyg.addListener) uyg.addListener('backButton', () => {
+    const onay = document.querySelector('.onay-zemin'); if (onay) { onay.querySelector('[data-o="0"]').click(); return; }
+    if (!$('kamera').classList.contains('gizli')) return kameraKapat();
+    if (!$('modal').classList.contains('gizli')) return modalKapat();
+    if (!$('uygulama').classList.contains('gizli') && typeof aktifSayfa !== 'undefined' && aktifSayfa && aktifSayfa !== 'ana' && izinliEkranlar().length > 1) return sayfaAc('ana');
+    uyg.minimizeApp ? uyg.minimizeApp() : uyg.exitApp();
+  });
+})();
 const ALANLAR = [
   { id: 'marka', ad: 'Firma adı (marka)' },
   { id: 'ad', ad: 'Ürün adı' },
@@ -2054,8 +2075,8 @@ $('kabul-form').addEventListener('submit', async ev => {
   const eksik = kontrol.findIndex(k => !k.uygun && !k.aciklama.trim());
   if (eksik >= 0) { bildir(`${eksik + 1}. madde “Uygun değil”: ne bulunduğunu açıklamaya yazın.`, true); document.querySelector(`[data-k-acik="${eksik}"]`)?.focus(); return; }
   if ((karar !== 'kabul' || kontrol.some(k => !k.uygun)) && !$('k-aksiyon').value.trim()) { bildir('Uygunsuzluk / alınan aksiyon yazılmalı.', true); $('k-aksiyon').focus(); return; }
-  if (karar === 'kabul' && kontrol.some(k => !k.uygun) && !confirm('Uygun olmayan madde var ama karar “Kabul”. Yine de kabul edilsin mi?')) return;
-  if (karar === 'ret' && !confirm('Bu parti KARANTİNAYA alınacak ve mühendis onaylayana kadar üretime verilemeyecek. Devam edilsin mi?')) return;
+  if (karar === 'kabul' && kontrol.some(k => !k.uygun) && !await onayla('Uygun olmayan madde var ama karar “Kabul”. Yine de kabul edilsin mi?')) return;
+  if (karar === 'ret' && !await onayla('Bu parti KARANTİNAYA alınacak ve mühendis onaylayana kadar üretime verilemeyecek. Devam edilsin mi?')) return;
   const kUrun = urunler.find(u => String(u.id) === $('k-urun').value);
   if (kUrun && kUrun.takip_turu !== 'parti' && !(Number($('k-miktar').value) > 0)) {
     bildir(`${kUrun.ad} ${kUrun.takip_turu === 'adet' ? 'adetle' : 'miktarla'} takip ediliyor: toplam miktarı yazın (${kUrun.birim}).`, true); $('k-miktar').focus(); return;
@@ -3014,7 +3035,7 @@ async function uretimListesiYukle() {
 }
 
 async function uretimdenGeriAl(etiketId, kod) {
-  if (!confirm(`${kod} üretimden geri alınıp depoya döndürülsün mü?`)) return;
+  if (!await onayla(`${kod} üretimden geri alınıp depoya döndürülsün mü?`)) return;
   const { error } = await sb.rpc('uretimden_geri_al', { p_etiket_id: etiketId });
   if (error) return bildir(hataMesaji(error), true);
   bildir(`${kod} depoya geri alındı.`);
@@ -3113,6 +3134,20 @@ $('sh-excel').addEventListener('click', excelAktar);
 // ================= KABUL FORMU (görüntüleme + çıktı) =================
 function modalAc(baslik, html) { $('modal-baslik').textContent = baslik; $('modal-icerik').innerHTML = html; $('modal').classList.remove('gizli'); }
 function modalKapat() { $('modal').classList.add('gizli'); $('modal-icerik').innerHTML = ''; }
+// Uygulama içi onay penceresi: Windows'ta yerel confirm() sonrası klavye odağı kayboluyordu
+function onayla(mesaj, evet = 'Evet', hayir = 'Vazgeç') {
+  return new Promise(coz => {
+    const z = document.createElement('div'); z.className = 'onay-zemin';
+    z.innerHTML = `<div class="onay-kutu" role="alertdialog" aria-modal="true"><p></p><div class="onay-dugmeler"><button type="button" class="btn ikincil" data-o="0"></button><button type="button" class="btn" data-o="1"></button></div></div>`;
+    z.querySelector('p').textContent = mesaj; z.querySelector('[data-o="0"]').textContent = hayir; z.querySelector('[data-o="1"]').textContent = evet;
+    const onceki = document.activeElement;
+    const bitir = v => { z.remove(); document.removeEventListener('keydown', tus, true); try { onceki && onceki.focus && onceki.focus(); } catch (e) {} coz(v); };
+    const tus = e => { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); bitir(false); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); bitir(true); } };
+    z.addEventListener('click', e => { const b = e.target.closest('[data-o]'); if (b) bitir(b.dataset.o === '1'); else if (e.target === z) bitir(false); });
+    document.addEventListener('keydown', tus, true);
+    document.body.appendChild(z); z.querySelector('[data-o="1"]').focus();
+  });
+}
 $('modal-kapat').onclick = modalKapat;
 $('modal').addEventListener('click', ev => { if (ev.target === $('modal')) modalKapat(); });
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !$('modal').classList.contains('gizli')) modalKapat(); });
@@ -3178,7 +3213,7 @@ async function formuAc(partiId) {
     const karar = async (deger) => {
       const not = $('m-not').value;
       if (deger === 'reddedildi' && !not.trim()) { bildir('Red için gerekçe yazın.', true); $('m-not').focus(); return; }
-      if (deger === 'reddedildi' && !confirm(`${p.parti_kodu} reddedilecek; depodaki paketleri karantinaya alınacak. Emin misiniz?`)) return;
+      if (deger === 'reddedildi' && !await onayla(`${p.parti_kodu} reddedilecek; depodaki paketleri karantinaya alınacak. Emin misiniz?`)) return;
       const { error } = await sb.rpc('muhendis_karar', { p_parti_id: p.id, p_karar: deger, p_not: not });
       if (error) return bildir(hataMesaji(error), true);
       bildir(deger === 'onaylandi' ? `${p.parti_kodu} onaylandı.` : deger === 'reddedildi' ? `${p.parti_kodu} reddedildi, karantinada.` : 'Karar geri alındı.');
@@ -3851,7 +3886,7 @@ document.querySelector('section[data-sayfa="sevkiyat"]').addEventListener('click
   if (aktifSevkiyat?.durum === 'yukleniyor' && !$('sv-yukleme').classList.contains('gizli') && !ev.target.closest('input, button, select, a, textarea')) $('sv-okut').focus();
 });
 async function sevkiyattanCikar(tepsiId, kod) {
-  if (!confirm(`${kod} araçtan çıkarılsın mı?`)) return;
+  if (!await onayla(`${kod} araçtan çıkarılsın mı?`)) return;
   const { error } = await sb.rpc('sevkiyattan_cikar', { p_sevkiyat_id: aktifSevkiyat.id, p_tepsi_id: tepsiId });
   if (error) return bildir(hataMesaji(error), true);
   svDurum('bekle', `${kod} araçtan çıkarıldı.`); svTepsileriYukle();
@@ -4303,7 +4338,7 @@ async function gelenEksikler(id) {
 }
 async function teslimKapat(id, eksik, kod) {
   if (!eksik) {
-    if (!confirm(`${kod}: bütün tepsiler teslim alındı. Teslim kapatılsın mı?`)) return;
+    if (!await onayla(`${kod}: bütün tepsiler teslim alındı. Teslim kapatılsın mı?`)) return;
     const { data, error } = await sb.rpc('sevkiyat_teslim_kapat', { p_sevkiyat_id: id, p_not: null });
     if (error) return bildir(hataMesaji(error), true);
     bildir(`${kod} teslimi tamamlandı.`); return subeListesi();
@@ -4629,7 +4664,7 @@ async function isEmriKaydet(mamulId, deger) {
 }
 async function tepsiBas(mamulId, adet) {
   const r = odaSatirlar.find(x => x.mamul_id === mamulId);
-  if (adet > 20 && !confirm(`${r ? r.ad : ''} için ${adet} etiket basılacak. Devam edilsin mi?`)) return;
+  if (adet > 20 && !await onayla(`${r ? r.ad : ''} için ${adet} etiket basılacak. Devam edilsin mi?`)) return;
   const { data: idler, error } = await sb.rpc('tepsi_olustur', { p_mamul_id: mamulId, p_tarih: $('o-gun').value || bugun(), p_adet: adet });
   if (error) return bildir(hataMesaji(error), true);
   const { data: tepsiler, error: e2 } = await sb.from('v_tepsiler').select('*').in('id', idler).order('kod');
@@ -4642,7 +4677,7 @@ async function tumKalanlariBas() {
   const kalanlar = odaSatirlar.filter(r => r.is_emri > r.basilan);
   const toplam = kalanlar.reduce((s, r) => s + (r.is_emri - r.basilan), 0);
   if (!toplam) return bildir('Basılacak kalan etiket yok.', true);
-  if (!confirm(`${kalanlar.length} mamul için toplam ${toplam} tepsi etiketi basılacak. Devam edilsin mi?`)) return;
+  if (!await onayla(`${kalanlar.length} mamul için toplam ${toplam} tepsi etiketi basılacak. Devam edilsin mi?`)) return;
   const tumu = [];
   for (const r of kalanlar) {
     const { data: idler, error } = await sb.rpc('tepsi_olustur', { p_mamul_id: r.mamul_id, p_tarih: $('o-gun').value || bugun(), p_adet: r.is_emri - r.basilan });
@@ -5423,11 +5458,11 @@ function oturumGoster(oturum) {
   $('giris').classList.toggle('gizli', !!oturum);
   $('uygulama').classList.toggle('gizli', !oturum);
   if (oturum && aktifKullanici !== oturum.user.id) { aktifKullanici = oturum.user.id; const u = oturum.user; setTimeout(() => basla(u.id, u.email), 0); }
-  if (!oturum) aktifKullanici = null;
+  if (!oturum) { aktifKullanici = null; setTimeout(girisOdakla, 50); }
 }
 // ---- Telefona yükleme (ana ekrana ekle) ----
 let kurulumOlayi = null;
-const uygulamadaMi = () => !!window.izlYazici || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const uygulamadaMi = () => !!window.izlYazici || androidUygulama || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const iosMu = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const mobilCihazMi = () => /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) || iosMu();
 function kurDugmeleri() {
@@ -5456,7 +5491,14 @@ $('giris-form').addEventListener('submit', async ev => {
     localStorage.setItem('beniHatirla', hatirla ? '1' : '0');
     if (hatirla) localStorage.setItem('sonEposta', $('g-eposta').value.trim()); else localStorage.removeItem('sonEposta');
   } catch (e) {}
-  const { error } = await sb.auth.signInWithPassword({ email: girisEposta($('g-eposta').value), password: $('g-sifre').value });
+  const dugme = $('g-dugme'); if (dugme.disabled) return;
+  dugme.disabled = true; dugme.textContent = 'Giriş yapılıyor…';
+  let error;
+  try {
+    const sure = new Promise(coz => setTimeout(() => coz({ error: { status: 0, message: 'zaman aşımı' } }), 20000));
+    ({ error } = await Promise.race([sb.auth.signInWithPassword({ email: girisEposta($('g-eposta').value), password: $('g-sifre').value }), sure]));
+  } catch (e) { error = { status: 0, message: String(e && e.message || e) }; }
+  finally { dugme.disabled = false; dugme.textContent = 'Giriş yap'; }
   if (error) {
     const m = String(error.message || '');
     const ag = error.status === 0 || /fetch|network|load failed|NetworkError/i.test(m) || error.name === 'AuthRetryableFetchError';
@@ -5475,6 +5517,13 @@ try {
   const son = localStorage.getItem('sonEposta'); if (son) $('g-eposta').value = son;
   $('g-hatirla').checked = hatirlaAcik();
 } catch (e) {}
+// Giriş ekranı açılınca imleç doğrudan yazılacak kutuda olsun
+function girisOdakla() {
+  if ($('giris').classList.contains('gizli') || mobilCihazMi()) return;
+  const hedef = $('g-eposta').value ? $('g-sifre') : $('g-eposta');
+  try { window.focus(); hedef.focus({ preventScroll: true }); } catch (e) {}
+}
+window.addEventListener('focus', () => { if (!document.activeElement || document.activeElement === document.body) girisOdakla(); });
 $('cikis').onclick = () => sb.auth.signOut();
 // Telefona yüklenebilir uygulama: sadece https adresinde (dosyadan / masaüstü programından açılınca çalışmaz)
 if ('serviceWorker' in navigator && location.protocol === 'https:') {

@@ -1,0 +1,14 @@
+{
+  "appId": "com.posim.kocakbaklava",
+  "appName": "Koçak Baklava",
+  "webDir": "www",
+  "server": {
+    "url": "https://iyemez1987-cmd.github.io/kocak-baklava/",
+    "errorPath": "hata.html",
+    "cleartext": false
+  },
+  "android": {
+    "appendUserAgent": "KocakBaklavaApp",
+    "backgroundColor": "#F7F3E8"
+  }
+}

@@ -1,0 +1,75 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    paths: ['mobil/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobil
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Capacitor projesi
+        run: |
+          npm install --no-audit --no-fund
+          npx cap add android
+
+      - name: Simge, açılış ekranı, izinler, sürüm
+        run: |
+          RES=android/app/src/main/res
+          find $RES -name 'splash.png' -delete
+          cp -r res/* $RES/
+          cp java/*.java android/app/src/main/java/com/posim/kocakbaklava/
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />#' $M
+          grep -q 'permission.CAMERA' $M
+          SURUM=$(node -p "require('./package.json').version")
+          echo "SURUM=$SURUM" >> $GITHUB_ENV
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"$SURUM\"/" android/app/build.gradle
+          grep -E 'versionCode|versionName' android/app/build.gradle
+          npx cap sync android
+
+      - name: Derle
+        working-directory: mobil/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: İmzala
+        run: |
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $BT/zipalign -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk hizali.apk
+          $BT/apksigner sign --ks imza/kocak.jks --ks-key-alias kocak --ks-pass pass:KocakIzl2026 --key-pass pass:KocakIzl2026 --out KocakBaklava.apk hizali.apk
+          $BT/apksigner verify --print-certs KocakBaklava.apk
+          ls -la KocakBaklava.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KocakBaklava-apk
+          path: mobil/KocakBaklava.apk
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ env.SURUM }}-${{ github.run_number }}
+          name: Koçak Baklava Android ${{ env.SURUM }} (${{ github.run_number }})
+          body: Telefona yüklemek için KocakBaklava.apk dosyasını indirin.
+          files: mobil/KocakBaklava.apk
+          make_latest: true
