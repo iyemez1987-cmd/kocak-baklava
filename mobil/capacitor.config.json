@@ -9,6 +9,7 @@
   },
   "android": {
     "appendUserAgent": "KocakBaklavaApp",
-    "backgroundColor": "#F7F3E8"
+    "backgroundColor": "#F7F3E8",
+    "adjustMarginsForEdgeToEdge": "disable"
   }
 }

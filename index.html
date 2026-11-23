@@ -714,6 +714,106 @@
   .fis-etiket { box-sizing: border-box; padding-bottom: 2mm; margin-bottom: 3mm; border-bottom: 0.3mm dashed #000; break-inside: avoid; page-break-inside: avoid; }
   .fis-etiket:last-child { border-bottom: 0; }
   .etiket-bar .yazici-turu { min-width: 0; }
+
+  /* ===== Telefon: sıkı düzen — ekranın tamamı işe ayrılır ===== */
+  @media (max-width: 760px) {
+    /* Üst çubuk tek satır: küçük logo · menü · çıkış simgesi */
+    header { flex-wrap: nowrap; gap: 6px; padding: 6px 8px; padding-top: max(6px, env(safe-area-inset-top, 0px)); border-bottom-width: 2px; position: sticky; top: 0; z-index: 30; }
+    header h1.marka { margin: 0; gap: 0; flex: none; }
+    .marka-ad { display: none; }
+    .marka-ik img { height: 26px; }
+    nav { order: 0; width: auto; flex: 1 1 auto; min-width: 0; gap: 2px; padding-bottom: 0; scrollbar-width: none; }
+    nav::-webkit-scrollbar { display: none; }
+    nav button { padding: 7px 10px; font-size: 14px; min-height: 36px; gap: 5px; }
+    nav button .ik { width: 15px; height: 15px; }
+    .sag { margin-left: 0; flex: none; gap: 4px; }
+    #cikis { font-size: 0; gap: 0; padding: 0; width: 36px; min-height: 36px; border-radius: 10px; }
+    #cikis .ik { width: 18px; height: 18px; }
+
+    main { padding: 10px 10px 40px; }
+    h2 { font-size: 18px; margin-bottom: 8px; }
+    .kart { padding: 12px; border-radius: 12px; }
+
+    /* Alt sekmeler (Mal Kabul / Üretime Ver / Yarı Mamul) tek satır */
+    section.grupta > .grup-sekme { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; padding: 3px; border-radius: 12px; margin-bottom: 10px; }
+    .grup-sekme button { min-height: 40px; font-size: 13.5px; gap: 5px; padding: 4px 6px; border-radius: 9px; white-space: nowrap; }
+    .grup-sekme button .ik { width: 16px; height: 16px; }
+    .grup-sekme button .sayac { margin-left: 2px; }
+
+    /* Etiket / yazıcı seçimi tek ince satır */
+    .etiket-bar { flex-wrap: nowrap; gap: 6px; margin: 0 0 10px; font-size: 12.5px; }
+    .etiket-bar > span { display: none; }
+    .etiket-bar select { flex: 1 1 0; min-width: 0; min-height: 34px; padding: 4px 8px; font-size: 13px; }
+    .etiket-bar .btn { min-height: 34px; padding: 4px 10px; font-size: 13px; flex: none; }
+
+    /* Formlar: iki sütun, kısa alanlar */
+    label { font-size: 12.5px; gap: 3px; }
+    input, select, textarea { min-height: 42px; padding: 8px 10px; font-size: 16px; }
+    .grid { grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+    .grid > label:has(select), .grid > label[style*="grid-column"], .grid > .tam { grid-column: 1 / -1; }
+    .grid > * { min-width: 0; }
+    .adim { width: 100%; }
+    .adim button { min-width: 40px; }
+    .adim input { flex: 1; width: auto; min-width: 0; min-height: 42px; }
+    .hizli-urun { margin-bottom: 8px; }
+
+    /* Okutma ekranları */
+    .okut-input { font-size: 18px; min-height: 50px; letter-spacing: 0; }
+    .okut-input::placeholder { font-size: 15px; font-family: inherit; letter-spacing: 0; text-transform: none; }
+    .okut-satir { gap: 8px; }
+    .okut-satir .btn { padding: 8px 12px; }
+    .okut-durum { font-size: 15.5px; padding: 10px 12px; border-radius: 10px; }
+    .okut-durum small { font-size: 13px; }
+    .islem-sec { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    .islem-sec button { flex-direction: column; padding: 7px 2px; font-size: 12px; line-height: 1.15; border-radius: 10px; min-height: 54px; gap: 3px; }
+    .buyuk-sayac b { font-size: 30px; }
+    .buyuk-sayac span { font-size: 14px; }
+    .okut-gecmis li { padding: 5px 10px; font-size: 13.5px; }
+
+    /* Bugün panosu */
+    .pano-serit { min-height: 0; border-radius: 12px; margin-bottom: 10px; background: var(--yesil); }
+    .pano-serit-ic { padding: 10px 12px; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
+    .pano-serit h2 { font-size: 16px; text-shadow: none; }
+    .pano-serit-alt { font-size: 13px; gap: 8px; }
+    .pano-serit .pano-yenile { min-height: 32px; padding: 4px 10px; font-size: 13px; }
+    .ara-baslik { margin: 12px 0 6px; font-size: 12px; }
+    .pano, .pano-duzen .pano { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .pano-kutu { padding: 8px 9px; border-radius: 11px; gap: 2px; }
+    .pano-baslik { font-size: 11.5px; gap: 5px; line-height: 1.2; }
+    .pano-ik { display: none; }
+    .pano-sayi { font-size: 22px; }
+    .pano-alt { font-size: 11px; line-height: 1.25; }
+    .pano-yan { margin-top: 4px; }
+    .dikkat-liste { gap: 5px; }
+    .dikkat { padding: 8px 10px; gap: 9px; font-size: 14px; border-radius: 10px; }
+    .dikkat small { font-size: 12px; }
+    .kutular, .pano-ekranlar .kutular { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .kutu-btn, .pano-ekranlar .kutu-btn { min-height: 0; padding: 10px 8px; gap: 6px; border-radius: 12px; align-items: center; text-align: center; }
+    .kutu-btn::after { display: none; }
+    .kutu-ik, .pano-ekranlar .kutu-ik { width: 36px; height: 36px; border-radius: 11px; box-shadow: none; }
+    .kutu-yazi { align-items: center; }
+    .kutu-yazi b, .pano-ekranlar .kutu-yazi b { font-size: 13px; line-height: 1.2; }
+    .kutu-yazi small { display: none; }
+    .rol-kart { padding: 12px; gap: 10px; margin-bottom: 12px; border-radius: 14px; }
+    .rol-ik { width: 40px; height: 40px; border-radius: 12px; }
+    .rol-ad { font-size: 17px; } .rol-alt { font-size: 13px; }
+    .rol-dugme { min-height: 46px; font-size: 15.5px; padding: 8px 14px; }
+
+    /* Küçük sayaç kutucukları yan yana */
+    .ozet-kutular, .oda-ozet { gap: 6px; }
+    .ozet-satir { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 5px; margin-bottom: 10px; }
+    .ozet { padding: 6px 8px; font-size: 11.5px; line-height: 1.2; }
+    .ozet b { font-size: 17px; }
+    .aciklama-p { display: none; }
+    .hm-urunler { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .hm-urun { min-height: 0; padding: 8px 10px; border-radius: 11px; gap: 1px; }
+    .hm-urun b { font-size: 14.5px; }
+    .hm-urun small { font-size: 12px; }
+    .hm-urun .hm-kalan { font-size: 13.5px; }
+    .arac-cubugu { gap: 6px; }
+    .cip { min-height: 36px; padding: 5px 11px; font-size: 13px; }
+    .btn { min-height: 42px; }
+  }
 </style>
 </head>
 <body>
@@ -799,10 +899,10 @@
         <div class="grid">
           <label>Ürün * <select id="k-urun" required></select></label>
           <label>Firma (tedarikçi) <select id="k-firma"></select></label>
-          <label>Paket adedi (çuval / kova / teneke) *
+          <label class="tam">Paket adedi *
             <span class="adim"><button type="button" data-adim="-1" aria-label="Bir azalt">−</button><input type="number" min="1" max="999" id="k-paket" value="1" required inputmode="numeric"><button type="button" data-adim="1" aria-label="Bir artır">+</button></span></label>
-          <label><span>Paket başı miktar <span class="birim" id="k-birim1"></span></span><input type="number" step="0.001" min="0" id="k-paket-basi" placeholder="örn. 50" inputmode="decimal"></label>
-          <label><span>Toplam miktar <span class="birim" id="k-birim2"></span></span><input type="number" step="0.001" min="0" id="k-miktar" placeholder="Paket başı yazılırsa kendisi hesaplanır" inputmode="decimal"></label>
+          <label><span>Paket başı <span class="birim" id="k-birim1"></span></span><input type="number" step="0.001" min="0" id="k-paket-basi" placeholder="örn. 50" inputmode="decimal"></label>
+          <label><span>Toplam <span class="birim" id="k-birim2"></span></span><input type="number" step="0.001" min="0" id="k-miktar" placeholder="Kendisi hesaplanır" inputmode="decimal"></label>
           <label>SKT <input type="date" id="k-skt"></label>
           <label>Tedarikçi parti / seri no <input id="k-tparti" placeholder="Firmanın kendi parti no'su"></label>
           <label>İrsaliye / fiş no <input id="k-irsaliye"></label>
@@ -980,7 +1080,7 @@
           <div class="cipler"><button type="button" class="cip secili" data-f="">Hepsi</button><button type="button" class="cip" data-f="hareketli">Bugün işlem görenler</button><button type="button" class="cip" data-f="eksik">Etiketsiz kalan</button><button type="button" class="cip" data-f="fazla">Fazla QR</button></div>
           <span class="sonuc-say"></span>
         </div>
-        <p style="color:var(--soluk);font-size:14px;margin:0 0 12px">Tepsi çıktıkça adedi yazıp QR basın; listeyi beklemeye gerek yok. Dara iş emri listesi gelince miktarları “İş emri” sütununa yazın, sistem karşılaştırır.</p>
+        <p class="aciklama-p" style="color:var(--soluk);font-size:14px;margin:0 0 12px">Tepsi çıktıkça adedi yazıp QR basın; listeyi beklemeye gerek yok. Dara iş emri listesi gelince miktarları “İş emri” sütununa yazın, sistem karşılaştırır.</p>
         <div id="o-liste"></div>
       </div>
     </section>
@@ -4626,7 +4726,7 @@ function odaCiz() {
     <div class="ozet"><b>${toplamBas}</b>QR basılan tepsi</div>
     <div class="ozet"><b>${toplamIe || '–'}</b>Dara iş emri ${toplamIe ? '' : '(henüz girilmedi)'}</div>
     ${toplamIe ? `<div class="ozet ${etiketsiz ? 'uyari' : 'iyi'}"><b>${etiketsiz}</b>Etiketsiz tepsi</div>
-    <div class="ozet ${fazla ? 'uyari' : 'iyi'}"><b>${fazla}</b>Listede olmayan / fazla QR</div>` : ''}`;
+    <div class="ozet ${fazla ? 'uyari' : 'iyi'}"><b>${fazla}</b>Fazla QR</div>` : ''}`;
   const liste = odaSatirlar.slice();
   // İş emri girilenler üstte
   const hareketli = r => r.is_emri > 0 || r.basilan > 0;
