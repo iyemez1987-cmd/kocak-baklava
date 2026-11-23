@@ -889,6 +889,32 @@
   .kuyruk-kart-liste li > span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .kuyruk-kart-liste small { color: var(--soluk); }
   @media (max-width: 760px) { .kuyruk-kart-ust .btn { flex: 1 1 100%; } }
+
+  /* ===== Telefon uygulamaları (Depo / Oda / Şube): sade, sadece iş ===== */
+  .kip-ad, .kip-giris, .kip-kontrol-ac { display: none; }
+  .mobil-kip .kip-gizle, .mobil-kip nav, .mobil-kip .etiket-bar, .mobil-kip .kaydet-bas, .mobil-kip .kuyruk-serit, .mobil-kip #kur-serit, .mobil-kip .kur-dugme,
+  .mobil-kip #yonetim-btn, .mobil-kip #k-son-analiz, .mobil-kip #u-kilo-ozet, .mobil-kip #hm-analiz, .mobil-kip [data-analiz], .mobil-kip .aciklama-p { display: none !important; }
+  .mobil-kip .kip-ad { display: block; color: #F5F0E1; font-size: 17px; font-weight: 800; margin-left: 10px; white-space: nowrap; }
+  .mobil-kip header { justify-content: space-between; }
+  .mobil-kip .sag { margin-left: auto; }
+  .mobil-kip .kip-giris { display: block; align-self: flex-start; background: var(--yesil); color: #F5F0E1; font-weight: 800; border-radius: 999px; padding: 6px 14px; margin-bottom: 10px; }
+  .mobil-kip .alt-aksiyon .aksiyon-ozet { flex: 1 1 0; }
+  .mobil-kip .alt-aksiyon .kaydet-sade { flex: 1 1 100%; min-height: 52px; font-size: 18px; }
+  /* Mal kabul: kontrol formu kapalı (varsayılan: tümü uygun, kabul) */
+  .mobil-kip .kip-kontrol-ac:not(.gizli) { display: flex; width: 100%; margin-top: 12px; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid #BFD8B5; background: #EEF6EA; color: #1E5A22;
+                                           border-radius: 10px; padding: 10px 12px; font: inherit; font-weight: 700; cursor: pointer; text-align: left; }
+  .mobil-kip .kip-kontrol-ac span { text-decoration: underline; font-weight: 600; flex: none; }
+  .mobil-kip #k-kontrol-blok:not(.acik) { display: none; }
+  .mobil-kip #k-onizleme, .mobil-kip #k-son-kap .ust-yazi { display: none; }
+  /* Oda: sadece ürün adı ve gelen tepsi adedi */
+  .mobil-kip #o-hepsi, .mobil-kip #o-siparis-uyari, .mobil-kip #o-ozet, .mobil-kip [data-filtre-hedef="o-liste"] .cipler, .mobil-kip [data-filtre-hedef="o-liste"] .sonuc-say { display: none !important; }
+  .mobil-kip table.kartli.oda-tablo tr:not(.baslik-satiri) { grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 8px 10px; margin-bottom: 6px; }
+  .mobil-kip table.kartli.oda-tablo td:nth-child(2) { grid-column: 1; grid-row: 1; }
+  .mobil-kip table.kartli.oda-tablo td:nth-child(3) { grid-column: 2; grid-row: 1; }
+  .mobil-kip table.kartli.oda-tablo td:nth-child(3) [data-oda-eksik] { display: none; }
+  .mobil-kip table.kartli.oda-tablo td:nth-child(1), .mobil-kip table.kartli.oda-tablo td:nth-child(n+4) { display: none !important; }
+  .mobil-kip table.kartli.oda-tablo tr.eksik, .mobil-kip table.kartli.oda-tablo tr.tamam, .mobil-kip table.kartli.oda-tablo tr.fazla { background: #fff; }
+  .mobil-kip .oda-tablo .adim button { min-width: 44px; } .mobil-kip .oda-tablo .adim input { width: 56px; min-height: 44px; font-size: 18px; }
 </style>
 </head>
 <body>
@@ -912,6 +938,7 @@
  <div class="kart giris-kart">
   <h2>Giriş</h2>
   <p class="aciklama">Depo, baklava odası, sevkiyat, şube, gıda mühendisi ve yönetim aynı uygulamadan girer. Herkes yalnızca kendi ekranlarını görür.</p>
+  <div id="kip-giris" class="kip-giris"></div>
   <form id="giris-form" method="post" action="#" style="display:flex;flex-direction:column;gap:14px">
     <label>Kullanıcı adı veya e-posta <input type="text" id="g-eposta" name="username" required autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="örn. ahmet.depo"></label>
     <label>Şifre
@@ -935,7 +962,7 @@
 <!-- ============ UYGULAMA ============ -->
 <div id="uygulama" class="gizli">
   <header>
-    <h1 class="marka"><span id="marka-ik" class="marka-ik"></span><span class="marka-ad"><small>İzlenebilirlik</small></span></h1>
+    <h1 class="marka"><span id="marka-ik" class="marka-ik"></span><span class="marka-ad"><small>İzlenebilirlik</small></span><span id="kip-ad" class="kip-ad"></span></h1>
     <nav>
       <button data-sayfa="ana" class="gizli" id="ana-btn">Bugün</button>
       <button type="button" data-grup="depo"><span class="grup-ad">Depo</span></button>
@@ -996,7 +1023,8 @@
         </div>
         <datalist id="k-konumlar"></datalist>
 
-        <div style="margin-top:22px;border-top:1px solid var(--cizgi);padding-top:18px">
+        <button type="button" class="kip-kontrol-ac" id="k-kontrol-ac">✓ Kontrol formu: tümü uygun, kabul <span>Değiştir</span></button>
+        <div id="k-kontrol-blok" style="margin-top:22px;border-top:1px solid var(--cizgi);padding-top:18px">
           <div class="satir" style="justify-content:space-between;margin-bottom:10px">
             <h3 style="margin:0">Kontrol formu <span id="k-form-ad" style="color:var(--soluk);font-weight:600;font-size:15px"></span></h3>
             <button class="btn ikincil kucuk" type="button" id="k-tumu-uygun">Tümü uygun</button>
@@ -1022,10 +1050,10 @@
             <button class="btn ikincil kaydet-sade" type="button" id="k-sadece" title="Etiketler bilgisayarda basılmayı bekler">Kaydet</button><button class="btn kaydet-bas" type="submit" id="k-kaydet">Kaydet ve bas</button>
           </div>
         </div>
-        <p class="aciklama" style="margin:10px 0 0">Kaydettikten sonra firma, irsaliye, plaka, giriş tarihi ve konum kalır; aynı araçtan gelen bir sonraki ürünü hemen girebilirsiniz.</p>
+        <p class="aciklama kip-gizle" style="margin:10px 0 0">Kaydettikten sonra firma, irsaliye, plaka, giriş tarihi ve konum kalır; aynı araçtan gelen bir sonraki ürünü hemen girebilirsiniz.</p>
       </form>
       <div id="k-son-analiz"></div>
-      <div class="kart">
+      <div class="kart kip-gizle">
         <h3 style="margin:0 0 12px">Son girişler</h3>
         <div id="son-girisler"></div>
       </div>
@@ -1119,14 +1147,14 @@
         </form>
         <div id="ym-tanimlar" class="hm-urunler"></div>
       </div>
-      <div class="kart">
+      <div class="kart kip-gizle">
         <div class="satir" style="justify-content:space-between;margin-bottom:12px">
           <h3 style="margin:0">Üretilen yarı mamuller</h3>
           <label style="flex-direction:row;align-items:center;gap:8px">Gün <input type="date" id="ym-gun"></label>
         </div>
         <div id="ym-liste"></div>
       </div>
-      <details class="kart ym-tanim-kart">
+      <details class="kart ym-tanim-kart kip-gizle">
         <summary><b>Yarı mamul tanımları ve reçeteler</b> <span style="color:var(--soluk);font-weight:400">· hamur, şerbet, çekilmiş fıstık…</span></summary>
         <div id="ymt-liste" style="margin-top:12px"></div>
         <form id="ymt-form" style="margin-top:14px">
@@ -1356,7 +1384,7 @@
           </div>
         </form>
 
-        <div class="kart">
+        <div class="kart kip-gizle">
           <div class="satir" style="justify-content:space-between;margin-bottom:12px">
             <h3 style="margin:0">Sevkiyatlar</h3>
             <div class="satir">
@@ -1846,6 +1874,16 @@ const ayar = { qr_adres_oneki: 'HTTPS://TATLIYOLCULUGU.COM/D/', yazici_dpi: 203,
 const yaziciKopru = window.izlYazici || null;   // Windows uygulamasında (Electron) gelir
 // Android uygulaması (APK): yazdırma Android'in yazdırma servisine, geri tuşu uygulama içinde
 const androidUygulama = /KocakBaklavaApp/.test(navigator.userAgent);
+// Telefon uygulamaları (APK): Depo, Baklava Odası, Şube — her biri sadece kendi işini gösterir.
+// Analiz, rapor, etiket basma, Dara karşılaştırma bilgisayarda kalır.
+const MOBIL_KIP = (() => {
+  let k = null;
+  try { k = new URLSearchParams(location.search).get('mobil'); if (k) localStorage.setItem('mobilKip', k); else if (androidUygulama) k = localStorage.getItem('mobilKip'); } catch (e) {}
+  return ['depo', 'oda', 'sube'].includes(k) ? k : null;
+})();
+const KIP_EKRANLAR = { depo: ['kabul', 'uretim', 'yarimamul'], oda: ['oda', 'sevkiyat'], sube: ['sube'] };
+const KIP_AD = { depo: 'Depo', oda: 'Baklava Odası', sube: 'Şube' };
+if (MOBIL_KIP) document.documentElement.classList.add('mobil-kip', 'kip-' + MOBIL_KIP);
 (function androidKoprusu() {
   const cap = window.Capacitor;
   if (!androidUygulama || !cap) return;
@@ -1857,7 +1895,7 @@ const androidUygulama = /KocakBaklavaApp/.test(navigator.userAgent);
     const onay = document.querySelector('.onay-zemin'); if (onay) { onay.querySelector('[data-o="0"]').click(); return; }
     if (!$('kamera').classList.contains('gizli')) return kameraKapat();
     if (!$('modal').classList.contains('gizli')) return modalKapat();
-    if (!$('uygulama').classList.contains('gizli') && typeof aktifSayfa !== 'undefined' && aktifSayfa && aktifSayfa !== 'ana' && izinliEkranlar().length > 1) return sayfaAc('ana');
+    if (!$('uygulama').classList.contains('gizli') && typeof aktifSayfa !== 'undefined' && aktifSayfa && aktifSayfa !== 'ana' && !MOBIL_KIP && izinliEkranlar().length > 1) return sayfaAc('ana');
     uyg.minimizeApp ? uyg.minimizeApp() : uyg.exitApp();
   });
 })();
@@ -2165,7 +2203,7 @@ async function kuyrukSay() {
   kuyrukSatirlar = data || [];
   const n = kuyrukSatirlar.reduce((a, r) => a + r.adet, 0);
   const b = $('kuyruk-serit');
-  const ilgili = profil.rol === 'yonetici' || izinliEkranlar().some(x => ['kabul', 'oda', 'yarimamul', 'odastok'].includes(x));
+  const ilgili = !MOBIL_KIP && (profil.rol === 'yonetici' || izinliEkranlar().some(x => ['kabul', 'oda', 'yarimamul', 'odastok'].includes(x)));
   b.classList.toggle('gizli', !n || !ilgili);
   b.innerHTML = `${ikon('etiket', 18, 2)}<span><b>${n} etiket</b> basılmayı bekliyor</span><span class="kuyruk-git">${mobilCihazMi() ? 'Liste' : 'Bas'} ›</span>`;
   kuyrukKartCiz('o-kuyruk', ['tepsi'], 'Telefondan gelen tepsiler', 'Kaydedildi ve stoğa alındı · etiketleri basılmayı bekliyor');
@@ -2174,6 +2212,7 @@ async function kuyrukSay() {
 // Oda ve mal kabul ekranının üstünde: telefondan kaydedilen, etiketi basılmamış liste
 function kuyrukKartCiz(kapId, turler, baslik, alt) {
   const kap = $(kapId); if (!kap) return;
+  if (MOBIL_KIP) { kap.innerHTML = ''; return; }
   const l = kuyrukSatirlar.filter(r => turler.includes(r.tur));
   if (!l.length) { kap.innerHTML = ''; return; }
   const top = l.reduce((a, r) => a + r.adet, 0);
@@ -2338,7 +2377,7 @@ $('k-giris').addEventListener('change', () => {
 let kabulBas = true;
 $('k-sadece').onclick = () => { kabulBas = false; $('kabul-form').requestSubmit(); setTimeout(() => { kabulBas = true; }, 0); };
 $('kabul-form').addEventListener('submit', async ev => {
-  const bas = kabulBas; kabulBas = true;
+  const bas = kabulBas && !MOBIL_KIP; kabulBas = true;  // telefon uygulamasında etiket hep bilgisayardan
   ev.preventDefault();
   const karar = secilenKarar();
   if (!kontrol.length) return bildir('Kontrol formu boş. Ürün için kontrol listesi tanımlanmalı.', true);
@@ -2794,7 +2833,7 @@ let ymBas = true;
 $('ym-sadece').onclick = () => { ymBas = false; $('ym-form').requestSubmit(); setTimeout(() => { ymBas = true; }, 0); };
 $('ym-form').addEventListener('submit', async ev => {
   ev.preventDefault();
-  const bas = ymBas; ymBas = true;
+  const bas = ymBas && !MOBIL_KIP; ymBas = true;
   const m = ymTanimlar.find(x => x.id === ymSecili); if (!m) return;
   const girdiler = ymGirdi.map(g => ({ urun_id: g.urun_id, miktar: sayiOku(g.miktar) })).filter(g => g.miktar > 0);
   if (!girdiler.length) { ses('hata'); return ymDurum('hata', 'Kullanılan hammaddelerin miktarını yazın'); }
@@ -3694,7 +3733,7 @@ const ekranRengi = id => (EKRANLAR.find(e => e.id === id) || {}).renk || '#2F5A4
 })();
 // Üretim akışı ve analiz görünürlüğü (Parametreler)
 const yariAkis = () => (ayar.uretim_akisi || 'yari_mamul') === 'yari_mamul';
-const analizGorunur = () => { const g = ayar.analiz_gorunurluk || 'herkes'; return g === 'herkes' || (g === 'muhendis' && ['muhendis', 'yonetici'].includes(profil?.rol)); };
+const analizGorunur = () => { if (MOBIL_KIP) return false; const g = ayar.analiz_gorunurluk || 'herkes'; return g === 'herkes' || (g === 'muhendis' && ['muhendis', 'yonetici'].includes(profil?.rol)); };
 const analizGirebilir = () => analizGorunur() && (['muhendis', 'yonetici'].includes(profil?.rol) || (Array.isArray(profil?.ekranlar) && profil.ekranlar.includes('analiz')));
 const HAZIR_SETLER = {
   depo: { ad: 'Depo / mal kabul', ekranlar: ['kabul', 'stok', 'partiler', 'sorgula', 'firmalar'] },
@@ -3719,6 +3758,7 @@ function izinliEkranlar(p = profil) {
   if (l.includes('muhendis') && !l.includes('analiz')) l.push('analiz');
   // Oda stoğu, odayı ya da sevkiyatı gören herkese açık (siparişler buradan izlenir)
   if ((l.includes('oda') || l.includes('sevkiyat')) && !l.includes('odastok')) l.push('odastok');
+  if (MOBIL_KIP && p === profil) l = l.filter(x => KIP_EKRANLAR[MOBIL_KIP].includes(x));
   return EKRANLAR.map(e => e.id).filter(e => l.includes(e)
     && (!SADECE_MUHENDIS.includes(e) || ['muhendis', 'yonetici'].includes(p.rol))
     && (!SADECE_YONETICI.includes(e) || p.rol === 'yonetici'));
@@ -3728,7 +3768,7 @@ const YONETIM_EKRANLARI = ['urunler', 'mamuller', 'firmalar', 'sablon', 'kullani
 function ekranlariUygula() {
   const izin = izinliEkranlar();
   document.querySelectorAll('nav button[data-sayfa], #yonetim-menu button[data-sayfa]').forEach(b => {
-    if (b.dataset.sayfa === 'ana') b.classList.toggle('gizli', izin.length < 2);
+    if (b.dataset.sayfa === 'ana') b.classList.toggle('gizli', izin.length < 2 || !!MOBIL_KIP);
     else b.classList.toggle('gizli', !izin.includes(b.dataset.sayfa));
   });
   $('yonetim-btn').classList.toggle('gizli', !YONETIM_EKRANLARI.some(id => izin.includes(id)));
@@ -5729,6 +5769,7 @@ function gruplariUygula(izin) {
     b.querySelector('.grup-ad').textContent = izinli.length === 1 ? EKRANLAR.find(x => x.id === izinli[0]).ad : g.ad;
     g.ekranlar.forEach(e => document.querySelector(`main > section[data-sayfa="${e}"]`).classList.toggle('grupta', izinli.length > 1));
   });
+  document.querySelectorAll('[data-grup-sekme]').forEach(t => t.classList.toggle('gizli', !izin.includes(t.dataset.grupSekme)));
 }
 
 // ================= SAYFA GEÇİŞİ =================
@@ -5803,13 +5844,20 @@ async function basla(kullaniciId, email) {
   kuyrukSay();
   kaydetSirasi(document);
   // Birden fazla ekranı olan kişi "Bugün" panosuyla başlar
-  if (!izin.length) { $('ana-selam').textContent = 'Size henüz ekran tanımlanmamış. Yöneticinize başvurun.'; sayfaAc('ana'); }
-  else if (izin.length > 1) sayfaAc('ana');
+  if (!izin.length && MOBIL_KIP) { $('ana-selam').textContent = `Bu telefon uygulaması ${KIP_AD[MOBIL_KIP]} içindir; hesabınızda ${KIP_AD[MOBIL_KIP]} ekranı yok. Yöneticinize başvurun ya da size uygun uygulamayı kurun.`; sayfaAc('ana'); }
+  else if (!izin.length) { $('ana-selam').textContent = 'Size henüz ekran tanımlanmamış. Yöneticinize başvurun.'; sayfaAc('ana'); }
+  else if (izin.length > 1 && !MOBIL_KIP) sayfaAc('ana');
   else sayfaAc(izin[0]);
 }
+if (MOBIL_KIP) {
+  $('kip-ad').textContent = KIP_AD[MOBIL_KIP];
+  $('kip-giris').textContent = `${KIP_AD[MOBIL_KIP]} uygulaması`;
+  document.title = `Koçak ${KIP_AD[MOBIL_KIP]}`;
+}
+$('k-kontrol-ac').onclick = () => { $('k-kontrol-blok').classList.add('acik'); $('k-kontrol-ac').classList.add('gizli'); };
 // Telefonda öne çıkan düğme "Kaydet" (etiket bilgisayardan basılır); bilgisayarda "Kaydet ve bas"
 function kaydetSirasi(kap) {
-  const tel = mobilCihazMi();
+  const tel = mobilCihazMi() || !!MOBIL_KIP;
   kap.querySelectorAll('.kaydet-sade').forEach(b => b.classList.toggle('ikincil', !tel));
   kap.querySelectorAll('.kaydet-bas').forEach(b => b.classList.toggle('ikincil', tel));
 }

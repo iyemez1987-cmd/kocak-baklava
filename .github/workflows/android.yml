@@ -44,32 +44,37 @@ jobs:
           SURUM=$(node -p "require('./package.json').version")
           echo "SURUM=$SURUM" >> $GITHUB_ENV
           sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"$SURUM\"/" android/app/build.gradle
-          grep -E 'versionCode|versionName' android/app/build.gradle
-          npx cap sync android
+          grep -E 'versionCode|versionName|applicationId' android/app/build.gradle
 
-      - name: Derle
-        working-directory: mobil/android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace
-
-      - name: İmzala
+      # Üç ayrı uygulama: Depo, Baklava Odası, Şube. Her biri sayfayı kendi kipinde açar.
+      - name: Üç uygulamayı derle ve imzala
         run: |
           BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
-          $BT/zipalign -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk hizali.apk
-          $BT/apksigner sign --ks imza/kocak.jks --ks-key-alias kocak --ks-pass pass:KocakIzl2026 --key-pass pass:KocakIzl2026 --out KocakBaklava.apk hizali.apk
-          $BT/apksigner verify --print-certs KocakBaklava.apk
-          ls -la KocakBaklava.apk
+          mkdir -p cikti
+          for KIP in depo oda sube; do
+            case $KIP in depo) AD="Koçak Depo"; DOSYA=KocakDepo;; oda) AD="Koçak Oda"; DOSYA=KocakOda;; sube) AD="Koçak Şube"; DOSYA=KocakSube;; esac
+            node -e "const f='capacitor.config.json',c=require('./'+f);c.appName=process.argv[1];c.server.url='https://iyemez1987-cmd.github.io/kocak-baklava/?mobil='+process.argv[2];require('fs').writeFileSync(f,JSON.stringify(c,null,2))" "$AD" $KIP
+            npx cap copy android
+            sed -i -E "s/applicationId \"[^\"]+\"/applicationId \"com.posim.kocakbaklava.$KIP\"/" android/app/build.gradle
+            S=android/app/src/main/res/values/strings.xml
+            sed -i -E "s#<string name=\"app_name\">[^<]*</string>#<string name=\"app_name\">$AD</string>#; s#<string name=\"title_activity_main\">[^<]*</string>#<string name=\"title_activity_main\">$AD</string>#" $S
+            grep app_name $S; grep applicationId android/app/build.gradle; grep -o '"url": "[^"]*"' android/app/src/main/assets/capacitor.config.json
+            (cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon -q)
+            $BT/zipalign -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk hizali.apk
+            $BT/apksigner sign --ks imza/kocak.jks --ks-key-alias kocak --ks-pass pass:KocakIzl2026 --key-pass pass:KocakIzl2026 --out cikti/$DOSYA.apk hizali.apk
+            $BT/apksigner verify cikti/$DOSYA.apk
+          done
+          ls -la cikti
 
       - uses: actions/upload-artifact@v4
         with:
           name: KocakBaklava-apk
-          path: mobil/KocakBaklava.apk
+          path: mobil/cikti/*.apk
 
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ env.SURUM }}-${{ github.run_number }}
-          name: Koçak Baklava Android ${{ env.SURUM }} (${{ github.run_number }})
-          body: Telefona yüklemek için KocakBaklava.apk dosyasını indirin.
-          files: mobil/KocakBaklava.apk
+          name: Koçak Baklava telefon uygulamaları ${{ env.SURUM }} (${{ github.run_number }})
+          body: "KocakDepo.apk: depocu (mal kabul, üretime ver, yarı mamul) · KocakOda.apk: baklava odası ve sevkiyat · KocakSube.apk: şube"
+          files: mobil/cikti/*.apk
           make_latest: true
