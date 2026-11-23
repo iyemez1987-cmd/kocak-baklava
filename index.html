@@ -924,6 +924,23 @@
   .kip-uyari-kart b:first-of-type { font-size: 18px; }
   .kip-uyari-kart span { color: var(--soluk); line-height: 1.5; }
   .kip-uyari-kart .btn { width: 100%; min-height: 50px; }
+
+  .kip-bilgi { display: none; }
+  .mobil-kip .kip-bilgi { display: block; background: #EEF6EA; color: #1E5A22; border: 1px solid #BFD8B5; border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; font-size: 14px; line-height: 1.4; }
+  .mobil-kip .oda-tablo td:nth-child(2) span[style] { display: none; }
+  .teslim-kart { border: 2px solid #C9B6F0; background: #F7F3FE; border-radius: 14px; padding: 12px; margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+  .teslim-kart.tamam { border-color: #9BCB8F; background: #F0F8EC; }
+  .teslim-ust { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .teslim-ust > span { display: flex; flex-direction: column; min-width: 0; } .teslim-ust small { color: var(--soluk); }
+  .teslim-sayi { font-size: 24px; font-variant-numeric: tabular-nums; }
+  .teslim-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .teslim-liste li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: center; background: #fff; border: 1px solid var(--cizgi); border-radius: 8px; padding: 6px 10px; font-size: 14.5px; }
+  .teslim-liste li.tamam { color: #23602A; background: #F3FAF0; } .teslim-liste li.tamam span:first-child { font-weight: 800; }
+  .teslim-kabul { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+  .teslim-kabul label { flex: 1 1 180px; } .teslim-kabul .btn { flex: 1 1 160px; min-height: 48px; font-size: 16px; }
+  .teslim-not { color: var(--soluk); font-size: 13.5px; }
+  .sip-bolum { font-size: 12px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--soluk); margin: 10px 0 4px; }
+  .stok-var { color: #23602A; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -1187,6 +1204,7 @@
     <!-- BAKLAVA ODASI -->
     <section data-sayfa="oda" class="gizli">
       <h2>Baklava Odası · Tepsi Etiketleri</h2>
+      <div class="kip-bilgi">Odaya gelen tepsilerin adedini yazıp <b>Kaydet</b>'e basın. Alınan ürün aynı anda <b>stoğa girer</b>; etiketleri bilgisayardan basılır.</div>
       <div class="kart">
         <div class="satir" style="justify-content:space-between;margin-bottom:12px">
           <label style="flex-direction:row;align-items:center;gap:8px">Üretim günü <input type="date" id="o-gun"></label>
@@ -1429,6 +1447,7 @@
           <button class="btn btn-kamera" type="button" id="sb2-kamera"><span data-ikon="kamera"></span>Kamera</button>
         </form>
         <div id="sb2-durum" class="okut-durum bekle">Gelen tepsileri “Teslim al” ile okutun.</div>
+        <div id="sb2-bekleyen"></div>
         <div class="buyuk-sayac"><b id="sb2-sayac">0</b><span>tepsi bugün teslim alındı</span></div>
         <ul class="okut-gecmis" id="sb2-gecmis" aria-label="Son okutmalar"></ul>
       </div>
@@ -1439,7 +1458,7 @@
         </div>
         <div id="sb2-siparisler"></div>
       </div>
-      <div class="kart">
+      <div class="kart gizli">
         <h3 style="margin:0 0 10px">Gelen sevkiyatlar · teslim kontrolü</h3>
         <div id="sb2-gelen"></div>
       </div>
@@ -3768,6 +3787,8 @@ function izinliEkranlar(p = profil) {
   if (l.includes('muhendis') && !l.includes('analiz')) l.push('analiz');
   // Oda stoğu, odayı ya da sevkiyatı gören herkese açık (siparişler buradan izlenir)
   if ((l.includes('oda') || l.includes('sevkiyat')) && !l.includes('odastok')) l.push('odastok');
+  // Odada tepsi kabul eden kişi sevkiyatı da yapar
+  if (MOBIL_KIP === 'oda' && p === profil && (l.includes('oda') || l.includes('sevkiyat'))) l.push('oda', 'sevkiyat');
   if (MOBIL_KIP && p === profil) l = l.filter(x => KIP_EKRANLAR[MOBIL_KIP].includes(x));
   return EKRANLAR.map(e => e.id).filter(e => l.includes(e)
     && (!SADECE_MUHENDIS.includes(e) || ['muhendis', 'yonetici'].includes(p.rol))
@@ -4651,6 +4672,7 @@ async function subeListesi() {
   const l = icerde || [];
   $('sb2-adet').textContent = `(${l.length})`;
   const gl = gelen || [];
+  sb2BekleyenCiz(gl);
   $('sb2-gelen').innerHTML = gl.length ? `<table><tr><th>Sevkiyat</th><th>Araç / şoför</th><th>Çıkış</th><th style="width:220px">Teslim alınan</th><th></th></tr>
     ${gl.map(x => { const tam = x.teslim_alinan >= x.tepsi_adet && x.tepsi_adet > 0; const yuzde = x.tepsi_adet ? Math.round(x.teslim_alinan * 100 / x.tepsi_adet) : 0; return `<tr>
       <td class="mono">${esc(x.kod)}</td><td><b>${esc(x.plaka)}</b><br><span style="color:var(--soluk)">${esc(x.sofor_ad)}</span></td>
@@ -4680,6 +4702,37 @@ document.querySelector('section[data-sayfa="sube"]').addEventListener('click', e
   if (t.dataset.gelenKapat) return teslimKapat(Number(t.dataset.gelenKapat), Number(t.dataset.eksik), t.dataset.kod);
   if (!t.closest('input, button, select, a, textarea')) $('sb2-okut').focus();
 });
+// Şubeye gelen (yoldaki) sevkiyatlar: ürün ürün liste, okutulanlar işaretlenir, eksik yoksa kabul eden kişi yazılıp kabul edilir
+async function sb2BekleyenCiz(gl) {
+  const kap = $('sb2-bekleyen');
+  if (!gl.length) { kap.innerHTML = ''; return; }
+  const { data } = await sb.from('v_sevkiyat_tepsileri').select('sevkiyat_id,mamul_id,mamul_ad,tepsi_durum,kod').in('sevkiyat_id', gl.map(x => x.id));
+  const tepsiler = data || [];
+  let ad = ''; try { ad = localStorage.getItem('teslimAlanAd') || ''; } catch (e) {}
+  kap.innerHTML = gl.map(x => {
+    const t = tepsiler.filter(y => y.sevkiyat_id === x.id);
+    const gelen = t.filter(y => y.tepsi_durum !== 'sevk').length, top = t.length, eksik = top - gelen;
+    const gr = {}; t.forEach(y => { const o = gr[y.mamul_ad] ||= { top: 0, gelen: 0 }; o.top++; if (y.tepsi_durum !== 'sevk') o.gelen++; });
+    const yolda = x.durum === 'yolda';
+    return `<div class="teslim-kart ${eksik ? '' : 'tamam'}">
+      <div class="teslim-ust"><span><b>Teslim bekleyen · ${esc(x.kod)}</b><small>${esc(x.plaka)}${x.sofor_ad ? ' · ' + esc(x.sofor_ad) : ''}${x.cikis_zamani ? ' · çıkış ' + saat(x.cikis_zamani) : ' · henüz yükleniyor'}</small></span>
+        <b class="teslim-sayi">${gelen}/${top}</b></div>
+      <div class="ilerleme ${eksik ? '' : 'tam'}"><div style="width:${top ? Math.round(gelen * 100 / top) : 0}%"></div></div>
+      <ul class="teslim-liste">${Object.entries(gr).sort((a, b) => (a[1].gelen >= a[1].top) - (b[1].gelen >= b[1].top) || a[0].localeCompare(b[0], 'tr')).map(([m, o]) =>
+        `<li class="${o.gelen >= o.top ? 'tamam' : ''}"><span>${o.gelen >= o.top ? '✓' : '○'}</span><span>${esc(m)}</span><b>${o.gelen}/${o.top}</b></li>`).join('')}</ul>
+      ${!yolda ? '<div class="teslim-not">Araç sistemde henüz yola çıkmadı; tepsileri okutabilirsiniz, kabul araç çıkınca yapılır.</div>' : `
+      <div class="teslim-kabul">
+        <label>Teslim alan * <input data-teslim-ad="${x.id}" value="${esc(ad)}" placeholder="Adınız soyadınız" autocomplete="name"></label>
+        <button type="button" class="btn ${eksik ? 'ikincil' : ''}" data-teslim-kabul="${x.id}" data-eksik="${eksik}" data-kod="${esc(x.kod)}">${eksik ? `${eksik} eksikle kabul et` : '✓ Kabul et'}</button>
+      </div>`}</div>`; }).join('');
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-teslim-kabul]'); if (!b) return;
+  const id = Number(b.dataset.teslimKabul), i = document.querySelector(`[data-teslim-ad="${id}"]`), ad = i.value.trim();
+  if (!ad) { bildir('Teslim alan kişinin adını yazın.', true); return i.focus(); }
+  try { localStorage.setItem('teslimAlanAd', ad); } catch (e) {}
+  teslimKapat(id, Number(b.dataset.eksik), b.dataset.kod, ad);
+});
 async function gelenEksikler(id) {
   const { data } = await sb.from('v_sevkiyat_tepsileri').select('*').eq('sevkiyat_id', id).eq('tepsi_durum', 'sevk').order('kod');
   const l = data || [];
@@ -4687,10 +4740,11 @@ async function gelenEksikler(id) {
     ${l.map(x => `<tr><td class="mono">${esc(x.kod)}</td><td>${esc(x.mamul_ad)}</td><td>${tarih(x.uretim_tarihi)}</td><td>${tarihSaat(x.yukleme_zamani)}</td></tr>`).join('')}</table>`
     : '<div class="bos">Eksik yok.</div>');
 }
-async function teslimKapat(id, eksik, kod) {
+async function teslimKapat(id, eksik, kod, ad = '') {
+  const kapat = not => ad ? sb.rpc('sevkiyat_teslim_kapat2', { p_sevkiyat_id: id, p_not: not, p_teslim_alan_adi: ad }) : sb.rpc('sevkiyat_teslim_kapat', { p_sevkiyat_id: id, p_not: not });
   if (!eksik) {
-    if (!await onayla(`${kod}: bütün tepsiler teslim alındı. Teslim kapatılsın mı?`)) return;
-    const { data, error } = await sb.rpc('sevkiyat_teslim_kapat', { p_sevkiyat_id: id, p_not: null });
+    if (!await onayla(`${kod}: bütün tepsiler geldi. ${ad ? ad + ' adına ' : ''}kabul edilsin mi?`, 'Kabul et')) return;
+    const { data, error } = await kapat(null);
     if (error) return bildir(hataMesaji(error), true);
     bildir(`${kod} teslimi tamamlandı.`); return subeListesi();
   }
@@ -4704,7 +4758,7 @@ async function teslimKapat(id, eksik, kod) {
   $('tk-liste').onclick = () => gelenEksikler(id);
   $('tk-kaydet').onclick = async () => {
     const not = $('tk-not').value.trim(); if (!not) return bildir('Ne olduğunu yazın.', true);
-    const { error } = await sb.rpc('sevkiyat_teslim_kapat', { p_sevkiyat_id: id, p_not: not });
+    const { error } = await kapat(not);
     if (error) return bildir(hataMesaji(error), true);
     modalKapat(); bildir(`${kod} eksik teslim olarak kaydedildi.`, true); subeListesi();
   };
@@ -4919,16 +4973,22 @@ async function siparisFormu(duzenleId = null) {
     if (s) { teslim = s.teslim_tarihi; notu = s.notu || ''; } (k || []).forEach(x => { mevcut[x.mamul_id] = x.adet; });
   }
   const subeAd = subeler.find(x => x.id === subeId)?.ad || '';
+  // Odadaki stok: önce stokta olanlar (adediyle), sonra stokta olmayanlar
+  const { data: os } = await sb.from('v_oda_stok').select('mamul_id,adet');
+  const stok = {}; (os || []).forEach(x => { stok[x.mamul_id] = (stok[x.mamul_id] || 0) + Number(x.adet || 0); });
+  const stokta = sipMamuller.filter(m => stok[m.id] > 0).sort((a, b) => stok[b.id] - stok[a.id]);
+  const stoksuz = sipMamuller.filter(m => !(stok[m.id] > 0));
+  const sipSatir = m => `<div class="sip-form-satir ${mevcut[m.id] ? 'dolu' : ''}" data-ad="${esc((m.ad + ' ' + (m.dara_kod || '')).toLocaleLowerCase('tr'))}">
+      <span><b>${esc(m.ad)}</b><small>${stok[m.id] > 0 ? `<span class="stok-var">Odada ${stok[m.id]} tepsi</span>` : 'Odada yok · sipariş verilebilir'}</small></span>
+      <span class="adim kucuk" style="flex:none"><button type="button" data-adim="-1" aria-label="Bir azalt">−</button><input type="number" min="0" max="999" inputmode="numeric" value="${mevcut[m.id] || ''}" placeholder="0" data-sp-mamul="${m.id}" aria-label="${esc(m.ad)} adet"><button type="button" data-adim="1" aria-label="Bir artır">+</button></span>
+    </div>`;
   modalAc(`${duzenleId ? 'Siparişi değiştir' : 'Sipariş ver'} · ${subeAd}`, `
     <div class="satir" style="gap:10px;flex-wrap:wrap">
       <label style="flex:1;min-width:150px">Teslim günü <input type="date" id="sp-teslim" value="${teslim}" min="${bugun()}"></label>
       <label style="flex:2;min-width:180px">Ara <input type="search" id="sp-ara" placeholder="Ürün adı…"></label>
     </div>
     ${duzenleId ? '' : '<button type="button" class="kk-tam-dugme koyu" id="sp-son" style="margin-top:8px">Son siparişimi kopyala</button>'}
-    <div class="sip-form-liste" id="sp-liste">${sipMamuller.map(m => `<div class="sip-form-satir ${mevcut[m.id] ? 'dolu' : ''}" data-ad="${esc((m.ad + ' ' + (m.dara_kod || '')).toLocaleLowerCase('tr'))}">
-      <span><b>${esc(m.ad)}</b>${m.grup || m.dara_kod ? `<small>${esc([m.grup, m.dara_kod].filter(Boolean).join(' · '))}</small>` : ''}</span>
-      <span class="adim kucuk" style="flex:none"><button type="button" data-adim="-1" aria-label="Bir azalt">−</button><input type="number" min="0" max="999" inputmode="numeric" value="${mevcut[m.id] || ''}" placeholder="0" data-sp-mamul="${m.id}" aria-label="${esc(m.ad)} adet"><button type="button" data-adim="1" aria-label="Bir artır">+</button></span>
-    </div>`).join('')}</div>
+    <div class="sip-form-liste" id="sp-liste">${stokta.length ? `<div class="sip-bolum">Odada stokta olanlar</div>${stokta.map(sipSatir).join('')}` : ''}${stoksuz.length ? `<div class="sip-bolum">Stokta olmayanlar</div>${stoksuz.map(sipSatir).join('')}` : ''}</div>
     <label>Not (isteğe bağlı) <input id="sp-not" value="${esc(notu)}" placeholder="Örn. öğlene kadar lazım"></label>
     <div class="satir" style="justify-content:space-between;margin-top:12px;align-items:center">
       <span id="sp-toplam" style="font-weight:700;color:var(--soluk)">0 tepsi</span>
@@ -5860,6 +5920,7 @@ async function basla(kullaniciId, email) {
   else sayfaAc(izin[0]);
 }
 if (MOBIL_KIP) {
+  if (MOBIL_KIP === 'oda') { document.querySelector('section[data-sayfa="oda"] > h2').textContent = 'Tepsi kabul'; const e = EKRANLAR.find(x => x.id === 'oda'); if (e) e.ad = 'Tepsi kabul'; document.querySelectorAll('[data-grup-sekme="oda"] span:last-child').forEach(x => x.textContent = 'Tepsi kabul'); }
   $('kip-ad').textContent = KIP_AD[MOBIL_KIP];
   $('kip-giris').textContent = `${KIP_AD[MOBIL_KIP]} uygulaması`;
   document.title = `Koçak ${KIP_AD[MOBIL_KIP]}`;
