@@ -833,6 +833,48 @@
     .oda-tablo input.ie { width: 100%; min-height: 36px; }
     .oda-tablo .ilerleme { min-width: 0 !important; }
   }
+
+  /* Etiket kuyruğu şeridi */
+  .kuyruk-serit { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: #FCF1DA; color: #5A3F00; font: inherit; font-weight: 600; padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); cursor: pointer; text-align: left; border-bottom: 1px solid #F0DDB0; }
+  .kuyruk-serit .kuyruk-git { margin-left: auto; font-weight: 800; }
+  .kuyruk-liste { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow: auto; margin: 8px 0 12px; }
+  .kuyruk-satir { flex-direction: row !important; align-items: center; gap: 10px !important; padding: 8px 10px; border: 1px solid var(--cizgi); border-radius: 10px; background: #fff; color: var(--yazi) !important; }
+  .kuyruk-satir input, .kuyruk-hepsi input { min-height: 0; width: 20px; height: 20px; flex: none; }
+  .kuyruk-satir > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .kuyruk-satir small { color: var(--soluk); font-weight: 500; }
+  .kuyruk-adet { font-size: 18px; font-weight: 800; color: var(--yesil); }
+  .kuyruk-hepsi { flex-direction: row !important; align-items: center; gap: 8px !important; }
+  /* Altta sabit kaydet çubuğu */
+  .alt-aksiyon { position: sticky; bottom: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; background: var(--kart);
+                 padding: 10px 0; border-top: 1px solid var(--cizgi); box-shadow: 0 -8px 16px -12px rgba(30,42,34,.35); }
+  .alt-aksiyon .aksiyon-ozet { flex: 1 1 100%; min-width: 0; display: flex; flex-direction: column; }
+  .alt-aksiyon .aksiyon-ozet b { font-size: 18px; } .alt-aksiyon .aksiyon-ozet small { color: var(--soluk); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .alt-aksiyon .bilgi { flex: 1 1 260px; }
+  .alt-aksiyon .kaydet-sade, .alt-aksiyon .kaydet-bas { flex: 1 1 140px; min-height: 48px; font-size: 16px; }
+  .adim.dolu { border-color: var(--ekran, var(--yesil)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ekran, var(--yesil)) 25%, transparent); }
+  .adim.dolu input { color: var(--ekran, var(--yesil)); }
+  .sv-plaka-cip { margin-top: 8px; } .sv-plaka-cip small { color: var(--soluk); font-weight: 500; margin-left: 4px; } .sv-plaka-cip .cip.secili small { color: inherit; }
+  .ek-bilgi { grid-column: 1 / -1; border: 1px dashed var(--cizgi); border-radius: 10px; padding: 8px 10px; }
+  .ek-bilgi summary { cursor: pointer; font-weight: 700; color: var(--soluk); font-size: 14px; }
+  .ek-bilgi summary small { font-weight: 500; }
+  .ek-bilgi[open] summary { margin-bottom: 8px; }
+  @media (max-width: 760px) {
+    .kuyruk-serit { padding-block: 6px; font-size: 13.5px; }
+    .alt-aksiyon { margin-inline: -12px; padding: 8px 12px; }
+    .alt-aksiyon .kaydet-sade, .alt-aksiyon .kaydet-bas { flex: 1 1 0; min-height: 46px; font-size: 15px; }
+    .alt-aksiyon > .satir { flex: 1 1 100%; flex-wrap: nowrap; gap: 6px; }
+    #k-yeni-teslimat { flex: 0 0 auto; min-height: 46px; font-size: 12.5px; padding: 6px 8px; white-space: normal; width: 74px; line-height: 1.15; }
+    #o-temizle { flex: 0 0 auto; min-height: 46px; padding: 6px 10px; }
+    .alt-aksiyon .bilgi { flex: 1 1 100%; font-size: 12.5px; padding: 6px 8px; }
+    /* Üretime ver: seçilen hammaddenin paneli alttan açılır */
+    .hm-sag .hm-panel:not(.gizli) { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; margin: 0; border-radius: 18px 18px 0 0; border-width: 2px 0 0;
+                                     background: var(--kart); box-shadow: 0 -12px 30px rgba(20,30,24,.25); max-height: 78vh; overflow: auto; padding: 12px 12px 14px; gap: 8px; }
+    .hm-sag:has(.hm-panel:not(.gizli)) ~ * , .hm-duzen:has(.hm-panel:not(.gizli)) .hm-sol { padding-bottom: 260px; }
+    .hm-baslik { font-size: 17px; }
+    .hm-giris .okut-input { font-size: 26px; min-height: 54px; }
+    .hm-ver { min-height: 50px; font-size: 17px; }
+    #ym-form .alt-aksiyon { margin-inline: -14px; padding-inline: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -905,6 +947,7 @@
       <button class="btn kucuk ikincil" id="cikis"><span data-ikon="cikis"></span>Çıkış</button>
     </div>
   </header>
+  <button type="button" id="kuyruk-serit" class="kuyruk-serit gizli" onclick="kuyrukAc()"></button>
 
   <main>
     <!-- MAL KABUL -->
@@ -923,13 +966,18 @@
           <label><span>Paket başı <span class="birim" id="k-birim1"></span></span><input type="number" step="0.001" min="0" id="k-paket-basi" placeholder="örn. 50" inputmode="decimal"></label>
           <label><span>Toplam <span class="birim" id="k-birim2"></span></span><input type="number" step="0.001" min="0" id="k-miktar" placeholder="Kendisi hesaplanır" inputmode="decimal"></label>
           <label>SKT <input type="date" id="k-skt"></label>
-          <label>Tedarikçi parti / seri no <input id="k-tparti" placeholder="Firmanın kendi parti no'su"></label>
+          <label>Giriş tarihi * <input type="date" id="k-giris" required></label>
           <label>İrsaliye / fiş no <input id="k-irsaliye"></label>
           <label>Araç / plaka <input id="k-plaka" placeholder="27 ABC 123" autocapitalize="characters"></label>
-          <label>Giriş tarihi * <input type="date" id="k-giris" required></label>
-          <label>Depo / konum <input id="k-konum" list="k-konumlar" placeholder="örn. Alt depo A"></label>
-          <label>Üretim tarihi <input type="date" id="k-uretim"></label>
-          <label style="grid-column:1/-1">Açıklama <input id="k-aciklama"></label>
+          <details class="ek-bilgi tam">
+            <summary>Diğer bilgiler <small>tedarikçi parti no, konum, üretim tarihi, açıklama</small></summary>
+            <div class="grid">
+              <label>Tedarikçi parti / seri no <input id="k-tparti" placeholder="Firmanın parti no'su"></label>
+              <label>Depo / konum <input id="k-konum" list="k-konumlar" placeholder="örn. Alt depo A"></label>
+              <label>Üretim tarihi <input type="date" id="k-uretim"></label>
+              <label>Açıklama <input id="k-aciklama"></label>
+            </div>
+          </details>
         </div>
         <datalist id="k-konumlar"></datalist>
 
@@ -952,11 +1000,11 @@
           </label>
         </div>
 
-        <div class="satir" style="margin-top:18px;justify-content:space-between">
+        <div class="satir alt-aksiyon" style="margin-top:18px;justify-content:space-between">
           <div class="bilgi" id="k-onizleme">Ürün seçin.</div>
           <div class="satir">
             <button class="btn ikincil" type="button" id="k-yeni-teslimat" title="Firma, irsaliye ve plaka dahil formu temizler">Yeni teslimat</button>
-            <button class="btn" type="submit" id="k-kaydet">Kaydet ve etiketleri bas</button>
+            <button class="btn ikincil kaydet-sade" type="button" id="k-sadece" title="Etiketler bilgisayarda basılmayı bekler">Kaydet</button><button class="btn kaydet-bas" type="submit" id="k-kaydet">Kaydet ve bas</button>
           </div>
         </div>
         <p class="aciklama" style="margin:10px 0 0">Kaydettikten sonra firma, irsaliye, plaka, giriş tarihi ve konum kalır; aynı araçtan gelen bir sonraki ürünü hemen girebilirsiniz.</p>
@@ -993,7 +1041,7 @@
                 <span class="hm-birim" id="hm-birim">kg</span>
               </div>
               <div class="hm-fire-satir"><label for="hm-fire">Fire</label><span class="hm-fire-kutu"><input id="hm-fire" type="text" inputmode="decimal" placeholder="0" aria-label="Fire miktarı"><span id="hm-fire-birim">kg</span></span><small id="hm-fire-not"></small></div>
-              <button class="btn hm-ver" type="submit" id="hm-ver">Üretime ver</button>
+              <button class="btn hm-ver" type="submit" id="hm-ver">Kaydet · üretime ver</button>
               <div id="hm-durum" class="okut-durum bekle gizli"></div>
             </form>
           </div>
@@ -1051,7 +1099,7 @@
           </div>
           <div class="hm-fire-satir"><label for="ym-fire">Fire</label><span class="hm-fire-kutu"><input id="ym-fire" type="text" inputmode="decimal" placeholder="0" aria-label="Fire"><span id="ym-fire-birim">kg</span></span><small id="ym-verim"></small></div>
           <input id="ym-not" placeholder="Not (isteğe bağlı)" aria-label="Not">
-          <button class="btn hm-ver" type="submit" id="ym-kaydet">Kaydet ve etiketi bas</button>
+          <div class="alt-aksiyon"><button class="btn ikincil hm-ver kaydet-sade" type="button" id="ym-sadece" title="Etiket bilgisayarda basılmayı bekler">Kaydet</button><button class="btn hm-ver kaydet-bas" type="submit" id="ym-kaydet">Kaydet ve bas</button></div>
           <div id="ym-durum" class="okut-durum bekle gizli"></div>
         </form>
         <div id="ym-tanimlar" class="hm-urunler"></div>
@@ -1090,7 +1138,7 @@
       <div class="kart">
         <div class="satir" style="justify-content:space-between;margin-bottom:12px">
           <label style="flex-direction:row;align-items:center;gap:8px">Üretim günü <input type="date" id="o-gun"></label>
-          <button class="btn" type="button" id="o-hepsi">Tüm etiketsizleri bas</button>
+          <button class="btn ikincil" type="button" id="o-hepsi">Eksikleri listeye ekle</button>
         </div>
         <div id="o-siparis-uyari"></div>
         <div id="o-ozet" class="ozet-satir"></div>
@@ -1101,6 +1149,7 @@
         </div>
         <p class="aciklama-p" style="color:var(--soluk);font-size:14px;margin:0 0 12px">Tepsi çıktıkça adedi yazıp QR basın; listeyi beklemeye gerek yok. Dara iş emri listesi gelince miktarları “İş emri” sütununa yazın, sistem karşılaştırır.</p>
         <div id="o-liste"></div>
+        <div id="o-aksiyon" class="alt-aksiyon gizli"></div>
       </div>
     </section>
 
@@ -1265,6 +1314,7 @@
             <label>Araç plakası * <input id="sv-plaka" list="sv-plakalar" required autocapitalize="characters" placeholder="27 ABC 123"></label>
             <label>Şoför <input id="sv-sofor" placeholder="Plakadan kendiliğinden gelir"></label>
           </div>
+          <div class="cipler sv-plaka-cip" id="sv-plaka-cip" aria-label="Son kullanılan araçlar"></div>
           <datalist id="sv-plakalar"></datalist><datalist id="sv-noktalar"></datalist>
           <details class="sv-ek">
             <summary>Ek bilgiler <span>rota, Dara irsaliye no, kargo takip no</span></summary>
@@ -1285,7 +1335,7 @@
               </label>
             </div>
           </details>
-          <div class="satir" style="margin-top:16px;justify-content:flex-end">
+          <div class="satir alt-aksiyon" style="margin-top:16px;justify-content:flex-end">
             <button class="btn sv-basla" type="submit" id="sv-kaydet">Okutmaya başla</button>
           </div>
         </form>
@@ -2084,6 +2134,67 @@ function etiketSecimleriniDoldur() {
 
 document.addEventListener('click', ev => { if (ev.target.closest('[data-fis-ayar]')) fisAyarAc(); });
 
+// ---- Etiket kuyruğu: telefonda "Kaydet" denenler bilgisayarda basılır ----
+async function kuyrugaAl(tur, idler) {
+  if (!idler || !idler.length) return;
+  const { error } = await sb.rpc('etiket_kuyruk', { p_tur: tur, p_idler: idler, p_bekliyor: true });
+  if (error) bildir(hataMesaji(error), true);
+  kuyrukSay();
+}
+let kuyrukSatirlar = [];
+async function kuyrukSay() {
+  if (!profil) return;
+  const { data, error } = await sb.from('v_etiket_kuyrugu').select('*').order('zaman');
+  if (error) return;
+  kuyrukSatirlar = data || [];
+  const n = kuyrukSatirlar.reduce((a, r) => a + r.adet, 0);
+  const b = $('kuyruk-serit');
+  const ilgili = profil.rol === 'yonetici' || izinliEkranlar().some(x => ['kabul', 'oda', 'yarimamul', 'odastok'].includes(x));
+  b.classList.toggle('gizli', !n || !ilgili);
+  b.innerHTML = `${ikon('etiket', 18, 2)}<span><b>${n} etiket</b> basılmayı bekliyor</span><span class="kuyruk-git">${mobilCihazMi() ? 'Liste' : 'Bas'} ›</span>`;
+}
+async function kuyrukVeri(satirlar) {
+  const id = t => satirlar.filter(r => r.tur === t).flatMap(r => r.idler);
+  const [e, t, y] = await Promise.all([
+    id('etiket').length ? sb.from('v_etiketler').select('*').in('id', id('etiket')).order('kod') : { data: [] },
+    id('tepsi').length ? sb.from('v_tepsiler').select('*').in('id', id('tepsi')).order('kod') : { data: [] },
+    id('yari').length ? sb.from('v_yari_partiler').select('*').in('id', id('yari')).order('kod') : { data: [] }]);
+  const hata = e.error || t.error || y.error; if (hata) throw hata;
+  return { hammadde: [...(e.data || []), ...(y.data || []).map(x => yariEtiketVeri({ ...x, ad: x.yari_mamul_ad }))], tepsi: t.data || [] };
+}
+async function kuyrukBas(satirlar) {
+  try {
+    const v = await kuyrukVeri(satirlar);
+    if (v.hammadde.length) await etiketleriBas(v.hammadde);
+    if (v.tepsi.length) await etiketleriBas(v.tepsi, tepsiEtiketHtml);
+    await kuyruktanCikar(satirlar);
+    bildir(`${v.hammadde.length + v.tepsi.length} etiket basıldı.`);
+  } catch (e) { bildir(hataMesaji(e), true); }
+}
+async function kuyruktanCikar(satirlar) {
+  for (const tur of ['etiket', 'tepsi', 'yari']) {
+    const idler = satirlar.filter(r => r.tur === tur).flatMap(r => r.idler);
+    if (idler.length) { const { error } = await sb.rpc('etiket_kuyruk', { p_tur: tur, p_idler: idler, p_bekliyor: false }); if (error) bildir(hataMesaji(error), true); }
+  }
+  await kuyrukSay();
+}
+async function kuyrukAc() {
+  await kuyrukSay();
+  if (!kuyrukSatirlar.length) return bildir('Basılmayı bekleyen etiket yok.');
+  modalAc('Basılmayı bekleyen etiketler', `
+    <p style="margin:0 0 10px;color:var(--soluk)">Telefondan “Kaydet” ile kaydedilenler burada bekler. Bilgisayardan basın.</p>
+    <label class="kuyruk-hepsi"><input type="checkbox" id="ku-hepsi" checked> Hepsini seç</label>
+    <div class="kuyruk-liste">${kuyrukSatirlar.map((r, i) => `<label class="kuyruk-satir"><input type="checkbox" data-ku="${i}" checked>
+      <span><b>${esc(r.ad)}</b><small>${esc(r.cins)} · ${esc(r.kod)} · ${tarihSaat(r.zaman)}</small></span><span class="kuyruk-adet">${r.adet}</span></label>`).join('')}</div>
+    <div class="alt-aksiyon"><button type="button" class="btn ikincil" id="ku-sil">Basılmış say</button><button type="button" class="btn" id="ku-bas">${ikon('etiket', 18, 2)} Seçilenleri bas</button></div>`);
+  const secili = () => [...document.querySelectorAll('[data-ku]:checked')].map(x => kuyrukSatirlar[Number(x.dataset.ku)]);
+  $('ku-hepsi').onchange = ev => document.querySelectorAll('[data-ku]').forEach(x => x.checked = ev.target.checked);
+  $('ku-bas').onclick = async () => { const l = secili(); if (!l.length) return bildir('Etiket seçin.', true); modalKapat(); await kuyrukBas(l); };
+  $('ku-sil').onclick = async () => { const l = secili(); if (!l.length) return bildir('Etiket seçin.', true);
+    if (!await onayla(`${l.reduce((a, r) => a + r.adet, 0)} etiket basılmadan listeden çıkarılsın mı?`, 'Çıkar')) return; modalKapat(); await kuyruktanCikar(l); };
+}
+setInterval(() => { if (document.visibilityState === 'visible') kuyrukSay(); }, 30000);
+
 async function partiEtiketleriniBas(partiId, sadeceDepoda = false) {
   let q = sb.from('v_etiketler').select('*').eq('parti_id', partiId).order('seri');
   if (sadeceDepoda) q = q.eq('durum', 'depoda');
@@ -2187,7 +2298,10 @@ $('k-giris').addEventListener('change', () => {
 });
 ['k-paket', 'k-miktar'].forEach(id => $(id).addEventListener('input', kabulOnizle));
 
+let kabulBas = true;
+$('k-sadece').onclick = () => { kabulBas = false; $('kabul-form').requestSubmit(); setTimeout(() => { kabulBas = true; }, 0); };
 $('kabul-form').addEventListener('submit', async ev => {
+  const bas = kabulBas; kabulBas = true;
   ev.preventDefault();
   const karar = secilenKarar();
   if (!kontrol.length) return bildir('Kontrol formu boş. Ürün için kontrol listesi tanımlanmalı.', true);
@@ -2200,7 +2314,7 @@ $('kabul-form').addEventListener('submit', async ev => {
   if (kUrun && kUrun.takip_turu !== 'parti' && !(Number($('k-miktar').value) > 0)) {
     bildir(`${kUrun.ad} ${kUrun.takip_turu === 'adet' ? 'adetle' : 'miktarla'} takip ediliyor: toplam miktarı yazın (${kUrun.birim}).`, true); $('k-miktar').focus(); return;
   }
-  const btn = $('k-kaydet'); btn.disabled = true;
+  const btn = $('k-kaydet'); btn.disabled = true; $('k-sadece').disabled = true;
   try {
     const { data: partiId, error } = await sb.rpc('parti_olustur', {
       p_uretim_tarihi: $('k-uretim').value || null,
@@ -2220,8 +2334,8 @@ $('kabul-form').addEventListener('submit', async ev => {
       p_aciklama: $('k-aciklama').value,
     });
     if (error) throw error;
-    bildir('Parti kaydedildi, etiketler hazırlanıyor…');
-    await partiEtiketleriniBas(partiId);
+    if (bas) { bildir('Parti kaydedildi, etiketler hazırlanıyor…'); await partiEtiketleriniBas(partiId); }
+    else { await kuyrugaAl('parti', [partiId]); bildir('Parti kaydedildi. Etiketleri bilgisayardan basabilirsiniz.'); }
     kabulHatirla();
     // Aynı araçtan gelen sonraki ürün için firma, irsaliye, plaka, giriş tarihi ve konum kalır
     ['k-tparti', 'k-miktar', 'k-aciklama', 'k-uretim', 'k-aksiyon'].forEach(id => $(id).value = '');
@@ -2240,7 +2354,7 @@ $('kabul-form').addEventListener('submit', async ev => {
         <button type="button" class="btn kucuk ikincil" onclick="this.closest('.kart').remove()">Kapat</button></div>`;
     }
   } catch (e) { bildir(hataMesaji(e), true); }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; $('k-sadece').disabled = false; }
 });
 
 function partiTablosu(liste) {
@@ -2639,8 +2753,11 @@ $('ym-ekle').onchange = () => { const id = Number($('ym-ekle').value); $('ym-ekl
   ymGirdi.push({ urun_id: id, miktar: '' }); ymGirdiCiz(); document.querySelector(`[data-ym-i="${ymGirdi.length - 1}"]`)?.focus(); };
 function ymDurum(tur, bas, alt = '') { const d = $('ym-durum'); d.className = 'okut-durum ' + tur; d.innerHTML = `${esc(bas)}${alt ? `<small>${alt}</small>` : ''}`; }
 function yariEtiketVeri(y) { return { kod: y.kod, kod_norm: y.kod_norm || y.kod.replace(/-/g, ''), urun_ad: y.ad || y.yari_mamul_ad, parti_kodu: y.kod, uretim_tarihi: y.uretim_tarihi, skt: y.skt, miktar: y.miktar, birim: y.birim }; }
+let ymBas = true;
+$('ym-sadece').onclick = () => { ymBas = false; $('ym-form').requestSubmit(); setTimeout(() => { ymBas = true; }, 0); };
 $('ym-form').addEventListener('submit', async ev => {
   ev.preventDefault();
+  const bas = ymBas; ymBas = true;
   const m = ymTanimlar.find(x => x.id === ymSecili); if (!m) return;
   const girdiler = ymGirdi.map(g => ({ urun_id: g.urun_id, miktar: sayiOku(g.miktar) })).filter(g => g.miktar > 0);
   if (!girdiler.length) { ses('hata'); return ymDurum('hata', 'Kullanılan hammaddelerin miktarını yazın'); }
@@ -2657,7 +2774,9 @@ $('ym-form').addEventListener('submit', async ev => {
   const gecis = data.girdiler.flatMap(g => g.bitenler || []);
   ymDurum('ok', `✓ ${data.kod} · ${sayi(data.miktar)} ${data.birim} ${data.ad}`,
     `${esc(data.girdiler.map(g => `${g.urun_ad} ${sayi(g.miktar)} ${g.birim}`).join(' + '))}${data.fire ? ` · fire ${sayi(data.fire)} ${esc(data.birim)}${data.girdi_toplam > 0 ? ` (%${sayi(Math.round(data.fire / data.girdi_toplam * 1000) / 10)})` : ''}` : ''}${gecis.length ? ` · ${esc(gecis.join(', '))} bitti, sıradaki partiye geçildi` : ''}`);
-  etiketleriBas([yariEtiketVeri(data)]);
+  if (bas) etiketleriBas([yariEtiketVeri(data)]);
+  else { let yid = data.id; if (!yid) { const { data: y } = await sb.from('v_yari_partiler').select('id').eq('kod', data.kod).maybeSingle(); yid = y && y.id; }
+    if (yid) await kuyrugaAl('yari', [yid]); bildir('Kaydedildi. Etiketi bilgisayardan basabilirsiniz.'); }
   $('ym-gun').value = bugun(); await ymYukle(); ymSec(m.id); $('ym-durum').classList.remove('gizli');
 });
 async function ymListe() {
@@ -3864,6 +3983,7 @@ async function sevkiyatSayfasi() {
   if (!$('sv-sube').dataset.ilk) { $('sv-sube').value = yerel.oku('sonSevkSube', aktifSube[0]?.id) ?? ''; $('sv-sube').dataset.ilk = '1'; }
   if (!$('sv-plaka').value) $('sv-plaka').value = yerel.oku('sonSevkPlaka', '');
   subeDugmeleriCiz();
+  svPlakaCipleri();
   $('sv-plakalar').innerHTML = araclar.map(a => `<option value="${esc(a.plaka)}">${esc(a.son_sofor || '')}</option>`).join('');
   $('sv-noktalar').innerHTML = [...new Set((nk || []).map(x => x.sevk_noktasi))].map(n => `<option value="${esc(n)}">`).join('');
   sevkiyatListesi();
@@ -3886,6 +4006,17 @@ async function acikSevkiyatlar() {
     ? `<button type="button" class="dikkat mavi" data-sev-yukle="${x.id}">${ikon('sevkiyat', 22, 2)}<span>Yükleme devam ediyor: ${esc(x.kod)} · ${esc(x.plaka)} · ${x.tepsi_adet} tepsi<small>${esc(x.sofor_ad)} · ${esc(x.sevk_noktasi)} · dokunun, kaldığınız yerden okutmaya devam edin</small></span>${ikon('ileri', 18, 2)}</button>`
     : `<button type="button" class="dikkat kirmizi" data-sev-yeniden="${x.id}">${ikon('uyari', 22, 2)}<span>Araç kontrolden geçemedi: ${esc(x.kod)} · ${esc(x.plaka)}<small>Temizlikten sonra dokunun, yeniden kontrol edin</small></span>${ikon('ileri', 18, 2)}</button>`).join('');
 }
+// Son kullanılan araçlar tek dokunuşla seçilir
+function svPlakaCipleri() {
+  const sec = $('sv-plaka').value.trim();
+  $('sv-plaka-cip').innerHTML = araclar.filter(a => a.aktif !== false).slice(0, 8).map(a => `<button type="button" class="cip ${a.plaka === sec ? 'secili' : ''}" data-plaka="${esc(a.plaka)}">${esc(a.plaka)}${a.son_sofor ? ` <small>${esc(a.son_sofor)}</small>` : ''}</button>`).join('');
+}
+$('sv-plaka-cip').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-plaka]'); if (!b) return;
+  $('sv-plaka').value = b.dataset.plaka; const a = araclar.find(x => x.plaka === b.dataset.plaka);
+  $('sv-sofor').value = a && a.son_sofor || ''; svPlakaCipleri();
+});
+$('sv-plaka').addEventListener('input', () => svPlakaCipleri());
 $('sv-plaka').addEventListener('change', () => {
   const pl = trUpperGoster($('sv-plaka').value.trim()); $('sv-plaka').value = pl;
   const a = araclar.find(x => x.plaka === pl);
@@ -4758,15 +4889,14 @@ function odaCiz() {
     if (f === 0) return r.is_emri ? '<span style="color:#23602A;font-weight:800">✓ Eşleşti</span>' : '–';
     return f < 0 ? `<span class="kalan">${-f} etiketsiz</span>` : `<span class="kalan" style="color:#8A5F12">${f} fazla QR</span>`;
   };
-  $('o-liste').innerHTML = liste.length ? `<table class="oda-tablo"><tr><th>Dara kodu</th><th>Mamul</th><th>QR bas</th><th>Basılan</th><th>İş emri (Dara)</th><th>Fark</th><th></th></tr>
+  $('o-liste').innerHTML = liste.length ? `<table class="oda-tablo"><tr><th>Dara kodu</th><th>Mamul</th><th>Gelen tepsi</th><th>Basılan</th><th>İş emri (Dara)</th><th>Fark</th><th></th></tr>
     ${liste.map(r => { const f = r.basilan - r.is_emri; const durum = !listeVar ? '' : f < 0 ? 'eksik' : f > 0 ? 'fazla' : r.is_emri ? 'tamam' : '';
       return `<tr class="${durum}" data-f="${[hareketli(r) ? 'hareketli' : '', durum].join(' ')}">
       <td class="mono">${esc(r.dara_kod || '–')}</td>
       <td><b>${esc(r.ad)}</b>${r.skt_gun == null ? ' <span style="color:var(--soluk);font-size:12px">(SKT günü yok)</span>' : ''}</td>
       <td style="white-space:nowrap">
-        <span class="adim kucuk"><button type="button" data-adim="-1" aria-label="Bir azalt">−</button><input type="number" min="1" max="500" inputmode="numeric" value="1" id="o-adet-${r.mamul_id}" aria-label="Basılacak adet"><button type="button" data-adim="1" aria-label="Bir artır">+</button></span>
-        <button class="btn kucuk" data-tepsi-bas-adet="${r.mamul_id}">Bas</button>
-        ${listeVar && f < 0 ? `<button class="btn kucuk ikincil" data-tepsi-bas="${r.mamul_id}" data-adet="${-f}" title="İş emrine göre eksik kalanları bas">Eksik ${-f}</button>` : ''}
+        <span class="adim kucuk ${odaSecim[r.mamul_id] ? 'dolu' : ''}"><button type="button" data-adim="-1" aria-label="Bir azalt">−</button><input type="number" min="0" max="500" inputmode="numeric" value="${odaSecim[r.mamul_id] || ''}" placeholder="0" id="o-adet-${r.mamul_id}" data-oda-adet="${r.mamul_id}" aria-label="Gelen tepsi adedi"><button type="button" data-adim="1" aria-label="Bir artır">+</button></span>
+        ${listeVar && f < 0 ? `<button class="btn kucuk ikincil" data-oda-eksik="${r.mamul_id}" data-adet="${-f}" title="İş emrine göre eksik kalanları listeye ekle">Eksik ${-f}</button>` : ''}
       </td>
       <td>${r.basilan ? `<button class="btn kucuk ikincil" data-tepsiler="${r.mamul_id}">${r.basilan}</button>` : '0'}${listeVar && r.is_emri ? `<div class="ilerleme ${r.basilan >= r.is_emri ? 'tam' : ''}" style="margin-top:6px;min-width:90px"><div style="width:${Math.min(100, Math.round(r.basilan * 100 / r.is_emri))}%"></div></div>` : ''}</td>
       <td><input class="ie" type="number" min="0" inputmode="numeric" value="${r.is_emri || ''}" data-ie="${r.mamul_id}" placeholder="–"></td>
@@ -4792,7 +4922,57 @@ async function tepsiBas(mamulId, adet) {
   bildir(`${tepsiler.length} tepsi etiketi hazırlandı.`);
   odaYukle();
 }
+// Odadan gelen tepsiler: adetler yazılır, liste altta toplanır, tek düğmeyle kaydedilir
+const odaSecim = {};
+function odaAksiyonCiz() {
+  const sec = Object.entries(odaSecim).filter(([, n]) => n > 0);
+  const top = sec.reduce((a, [, n]) => a + n, 0);
+  const k = $('o-aksiyon'); k.classList.toggle('gizli', !top);
+  if (!top) return;
+  k.innerHTML = `<div class="aksiyon-ozet"><b>${top} tepsi</b><small>${sec.length} ürün · ${esc(sec.map(([id, n]) => `${(odaSatirlar.find(r => r.mamul_id === Number(id)) || {}).ad || ''} ${n}`).join(', '))}</small></div>
+    <button type="button" class="btn ikincil kucuk" id="o-temizle" aria-label="Listeyi temizle">Temizle</button>
+    <button type="button" class="btn ikincil kaydet-sade" id="o-kaydet">Kaydet</button><button type="button" class="btn kaydet-bas" id="o-kaydet-bas">Kaydet ve bas</button>`;
+  $('o-temizle').onclick = () => { Object.keys(odaSecim).forEach(x => delete odaSecim[x]); odaCiz(); odaAksiyonCiz(); };
+  kaydetSirasi(k);
+  $('o-kaydet').onclick = () => odaKaydet(false);
+  $('o-kaydet-bas').onclick = () => odaKaydet(true);
+}
+async function odaKaydet(bas) {
+  const sec = Object.entries(odaSecim).filter(([, n]) => n > 0).map(([id, n]) => [Number(id), n]);
+  const top = sec.reduce((a, [, n]) => a + n, 0); if (!top) return;
+  if (top > 60 && !await onayla(`${top} tepsi kaydedilecek. Devam edilsin mi?`)) return;
+  document.querySelectorAll('#o-aksiyon button').forEach(b => b.disabled = true);
+  const tumu = [];
+  for (const [mid, n] of sec) {
+    const { data: idler, error } = await sb.rpc('tepsi_olustur', { p_mamul_id: mid, p_tarih: $('o-gun').value || bugun(), p_adet: n });
+    if (error) { bildir(hataMesaji(error), true); break; }
+    tumu.push(...idler); delete odaSecim[mid];
+  }
+  if (tumu.length) {
+    if (bas) { const { data: tepsiler } = await sb.from('v_tepsiler').select('*').in('id', tumu).order('kod'); etiketleriBas(tepsiler || [], tepsiEtiketHtml); bildir(`${tumu.length} tepsi kaydedildi, etiketler basılıyor.`); }
+    else { await kuyrugaAl('tepsi', tumu); bildir(`${tumu.length} tepsi kaydedildi. Etiketleri bilgisayardan basabilirsiniz.`); }
+    ses('ok');
+  }
+  await odaYukle(); odaAksiyonCiz();
+}
+$('o-liste').addEventListener('input', ev => {
+  const i = ev.target.closest('[data-oda-adet]'); if (!i) return;
+  const n = Math.max(0, parseInt(i.value, 10) || 0); const id = Number(i.dataset.odaAdet);
+  if (n) odaSecim[id] = n; else delete odaSecim[id];
+  i.closest('.adim')?.classList.toggle('dolu', !!n);
+  odaAksiyonCiz();
+});
+$('o-liste').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-oda-eksik]'); if (!b) return;
+  const i = $('o-adet-' + b.dataset.odaEksik); i.value = b.dataset.adet; i.dispatchEvent(new Event('input', { bubbles: true }));
+});
 async function tumKalanlariBas() {
+  const eksik = odaSatirlar.filter(r => r.is_emri > r.basilan);
+  if (!eksik.length) return bildir('İş emrine göre eksik tepsi yok.', true);
+  eksik.forEach(r => { odaSecim[r.mamul_id] = r.is_emri - r.basilan; });
+  odaCiz(); odaAksiyonCiz(); bildir(`${eksik.length} ürün listeye eklendi. Altta “Kaydet” ya da “Kaydet ve bas”.`);
+}
+async function eskiTumKalanlariBas() {
   const kalanlar = odaSatirlar.filter(r => r.is_emri > r.basilan);
   const toplam = kalanlar.reduce((s, r) => s + (r.is_emri - r.basilan), 0);
   if (!toplam) return bildir('Basılacak kalan etiket yok.', true);
@@ -5568,10 +5748,18 @@ async function basla(kullaniciId, email) {
   kontrolHazirla();
   if (izin.includes('kabul')) sonGirisleriYukle();
   bekleyenSay();
+  kuyrukSay();
+  kaydetSirasi(document);
   // Birden fazla ekranı olan kişi "Bugün" panosuyla başlar
   if (!izin.length) { $('ana-selam').textContent = 'Size henüz ekran tanımlanmamış. Yöneticinize başvurun.'; sayfaAc('ana'); }
   else if (izin.length > 1) sayfaAc('ana');
   else sayfaAc(izin[0]);
+}
+// Telefonda öne çıkan düğme "Kaydet" (etiket bilgisayardan basılır); bilgisayarda "Kaydet ve bas"
+function kaydetSirasi(kap) {
+  const tel = mobilCihazMi();
+  kap.querySelectorAll('.kaydet-sade').forEach(b => b.classList.toggle('ikincil', !tel));
+  kap.querySelectorAll('.kaydet-bas').forEach(b => b.classList.toggle('ikincil', tel));
 }
 function oturumGoster(oturum) {
   $('giris').classList.toggle('gizli', !!oturum);
@@ -5643,7 +5831,14 @@ function girisOdakla() {
   try { window.focus(); hedef.focus({ preventScroll: true }); } catch (e) {}
 }
 window.addEventListener('focus', () => { if (!document.activeElement || document.activeElement === document.body) girisOdakla(); });
-$('cikis').onclick = () => sb.auth.signOut();
+$('cikis').onclick = async () => {
+  if (!await onayla('Çıkış yapılsın mı?', 'Çıkış yap')) return;
+  // Sunucuya ulaşılamasa da (telefon, zayıf internet) bu cihazdaki oturum kapanır
+  try { await Promise.race([sb.auth.signOut({ scope: 'local' }), new Promise(r => setTimeout(r, 3000))]); } catch (e) {}
+  try { Object.keys(localStorage).filter(k => /^sb-.*-auth-token/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  try { Object.keys(sessionStorage).filter(k => /^sb-.*-auth-token/.test(k)).forEach(k => sessionStorage.removeItem(k)); } catch (e) {}
+  location.reload();
+};
 // Telefona yüklenebilir uygulama: sadece https adresinde (dosyadan / masaüstü programından açılınca çalışmaz)
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});
