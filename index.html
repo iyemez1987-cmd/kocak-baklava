@@ -463,7 +463,7 @@
 
   /* Ekran grupları: iki iş tek ekranda, üstte iki büyük sekme */
   .grup-sekme { display: none; grid-template-columns: 1fr 1fr; gap: 6px; background: #ECE6D3; padding: 5px; border-radius: 16px; margin-bottom: 18px; }
-  section.grupta > .grup-sekme { display: grid; }
+  section.grupta > .grup-sekme { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   section.grupta > h2 { display: none !important; }
   .grup-sekme button { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; border: 0; border-radius: 12px; background: transparent;
                        font-weight: 800; font-size: 17px; color: var(--soluk); cursor: pointer; padding: 8px 12px; }
@@ -875,6 +875,20 @@
     .hm-ver { min-height: 50px; font-size: 17px; }
     #ym-form .alt-aksiyon { margin-inline: -14px; padding-inline: 14px; }
   }
+
+  .acik-sev { display: flex; gap: 8px; align-items: stretch; }
+  .acik-sev > .dikkat { flex: 1; min-width: 0; }
+  .acik-sev .sev-iptal { flex: none; min-height: 0; color: var(--hata); border-color: #F0C9C4; }
+  .kuyruk-kart { border: 2px solid #E8C877; background: #FFF8E6; border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+  .kuyruk-kart-ust { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .kuyruk-kart-ust > span { display: flex; gap: 10px; align-items: center; color: #5A3F00; min-width: 0; }
+  .kuyruk-kart-ust > span > span { display: flex; flex-direction: column; }
+  .kuyruk-kart-ust small { font-weight: 600; opacity: .85; }
+  .kuyruk-kart-liste { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; max-height: 240px; overflow: auto; }
+  .kuyruk-kart-liste li { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #F0DDB0; border-radius: 10px; padding: 6px 10px; }
+  .kuyruk-kart-liste li > span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .kuyruk-kart-liste small { color: var(--soluk); }
+  @media (max-width: 760px) { .kuyruk-kart-ust .btn { flex: 1 1 100%; } }
 </style>
 </head>
 <body>
@@ -953,6 +967,7 @@
     <!-- MAL KABUL -->
     <section data-sayfa="kabul">
       <h2>Mal Kabul · Yeni Parti</h2>
+      <div id="k-kuyruk"></div>
       <form id="kabul-form" class="kart">
         <div class="hizli-urun" id="k-son-kap">
           <div class="ust-yazi">Son kullanılan ürünler · dokunun</div>
@@ -1140,6 +1155,7 @@
           <label style="flex-direction:row;align-items:center;gap:8px">Üretim günü <input type="date" id="o-gun"></label>
           <button class="btn ikincil" type="button" id="o-hepsi">Eksikleri listeye ekle</button>
         </div>
+        <div id="o-kuyruk"></div>
         <div id="o-siparis-uyari"></div>
         <div id="o-ozet" class="ozet-satir"></div>
         <div class="arac-cubugu" data-filtre-hedef="o-liste">
@@ -1147,7 +1163,7 @@
           <div class="cipler"><button type="button" class="cip secili" data-f="">Hepsi</button><button type="button" class="cip" data-f="hareketli">Bugün işlem görenler</button><button type="button" class="cip" data-f="eksik">Etiketsiz kalan</button><button type="button" class="cip" data-f="fazla">Fazla QR</button></div>
           <span class="sonuc-say"></span>
         </div>
-        <p class="aciklama-p" style="color:var(--soluk);font-size:14px;margin:0 0 12px">Tepsi çıktıkça adedi yazıp QR basın; listeyi beklemeye gerek yok. Dara iş emri listesi gelince miktarları “İş emri” sütununa yazın, sistem karşılaştırır.</p>
+        <p class="aciklama-p" style="color:var(--soluk);font-size:14px;margin:0 0 12px">Odadan gelen tepsilerin adedini satırlara yazın; altta liste oluşur. <b>Kaydet</b> stoğa alır (etiket sonra bilgisayardan basılır), <b>Kaydet ve bas</b> etiketleri de basar. Dara iş emri gelince “İş emri” sütununa yazın, sistem karşılaştırır.</p>
         <div id="o-liste"></div>
         <div id="o-aksiyon" class="alt-aksiyon gizli"></div>
       </div>
@@ -1294,7 +1310,7 @@
         <div class="kart">
           <div class="satir" style="justify-content:space-between;margin-bottom:10px">
             <h3 style="margin:0">Araçtaki ürünler <span id="sv-adet" style="color:var(--soluk)"></span></h3>
-            <button class="btn" type="button" id="sv-kapat">✓ Yükleme bitti, yola çıktı</button>
+            <span class="satir" style="gap:8px"><button class="btn ikincil" type="button" id="sv-iptal">Sevkiyatı iptal et</button><button class="btn" type="button" id="sv-kapat">✓ Yükleme bitti, yola çıktı</button></span>
           </div>
           <div id="sv-siparis"></div>
           <div id="sv-ozet" class="ozet-satir"></div>
@@ -2152,7 +2168,28 @@ async function kuyrukSay() {
   const ilgili = profil.rol === 'yonetici' || izinliEkranlar().some(x => ['kabul', 'oda', 'yarimamul', 'odastok'].includes(x));
   b.classList.toggle('gizli', !n || !ilgili);
   b.innerHTML = `${ikon('etiket', 18, 2)}<span><b>${n} etiket</b> basılmayı bekliyor</span><span class="kuyruk-git">${mobilCihazMi() ? 'Liste' : 'Bas'} ›</span>`;
+  kuyrukKartCiz('o-kuyruk', ['tepsi'], 'Telefondan gelen tepsiler', 'Kaydedildi ve stoğa alındı · etiketleri basılmayı bekliyor');
+  kuyrukKartCiz('k-kuyruk', ['etiket', 'yari'], 'Telefondan kaydedilen mallar', 'Kaydedildi ve depoya alındı · etiketleri basılmayı bekliyor');
 }
+// Oda ve mal kabul ekranının üstünde: telefondan kaydedilen, etiketi basılmamış liste
+function kuyrukKartCiz(kapId, turler, baslik, alt) {
+  const kap = $(kapId); if (!kap) return;
+  const l = kuyrukSatirlar.filter(r => turler.includes(r.tur));
+  if (!l.length) { kap.innerHTML = ''; return; }
+  const top = l.reduce((a, r) => a + r.adet, 0);
+  kap.innerHTML = `<div class="kuyruk-kart">
+    <div class="kuyruk-kart-ust"><span>${ikon('etiket', 20, 2)}<span><b>${esc(baslik)} · ${top} etiket</b><small>${esc(alt)}</small></span></span>
+      <button type="button" class="btn" data-kuyruk-bas="${kapId}">${ikon('etiket', 18, 2)} Hepsini bas</button></div>
+    <ul class="kuyruk-kart-liste">${l.map(r => `<li><span><b>${esc(r.ad)}</b><small>${esc(r.cins)} · ${esc(r.kod)} · ${saat(r.zaman)}</small></span><b class="kuyruk-adet">${r.adet}</b>
+      <button type="button" class="btn kucuk ikincil" data-kuyruk-tek="${kapId}" data-i="${kuyrukSatirlar.indexOf(r)}">Bas</button></li>`).join('')}</ul></div>`;
+  kap.dataset.turler = turler.join(',');
+}
+document.addEventListener('click', async ev => {
+  const h = ev.target.closest('[data-kuyruk-bas]');
+  if (h) { const tr = $(h.dataset.kuyrukBas).dataset.turler.split(','); h.disabled = true; await kuyrukBas(kuyrukSatirlar.filter(r => tr.includes(r.tur))); if ($(h.dataset.kuyrukBas).contains(h)) h.disabled = false; if (aktifSayfa === 'oda') odaYukle(); return; }
+  const t = ev.target.closest('[data-kuyruk-tek]');
+  if (t) { const r = kuyrukSatirlar[Number(t.dataset.i)]; if (r) { t.disabled = true; await kuyrukBas([r]); if (aktifSayfa === 'oda') odaYukle(); } }
+});
 async function kuyrukVeri(satirlar) {
   const id = t => satirlar.filter(r => r.tur === t).flatMap(r => r.idler);
   const [e, t, y] = await Promise.all([
@@ -4001,10 +4038,11 @@ $('sv-sube-dugmeler').addEventListener('click', ev => {
 });
 // Yüklemesi bitmemiş araçlar en üstte: tek dokunuşla kaldığı yerden devam
 async function acikSevkiyatlar() {
-  const { data } = await sb.from('v_sevkiyatlar').select('id,kod,plaka,sofor_ad,sevk_noktasi,tepsi_adet,durum,tarih').in('durum', ['yukleniyor', 'arac_uygunsuz']).gte('tarih', gunEkle(bugun(), -3)).order('id', { ascending: false });
-  $('sv-acik').innerHTML = (data || []).map(x => x.durum === 'yukleniyor'
+  const { data } = await sb.from('v_sevkiyatlar').select('id,kod,plaka,sofor_ad,sevk_noktasi,tepsi_adet,durum,tarih').in('durum', ['yukleniyor', 'arac_uygunsuz']).order('id', { ascending: false });
+  $('sv-acik').innerHTML = (data || []).map(x => `<div class="acik-sev">` + (x.durum === 'yukleniyor'
     ? `<button type="button" class="dikkat mavi" data-sev-yukle="${x.id}">${ikon('sevkiyat', 22, 2)}<span>Yükleme devam ediyor: ${esc(x.kod)} · ${esc(x.plaka)} · ${x.tepsi_adet} tepsi<small>${esc(x.sofor_ad)} · ${esc(x.sevk_noktasi)} · dokunun, kaldığınız yerden okutmaya devam edin</small></span>${ikon('ileri', 18, 2)}</button>`
-    : `<button type="button" class="dikkat kirmizi" data-sev-yeniden="${x.id}">${ikon('uyari', 22, 2)}<span>Araç kontrolden geçemedi: ${esc(x.kod)} · ${esc(x.plaka)}<small>Temizlikten sonra dokunun, yeniden kontrol edin</small></span>${ikon('ileri', 18, 2)}</button>`).join('');
+    : `<button type="button" class="dikkat kirmizi" data-sev-yeniden="${x.id}">${ikon('uyari', 22, 2)}<span>Araç kontrolden geçemedi: ${esc(x.kod)} · ${esc(x.plaka)}<small>Temizlikten sonra dokunun, yeniden kontrol edin</small></span>${ikon('ileri', 18, 2)}</button>`)
+    + `<button type="button" class="btn ikincil sev-iptal" data-sev-iptal="${x.id}" data-kod="${esc(x.kod)}" data-adet="${x.tepsi_adet}">İptal</button></div>`).join('');
 }
 // Son kullanılan araçlar tek dokunuşla seçilir
 function svPlakaCipleri() {
@@ -4060,6 +4098,7 @@ async function sevkiyatListesi() {
       <td><span class="rozet ${x.muhendis_durum}">${x.muhendis_durum === 'bekliyor' ? 'Onay bekliyor' : x.muhendis_durum === 'onaylandi' ? 'Onaylı' : 'Reddedildi'}</span></td>
       <td style="white-space:nowrap">
         ${x.durum === 'yukleniyor' ? `<button class="btn kucuk" data-sev-yukle="${x.id}">Yükle</button>` : ''}
+        ${['yukleniyor', 'arac_uygunsuz'].includes(x.durum) ? `<button class="btn kucuk ikincil" data-sev-iptal="${x.id}" data-kod="${esc(x.kod)}" data-adet="${x.tepsi_adet}">İptal</button>` : ''}
         ${x.durum === 'arac_uygunsuz' ? `<button class="btn kucuk" data-sev-yeniden="${x.id}">Yeniden kontrol</button>` : ''}
         ${!x.kontrol_sayisi && x.durum !== 'iptal' ? `<button class="btn kucuk ikincil" data-sev-yeniden="${x.id}">Kontrol formu</button>` : ''}
         ${x.durum === 'yolda' ? `<button class="btn kucuk ikincil" data-sev-yukle="${x.id}">Ürünler</button>` : ''}
@@ -4088,6 +4127,7 @@ async function yuklemeAc(id) {
   $('sv-alt').innerHTML = `${esc([x.sofor_ad, x.sevk_noktasi].filter(Boolean).join(' · '))}${x.irsaliye_no ? ' · İrs: ' + esc(x.irsaliye_no) : ''}${!x.kontrol_sayisi ? ` · <button type="button" class="kk-tam-dugme koyu" data-sev-yeniden="${x.id}">Araç kontrol formu doldur</button>` : ''}`;
   const acik = x.durum === 'yukleniyor';
   $('sv-okut-form').classList.toggle('gizli', !acik); $('sv-kapat').classList.toggle('gizli', !acik);
+  $('sv-iptal').classList.toggle('gizli', !['yukleniyor', 'arac_uygunsuz'].includes(x.durum));
   svDurum(acik ? 'bekle' : 'ok', acik ? 'Araca yüklenen her tepsinin QR\'ını okutun.' : `Bu araç yola çıktı (${tarihSaat(x.cikis_zamani)}). Liste sadece görüntülenir.`);
   if (acik && matchMedia('(pointer: coarse)').matches) $('sv-okut').setAttribute('inputmode', 'none');
   await svTepsileriYukle();
@@ -4141,6 +4181,17 @@ async function sevkiyattanCikar(tepsiId, kod) {
   if (error) return bildir(hataMesaji(error), true);
   svDurum('bekle', `${kod} araçtan çıkarıldı.`); svTepsileriYukle();
 }
+async function sevkiyatIptal(id, kod, adet) {
+  adet = Number(adet) || 0;
+  if (!await onayla(`${kod} sevkiyatı iptal edilsin mi? ${adet ? `Araca yüklenen ${adet} tepsi` : 'Araca yüklenen tepsiler varsa'} odaya (stoğa) geri döner.`, 'İptal et', 'Vazgeç')) return;
+  const { data, error } = await sb.rpc('sevkiyat_iptal', { p_sevkiyat_id: id });
+  if (error) return bildir(hataMesaji(error), true);
+  bildir(`${kod} iptal edildi${data ? `, ${data} tepsi stoğa döndü` : ''}.`);
+  if (aktifSevkiyat && aktifSevkiyat.id === id) aktifSevkiyat = null;
+  sevkiyatSayfasi(); bekleyenSay?.();
+}
+document.addEventListener('click', ev => { const b = ev.target.closest('[data-sev-iptal]'); if (b) sevkiyatIptal(Number(b.dataset.sevIptal), b.dataset.kod, b.dataset.adet); });
+$('sv-iptal').onclick = () => aktifSevkiyat && sevkiyatIptal(aktifSevkiyat.id, aktifSevkiyat.kod, 0);
 $('sv-kapat').onclick = async () => {
   const n = document.querySelectorAll('#sv-tepsiler tr').length - 1;
   if (n < 1) return bildir('Araca hiç ürün yüklenmedi.', true);
@@ -5702,6 +5753,7 @@ function sayfaAc(ad) {
   if (ad === 'sablon') sablonSayfasi();
   if (ad === 'oda') { if (!$('o-gun').value) $('o-gun').value = bugun(); odaYukle(); }
   if (ad === 'odastok') odaStokYukle();
+  if (['oda', 'kabul', 'yarimamul'].includes(ad)) kuyrukSay();
   if (ad === 'uretim') { hmYukle(); if (!hmSecili) $('hm-bos')?.classList.remove('gizli'); }
   if (ad === 'yarimamul') ymYukle();
   if (ad === 'analiz') anYukle();
