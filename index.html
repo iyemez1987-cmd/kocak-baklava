@@ -915,6 +915,15 @@
   .mobil-kip table.kartli.oda-tablo td:nth-child(1), .mobil-kip table.kartli.oda-tablo td:nth-child(n+4) { display: none !important; }
   .mobil-kip table.kartli.oda-tablo tr.eksik, .mobil-kip table.kartli.oda-tablo tr.tamam, .mobil-kip table.kartli.oda-tablo tr.fazla { background: #fff; }
   .mobil-kip .oda-tablo .adim button { min-width: 44px; } .mobil-kip .oda-tablo .adim input { width: 56px; min-height: 44px; font-size: 18px; }
+
+  .kip-uyari { display: none; }
+  .kip-uyumsuz .kip-uyari { display: block; }
+  .kip-uyumsuz section[data-sayfa="ana"] > :not(.kip-uyari) { display: none !important; }
+  .kip-uyari-kart { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; background: var(--kart); border: 1px solid var(--cizgi); border-radius: 16px; padding: 28px 18px; margin-top: 16px; }
+  .kip-uyari-kart > svg { color: #B8862A; }
+  .kip-uyari-kart b:first-of-type { font-size: 18px; }
+  .kip-uyari-kart span { color: var(--soluk); line-height: 1.5; }
+  .kip-uyari-kart .btn { width: 100%; min-height: 50px; }
 </style>
 </head>
 <body>
@@ -1287,6 +1296,7 @@
 
     <!-- ANA SAYFA (telefon) -->
     <section data-sayfa="ana" class="gizli">
+      <div id="kip-uyari" class="kip-uyari"></div>
       <div class="kur-serit gizli" id="kur-serit"><span data-ikon="telefon"></span><span><b>Uygulamayı telefona yükleyin</b>Ana ekranda simgesiyle açılır, adres yazmaya gerek kalmaz.</span><button class="btn kucuk" type="button" data-kur="1">Yükle</button><button class="kapat" type="button" id="kur-kapat" aria-label="Kapat">✕</button></div>
       <div class="pano-serit">
         <div class="pano-serit-ic">
@@ -5844,7 +5854,7 @@ async function basla(kullaniciId, email) {
   kuyrukSay();
   kaydetSirasi(document);
   // Birden fazla ekranı olan kişi "Bugün" panosuyla başlar
-  if (!izin.length && MOBIL_KIP) { $('ana-selam').textContent = `Bu telefon uygulaması ${KIP_AD[MOBIL_KIP]} içindir; hesabınızda ${KIP_AD[MOBIL_KIP]} ekranı yok. Yöneticinize başvurun ya da size uygun uygulamayı kurun.`; sayfaAc('ana'); }
+  if (!izin.length && MOBIL_KIP) { kipUyumsuz(); sayfaAc('ana'); }
   else if (!izin.length) { $('ana-selam').textContent = 'Size henüz ekran tanımlanmamış. Yöneticinize başvurun.'; sayfaAc('ana'); }
   else if (izin.length > 1 && !MOBIL_KIP) sayfaAc('ana');
   else sayfaAc(izin[0]);
@@ -5853,6 +5863,17 @@ if (MOBIL_KIP) {
   $('kip-ad').textContent = KIP_AD[MOBIL_KIP];
   $('kip-giris').textContent = `${KIP_AD[MOBIL_KIP]} uygulaması`;
   document.title = `Koçak ${KIP_AD[MOBIL_KIP]}`;
+}
+// Hesap bu telefon uygulamasına uymuyorsa: sade uyarı, doğru uygulamanın adı ve çıkış
+function kipUyumsuz() {
+  const tum = izinliEkranlar({ ...profil });
+  const uygun = Object.keys(KIP_EKRANLAR).filter(k => KIP_EKRANLAR[k].some(e => tum.includes(e)));
+  document.documentElement.classList.add('kip-uyumsuz');
+  $('kip-uyari').innerHTML = `<div class="kip-uyari-kart">${ikon('uyari', 36, 2)}
+    <b>${esc(profil.ad || 'Bu hesap')} hesabı ${KIP_AD[MOBIL_KIP]} uygulamasında kullanılamaz.</b>
+    <span>${uygun.length ? `Bu hesap için telefona <b>${uygun.map(k => `Koçak ${KIP_AD[k] === 'Baklava Odası' ? 'Oda' : KIP_AD[k]}`).join(' ya da ')}</b> uygulamasını kurun.` : 'Bu hesabın işi bilgisayardan yapılır.'}
+      Ya da ${KIP_AD[MOBIL_KIP].toLocaleLowerCase('tr')} hesabıyla girin.</span>
+    <button type="button" class="btn" onclick="document.getElementById('cikis').click()">Çıkış yap · başka hesapla gir</button></div>`;
 }
 $('k-kontrol-ac').onclick = () => { $('k-kontrol-blok').classList.add('acik'); $('k-kontrol-ac').classList.add('gizli'); };
 // Telefonda öne çıkan düğme "Kaydet" (etiket bilgisayardan basılır); bilgisayarda "Kaydet ve bas"
