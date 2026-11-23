@@ -752,9 +752,9 @@
     .grid { grid-template-columns: 1fr 1fr; gap: 8px 10px; }
     .grid > label:has(select), .grid > label[style*="grid-column"], .grid > .tam { grid-column: 1 / -1; }
     .grid > * { min-width: 0; }
-    .adim { width: 100%; }
-    .adim button { min-width: 40px; }
-    .adim input { flex: 1; width: auto; min-width: 0; min-height: 42px; }
+    .grid .adim { width: 100%; }
+    .grid .adim button { min-width: 40px; }
+    .grid .adim input { flex: 1; width: auto; min-width: 0; min-height: 42px; }
     .hizli-urun { margin-bottom: 8px; }
 
     /* Okutma ekranları */
@@ -813,6 +813,25 @@
     .arac-cubugu { gap: 6px; }
     .cip { min-height: 36px; padding: 5px 11px; font-size: 13px; }
     .btn { min-height: 42px; }
+    /* Baklava odası satırı: ad üstte, bas düğmesi altında, sayılar yan yana */
+    table.kartli.oda-tablo tr:not(.baslik-satiri) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 8px; padding: 8px 10px; }
+    table.kartli.oda-tablo td { border: 0; padding: 3px 0; }
+    table.kartli.oda-tablo td:nth-child(2) { grid-column: 1 / 3; grid-row: 1; }
+    table.kartli.oda-tablo td:nth-child(1) { grid-column: 3; grid-row: 1; font-size: 11.5px; color: var(--soluk); }
+    table.kartli.oda-tablo td:nth-child(1)::before, table.kartli.oda-tablo td:nth-child(2)::before, table.kartli.oda-tablo td:nth-child(3)::before, table.kartli.oda-tablo td:nth-child(7)::before { display: none; }
+    table.kartli.oda-tablo td:nth-child(2) > .td-ic { text-align: left; font-size: 14.5px; }
+    table.kartli.oda-tablo td:nth-child(3) { grid-column: 1 / 3; grid-row: 2; justify-content: flex-start; gap: 6px; }
+    table.kartli.oda-tablo td:nth-child(3) > .td-ic { text-align: left; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    table.kartli.oda-tablo td:nth-child(4), table.kartli.oda-tablo td:nth-child(5), table.kartli.oda-tablo td:nth-child(6) { flex-direction: column; align-items: flex-start; gap: 2px; }
+    table.kartli.oda-tablo td:nth-child(4) > .td-ic, table.kartli.oda-tablo td:nth-child(5) > .td-ic, table.kartli.oda-tablo td:nth-child(6) > .td-ic { text-align: left; width: 100%; }
+    table.kartli.oda-tablo td::before { max-width: none; font-size: 11px; }
+    table.kartli.oda-tablo td:nth-child(7) { grid-column: 3; grid-row: 2; justify-content: flex-end; }
+    table.kartli.oda-tablo td:nth-child(7) .btn { min-height: 36px; padding: 4px 10px; font-size: 13px; }
+    table.kartli.oda-tablo td { background: transparent !important; }
+    table.kartli.oda-tablo tr.tamam { background: #EEF6EA; } table.kartli.oda-tablo tr.fazla { background: #FBF3DF; }
+    table.kartli.oda-tablo td:nth-child(7):not(:has(button)) { display: none; }
+    .oda-tablo input.ie { width: 100%; min-height: 36px; }
+    .oda-tablo .ilerleme { min-width: 0 !important; }
   }
 </style>
 </head>
