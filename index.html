@@ -4700,6 +4700,9 @@ main > section {
   color: var(--soluk);
   font-weight: 500;
 }
+.etiket-bar {
+  display: none !important;
+}
 </style>
 </head>
 <body>
@@ -5347,6 +5350,17 @@ main > section {
 
       <!-- PARAMETRELER -->
       <div id="ku-param" class="gizli">
+        <div class="kart" id="pr-yazici-kart">
+          <h3 style="margin:0 0 4px">Bu bilgisayarın yazıcısı</h3>
+          <p class="aciklama">Bir kez ayarlanır, bu bilgisayarda kalır. Etiketler iş ekranlarından bu ayarla basılır.</p>
+          <div class="grid">
+            <label>Yazıcı türü <select id="pr-yazici-turu"><option value="etiket">Etiket yazıcısı (boşluklu etiket)</option><option value="fis80">Fiş yazıcısı 80 mm</option><option value="fis58">Fiş yazıcısı 58 mm</option></select></label>
+          </div>
+          <div class="satir" style="gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button type="button" class="btn ikincil ham-ayar-dugme" data-ham-ayar="1">Etiket yazıcısı ayarı</button>
+            <button type="button" class="btn ikincil fis-ayar-dugme" data-fis-ayar="1">Fiş yazıcısı ayarı</button>
+          </div>
+        </div>
         <div class="kart">
           <h3 style="margin:0 0 4px">Üretim akışı ve analiz</h3>
           <p class="aciklama">İşletmenin çalışma şekline göre seçin. Değişiklik herkesin ekranına bir sonraki açılışta yansır.</p>
@@ -5746,7 +5760,11 @@ function qrSvgTag(qr, sessiz) {
 function qrSvg(metin) {
   return qrSvgTag(qrUret(metin), 2);
 }
-const qrIcerik = (v, s) => s.qr_icerik === "adres" && ayar.qr_adres_oneki ? trUpper(ayar.qr_adres_oneki).trim() + v.kod_norm : v.kod_norm;
+const qrIcerik = (v, s) => {
+  if (!(s.qr_icerik === "adres" && ayar.qr_adres_oneki)) return v.kod_norm;
+  const o = String(ayar.qr_adres_oneki).trim();
+  return (/[a-z?=]/.test(o) ? o : trUpper(o)) + v.kod_norm;
+};
 function kodAyikla(s) {
   const n = normalize(s);
   const adresMi = n.startsWith("HTTP") || onekGovde && n.includes(onekGovde.slice(0, 8));
@@ -6049,6 +6067,29 @@ async function hamGrupBas(g, a = hamAyar()) {
   }
   return yaziciKopru.hamBas({ ...a, yazici, html: hamBelge(g.l, g.s), adet: g.l.length, genislik: Number(g.s.genislik_mm), yukseklik: Number(g.s.yukseklik_mm) });
 }
+function prYaziciCiz() {
+  const t = yaziciTuru();
+  if (!$("pr-yazici-turu")) return;
+  $("pr-yazici-turu").value = t;
+  document.querySelectorAll("#pr-yazici-kart .ham-ayar-dugme").forEach((x) => x.classList.toggle("gizli", t !== "etiket" || !yaziciKopru));
+  document.querySelectorAll("#pr-yazici-kart .fis-ayar-dugme").forEach((x) => x.classList.toggle("gizli", t === "etiket"));
+}
+document.addEventListener("change", (ev) => {
+  if (ev.target.id !== "pr-yazici-turu") return;
+  const v = ev.target.value;
+  try {
+    localStorage.setItem("yaziciTuru", v);
+  } catch (e) {
+  }
+  document.querySelectorAll(".yazici-turu").forEach((x) => x.value = v);
+  if (v !== "etiket") {
+    const a = fisAyar();
+    a.genislik = FIS_YAZICI[v].kagit;
+    fisAyarYaz(a);
+  }
+  prYaziciCiz();
+  bildir("Yaz\u0131c\u0131 t\xFCr\xFC kaydedildi.");
+});
 async function hamAyarAc() {
   const a = hamAyar();
   let liste = [];
@@ -10403,6 +10444,7 @@ let prAlanlar = [], yazicilar = null;
 const sablonSecenek = (bos, tur) => `<option value="">${bos}</option>` + etiketSablonlari.filter((s) => s.aktif && (!tur || sablonUygun(s, tur))).map((s) => `<option value="${s.id}">${esc(s.ad)} \xB7 ${sayi(s.genislik_mm)}\xD7${sayi(s.yukseklik_mm)}</option>`).join("");
 async function parametreleriAc() {
   var _a, _b;
+  prYaziciCiz();
   await etiketAyarlariniYukle();
   $("pr-dpi").value = String(ayar.yazici_dpi || 203);
   $("pr-onek").value = ayar.qr_adres_oneki || "";
@@ -10467,7 +10509,7 @@ $("pr-akis-kaydet").onclick = async () => {
   bildir(`Kaydedildi: ${akis === "yari_mamul" ? "Yar\u0131 mamull\xFC \xFCretim" : "Do\u011Frudan \xFCretim"} \xB7 analiz ${gor === "herkes" ? "herkese a\xE7\u0131k" : gor === "muhendis" ? "yaln\u0131zca m\xFChendis ve y\xF6neticiye a\xE7\u0131k" : "kapal\u0131"}.`);
 };
 $("pr-genel-kaydet").onclick = async () => {
-  const onek = trUpper($("pr-onek").value).trim();
+  const onek = $("pr-onek").value.trim();
   const satirlar = [
     { anahtar: "yazici_dpi", deger: Number($("pr-dpi").value) },
     { anahtar: "qr_adres_oneki", deger: onek },

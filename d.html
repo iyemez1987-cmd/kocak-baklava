@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1E3A2A">
+<title>Koçak Baklava · Orijinal Ürün</title>
+<link rel="icon" href="simge-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root { --yesil: #1E3A2A; --yesil2: #2C5A3E; --altin: #C9A24B; --altin2: #E9CF8A; --krem: #F7F1E3; --yazi: #22301F; --soluk: #6B7466; --uyari: #9A5B00; --hata: #8E1F18; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { min-height: 100vh; background: var(--krem); color: var(--yazi); font: 16px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .ust { position: relative; min-height: 300px; background: var(--yesil) url('img/kocak-baklava.jpg') center 40% / cover; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: max(24px, env(safe-area-inset-top)) 20px 0; }
+  .ust::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,38,27,.55) 0%, rgba(20,38,27,.25) 45%, rgba(20,38,27,.92) 100%); }
+  .logo { position: relative; width: 190px; max-width: 60vw; filter: drop-shadow(0 6px 16px rgba(0,0,0,.45)); margin-bottom: 18px; }
+  .muhur { position: relative; width: 132px; height: 132px; margin-bottom: -66px; border-radius: 50%; display: grid; place-items: center; z-index: 2;
+           background: radial-gradient(circle at 35% 30%, #F6E3A8, var(--altin) 55%, #9C7A2C); box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 5px rgba(255,255,255,.35), inset 0 0 0 9px rgba(156,122,44,.6); }
+  .muhur svg { width: 58px; height: 58px; }
+  .muhur span { position: absolute; bottom: 24px; font: 700 11px/1 Inter, sans-serif; letter-spacing: 2.5px; color: #3E2E08; }
+  .kart { position: relative; max-width: 520px; margin: 0 auto; padding: 86px 22px 28px; text-align: center; }
+  h1 { font: 700 30px/1.15 "Playfair Display", Georgia, serif; margin: 0 0 6px; color: var(--yesil); text-wrap: balance; }
+  .alt { color: var(--soluk); margin: 0 0 22px; }
+  .urun { background: #fff; border: 1px solid #E6DCC3; border-radius: 18px; padding: 20px; box-shadow: 0 12px 30px -18px rgba(30,58,42,.35); text-align: left; }
+  .urun-ad { font: 700 21px/1.25 "Playfair Display", Georgia, serif; color: var(--yesil); margin: 0 0 14px; }
+  .satir { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px dashed #E6DCC3; }
+  .satir span { color: var(--soluk); } .satir b { text-align: right; }
+  .bilgi { margin-top: 16px; font-size: 14px; color: var(--soluk); }
+  .sorgu { margin-top: 16px; border-radius: 12px; padding: 12px 14px; font-size: 14px; text-align: left; background: #EEF5EC; color: #285A2E; }
+  .sorgu.dikkat { background: #FFF3DC; color: var(--uyari); }
+  .marka { margin-top: 26px; padding: 22px 18px; border-radius: 18px; background: var(--yesil); color: #F3EBD6; text-align: center; }
+  .marka h2 { font: 600 19px/1.3 "Playfair Display", Georgia, serif; margin: 0 0 6px; color: var(--altin2); }
+  .marka p { margin: 0; font-size: 14px; opacity: .9; }
+  .yok .muhur { background: radial-gradient(circle at 35% 30%, #F2C4BE, #B5473C 60%, #7A1E17); }
+  .yok .muhur span { color: #fff; }
+  .yok h1 { color: var(--hata); }
+  .yukleniyor { padding: 140px 20px; text-align: center; color: var(--soluk); }
+  .alt-not { text-align: center; color: var(--soluk); font-size: 12px; padding: 20px 16px max(24px, env(safe-area-inset-bottom)); }
+</style>
+</head>
+<body>
+<div id="sayfa"><div class="yukleniyor">Ürün doğrulanıyor…</div></div>
+<script>
+(function () {
+  var URL_ = 'https://ccnhtjrvnxnghtknfkyi.supabase.co/rest/v1/rpc/urun_dogrula';
+  var ANAHTAR = 'sb_publishable_Z0SwYC6cDSx3-fYQUoVKrQ_ZYe0uOFw';
+  var AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  function tarih(t) { if (!t) return '—'; var p = String(t).slice(0, 10).split('-'); return Number(p[2]) + ' ' + AYLAR[Number(p[1]) - 1] + ' ' + p[0]; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var TIK = '<svg viewBox="0 0 24 24" fill="none" stroke="#3E2E08" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  var CARPI = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+  function ust(simge, yazi) { return '<div class="ust"><img class="logo" src="img/kocak-logo.png" alt="Koçak Baklava"><div class="muhur">' + simge + '<span>' + yazi + '</span></div></div>'; }
+  var MARKA = '<div class="marka"><h2>Koçak Baklava</h2><p>Gaziantep’in ustalık geleneğiyle, her gün taze üretilir. Her tepsi üretimden şubeye kadar kayıt altındadır.</p></div>';
+  function ciz(r) {
+    var s = document.getElementById('sayfa');
+    if (!r || !r.bulundu) {
+      document.body.className = 'yok';
+      s.innerHTML = ust(CARPI, 'KAYIT YOK') + '<div class="kart"><h1>Bu kod kayıtlarımızda yok</h1><p class="alt">Okuttuğunuz kod Koçak Baklava kayıtlarında bulunamadı. Ürün orijinal olmayabilir.</p>' +
+        '<div class="urun"><b>Ne yapmalı?</b><p style="margin:6px 0 0;color:var(--soluk)">Ürünü aldığınız yere danışın ya da Koçak Baklava şubelerinden bilgi alın.</p></div>' + MARKA + '</div><div class="alt-not">Koçak Baklava ürün doğrulama</div>';
+      return;
+    }
+    var dikkat = r.sorgu > 15;
+    s.innerHTML = ust(TIK, 'ORİJİNAL') +
+      '<div class="kart"><h1>Orijinal Koçak Baklava</h1><p class="alt">Bu ürün Koçak Baklava tarafından üretilmiş ve kayıt altına alınmıştır.</p>' +
+      '<div class="urun"><div class="urun-ad">' + esc(r.urun) + '</div>' +
+      '<div class="satir"><span>Üretim tarihi</span><b>' + tarih(r.uretim) + '</b></div>' +
+      (r.skt ? '<div class="satir"><span>Son tüketim</span><b>' + tarih(r.skt) + '</b></div>' : '') +
+      (r.sube ? '<div class="satir"><span>Satış noktası</span><b>Koçak Baklava · ' + esc(r.sube) + '</b></div>' : '') +
+      '<div class="bilgi">Tazeliğini korumak için serin ve kuru yerde, ağzı kapalı saklayın.</div></div>' +
+      '<div class="sorgu' + (dikkat ? ' dikkat' : '') + '">' + (dikkat
+        ? 'Bu ürün kodu daha önce <b>' + r.sorgu + ' kez</b> sorgulanmış. Ürünü Koçak Baklava şubesinden almadıysanız lütfen satıcıya danışın.'
+        : (r.sorgu <= 1 ? 'Bu ürün kodu <b>ilk kez</b> sorgulandı.' : 'Bu ürün kodu ' + r.sorgu + '. kez sorgulandı · ilk sorgulama ' + tarih(r.ilk_sorgu) + '.')) + '</div>' +
+      MARKA + '</div><div class="alt-not">Koçak Baklava ürün doğrulama</div>';
+  }
+  var q = location.search.match(/[?&]k=([^&#]+)/i) || location.hash.match(/k=([^&#]+)/i);
+  var kod = q ? decodeURIComponent(q[1]) : '';
+  if (!kod) { ciz(null); return; }
+  fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: ANAHTAR }, body: JSON.stringify({ p_kod: kod }) })
+    .then(function (y) { return y.json(); }).then(ciz)
+    .catch(function () { document.getElementById('sayfa').innerHTML = '<div class="yukleniyor">İnternet bağlantısı yok. Bağlantınızı kontrol edip sayfayı yenileyin.</div>'; });
+})();
+</script>
+</body>
+</html>
