@@ -4845,6 +4845,35 @@ label:has(#k-toplam) > span {
 #sy-liste li > span:last-child {
   flex: none;
 }
+.posim-imza {
+  color: var(--soluk);
+  text-decoration: none;
+  font-size: 12px;
+  letter-spacing: .3px;
+}
+.posim-imza b {
+  color: var(--yesil);
+  letter-spacing: .6px;
+}
+.giris-imza {
+  display: block;
+  text-align: center;
+  margin-top: 14px;
+  opacity: .85;
+}
+.posim-alt {
+  text-align: center;
+  color: var(--soluk);
+  font-size: 12px;
+  padding: 24px 0 8px;
+  opacity: .8;
+}
+@media print {
+  .posim-alt,
+  .giris-imza {
+    display: none !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -4885,7 +4914,7 @@ label:has(#k-toplam) > span {
     <button type="button" class="btn ikincil kur-dugme gizli" data-kur="1"><span data-ikon="telefon"></span>Uygulamayı telefona yükle</button>
   </form>
  </div>
- <div class="giris-alt">İzlenebilirlik sistemi · POSİM Yazılım</div>
+ <div class="giris-alt">İzlenebilirlik sistemi · <a class="posim-imza" href="https://posimyazilim.com" target="_blank" rel="noopener">by <b>POSİM</b> Yazılım</a></div>
  </div>
 </div>
 
@@ -5749,6 +5778,7 @@ label:has(#k-toplam) > span {
         <div id="firma-liste"></div>
       </div>
     </section>
+    <footer class="posim-alt">Koçak Baklava İzlenebilirlik · <a class="posim-imza" href="https://posimyazilim.com" target="_blank" rel="noopener">by <b>POSİM</b> Yazılım</a></footer>
   </main>
 </div>
 

@@ -37,6 +37,8 @@
   .yok .muhur span { color: #fff; }
   .yok h1 { color: var(--hata); }
   .yukleniyor { padding: 140px 20px; text-align: center; color: var(--soluk); }
+  .imza { display: block; margin-top: 6px; color: var(--soluk); text-decoration: none; font-size: 11.5px; letter-spacing: .3px; opacity: .8; }
+  .imza b { color: var(--yesil); letter-spacing: .6px; }
   .alt-not { text-align: center; color: var(--soluk); font-size: 12px; padding: 20px 16px max(24px, env(safe-area-inset-bottom)); }
 </style>
 </head>
@@ -52,13 +54,14 @@
   var TIK = '<svg viewBox="0 0 24 24" fill="none" stroke="#3E2E08" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   var CARPI = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>';
   function ust(simge, yazi) { return '<div class="ust"><img class="logo" src="img/kocak-logo.png" alt="Koçak Baklava"><div class="muhur">' + simge + '<span>' + yazi + '</span></div></div>'; }
+  var IMZA = '<a class="imza" href="https://posimyazilim.com" target="_blank" rel="noopener">by <b>POSİM</b> Yazılım</a>';
   var MARKA = '<div class="marka"><h2>Koçak Baklava</h2><p>Gaziantep’in ustalık geleneğiyle, her gün taze üretilir. Her tepsi üretimden şubeye kadar kayıt altındadır.</p></div>';
   function ciz(r) {
     var s = document.getElementById('sayfa');
     if (!r || !r.bulundu) {
       document.body.className = 'yok';
       s.innerHTML = ust(CARPI, 'KAYIT YOK') + '<div class="kart"><h1>Bu kod kayıtlarımızda yok</h1><p class="alt">Okuttuğunuz kod Koçak Baklava kayıtlarında bulunamadı. Ürün orijinal olmayabilir.</p>' +
-        '<div class="urun"><b>Ne yapmalı?</b><p style="margin:6px 0 0;color:var(--soluk)">Ürünü aldığınız yere danışın ya da Koçak Baklava şubelerinden bilgi alın.</p></div>' + MARKA + '</div><div class="alt-not">Koçak Baklava ürün doğrulama</div>';
+        '<div class="urun"><b>Ne yapmalı?</b><p style="margin:6px 0 0;color:var(--soluk)">Ürünü aldığınız yere danışın ya da Koçak Baklava şubelerinden bilgi alın.</p></div>' + MARKA + '</div><div class="alt-not">Koçak Baklava ürün doğrulama' + IMZA + '</div>';
       return;
     }
     var dikkat = r.sorgu > 15;
@@ -72,7 +75,7 @@
       '<div class="sorgu' + (dikkat ? ' dikkat' : '') + '">' + (dikkat
         ? 'Bu ürün kodu daha önce <b>' + r.sorgu + ' kez</b> sorgulanmış. Ürünü Koçak Baklava şubesinden almadıysanız lütfen satıcıya danışın.'
         : (r.sorgu <= 1 ? 'Bu ürün kodu <b>ilk kez</b> sorgulandı.' : 'Bu ürün kodu ' + r.sorgu + '. kez sorgulandı · ilk sorgulama ' + tarih(r.ilk_sorgu) + '.')) + '</div>' +
-      MARKA + '</div><div class="alt-not">Koçak Baklava ürün doğrulama</div>';
+      MARKA + '</div><div class="alt-not">Koçak Baklava ürün doğrulama' + IMZA + '</div>';
   }
   var q = location.search.match(/[?&]k=([^&#]+)/i) || location.hash.match(/k=([^&#]+)/i);
   var kod = q ? decodeURIComponent(q[1]) : '';
