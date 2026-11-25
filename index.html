@@ -4740,6 +4740,111 @@ main > section {
 .onay-kutu p {
   white-space: pre-line;
 }
+.sy-acik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #E8F3EE;
+  border: 1px solid #B7D9C8;
+  color: #0F5E4A;
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.sy-acik > span {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.sy-acik > span > span {
+  display: flex;
+  flex-direction: column;
+}
+.sy-acik small {
+  color: var(--soluk);
+}
+.sy-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 2px solid #0F5E4A;
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 12px;
+  background: #F6FBF8;
+}
+.sy-ust-satir {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.sy-ust-satir > span {
+  display: flex;
+  flex-direction: column;
+}
+.sy-ust-satir b {
+  font-size: 18px;
+}
+.sy-ust-satir small {
+  color: var(--soluk);
+}
+.sy-kaydet {
+  min-height: 50px;
+  font-size: 17px;
+}
+.hizli-urun {
+  display: none !important;
+}
+#k-toplam {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--yesil);
+  border-width: 2px;
+}
+label:has(#k-toplam) > span {
+  font-weight: 800;
+  color: var(--yazi);
+}
+@media (max-width: 760px) {
+  body {
+    zoom: .9;
+  }
+}
+.sy-form .hm-giris {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sy-form .hm-giris input {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  font-size: 26px;
+}
+.sy-form .hm-giris span {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--soluk);
+  flex: none;
+}
+#sy-liste li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+#sy-liste li > span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+}
+#sy-liste li > span:last-child {
+  flex: none;
+}
 </style>
 </head>
 <body>
@@ -4950,6 +5055,40 @@ main > section {
     </section>
 
     <!-- YARI MAMUL -->
+    <section data-sayfa="sayim" class="gizli">
+      <h2>Sayım</h2>
+      <div id="sy-ust"></div>
+      <div id="sy-giris" class="gizli">
+        <div class="kart">
+          <form id="sy-okut-form" class="okut-satir" autocomplete="off">
+            <input id="sy-okut" class="okut-input" placeholder="Parti etiketini okutun…" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Parti etiketi">
+            <button class="btn btn-kamera" type="button" id="sy-kamera"><span data-ikon="kamera"></span>Kamera</button>
+          </form>
+          <form id="sy-form" class="sy-form gizli" autocomplete="off">
+            <div class="sy-ust-satir"><span><small id="sy-tur">Hammadde</small><b id="sy-ad"></b><small id="sy-parti"></small></span><button type="button" class="hm-kapat" id="sy-kapat" aria-label="Kapat">✕</button></div>
+            <div class="hm-giris"><input id="sy-miktar" class="okut-input" inputmode="decimal" placeholder="Sayılan miktar" aria-label="Sayılan miktar"><span id="sy-birim">kg</span></div>
+            <input id="sy-not" placeholder="Not (isteğe bağlı) · örn. alt raf, açık çuval" aria-label="Not">
+            <button class="btn sy-kaydet" type="submit" id="sy-kaydet">Kaydet</button>
+          </form>
+          <p class="aciklama" style="margin:12px 0 8px">Etiketi okutun ya da ürüne dokunup saydığınız miktarı yazın. Aynı ürünü birden çok yerde sayarsanız her birini ayrı girin; toplanır.</p>
+          <input id="sy-ara" placeholder="Ara…" aria-label="Ürün ara" style="margin-bottom:8px">
+          <div class="hm-urunler" id="sy-urunler"></div>
+        </div>
+        <div class="kart">
+          <h3 style="margin:0 0 10px">Bu sayımda girilenler <small id="sy-adet" style="color:var(--soluk);font-weight:500"></small></h3>
+          <ul class="okut-gecmis" id="sy-liste"></ul>
+        </div>
+      </div>
+      <div class="kart kip-gizle" id="sy-sonuc-kart">
+        <div class="satir" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <h3 style="margin:0">Sayım sonucu</h3>
+          <span class="satir" style="gap:8px"><select id="sy-sec" aria-label="Sayım seç"></select><button type="button" class="btn ikincil kucuk" id="sy-yazdir">Yazdır</button></span>
+        </div>
+        <div id="sy-ozet"></div>
+        <div class="tablo-kap"><table id="sy-sonuc"></table></div>
+      </div>
+    </section>
+
     <section data-sayfa="yarimamul" class="gizli">
       <h2>Yarı Mamul</h2>
       <div class="kart">
@@ -5742,7 +5881,7 @@ const MOBIL_KIP = (() => {
   }
   return ["depo", "oda", "sube"].includes(k) ? k : null;
 })();
-const KIP_EKRANLAR = { depo: ["kabul", "uretim", "yarimamul"], oda: ["oda", "sevkiyat"], sube: ["sube"] };
+const KIP_EKRANLAR = { depo: ["kabul", "uretim", "yarimamul", "sayim"], oda: ["oda", "sevkiyat"], sube: ["sube"] };
 const KIP_AD = { depo: "Depo", oda: "Baklava Odas\u0131", sube: "\u015Eube" };
 if (MOBIL_KIP) document.documentElement.classList.add("mobil-kip", "kip-" + MOBIL_KIP);
 (function androidKoprusu() {
@@ -6286,6 +6425,189 @@ function etiketSecimleriniDoldur() {
 }
 document.addEventListener("click", (ev) => {
   if (ev.target.closest("[data-fis-ayar]")) fisAyarAc();
+});
+let syAcik = null, sySecili = null, syUrunler = [], sySatirlar = [];
+const syYetkili = () => profil.rol === "yonetici" || izinliEkranlar().includes("sayim");
+async function sayimSayfasi() {
+  const [{ data: ss }, { data: ur }] = await Promise.all([
+    sb.from("sayimlar").select("*").order("id", { ascending: false }).limit(24),
+    sb.from("urunler").select("id,kod,ad,birim,kategori,takip_turu").eq("aktif", true).order("ad")
+  ]);
+  const l = ss || [];
+  syUrunler = ur || [];
+  syAcik = l.find((x) => x.durum === "acik") || null;
+  const ay = (/* @__PURE__ */ new Date()).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
+  $("sy-ust").innerHTML = syAcik ? `<div class="sy-acik"><span>${ikon("sayim", 22, 2)}<span><b>A\xE7\u0131k say\u0131m: ${esc(syAcik.ad)}</b><small>Ba\u015Flang\u0131\xE7 ${tarihSaat(syAcik.created_at)}</small></span></span>
+        ${mobilCihazMi() || MOBIL_KIP ? "" : `<button type="button" class="btn ikincil" id="sy-kapat-btn">Say\u0131m\u0131 kapat</button>`}</div>` : `<div class="kart sy-baslat"><b>A\xE7\u0131k say\u0131m yok.</b><p class="aciklama" style="margin:4px 0 10px">Ay sonu say\u0131m\u0131na ba\u015Flamak i\xE7in say\u0131ma bir ad verin.</p>
+        <div class="satir" style="gap:8px;flex-wrap:wrap"><input id="sy-yeni-ad" value="${esc(ay.charAt(0).toLocaleUpperCase("tr") + ay.slice(1))} ay sonu say\u0131m\u0131" style="flex:1 1 220px" aria-label="Say\u0131m ad\u0131"><button type="button" class="btn" id="sy-baslat">Say\u0131m\u0131 ba\u015Flat</button></div></div>`;
+  $("sy-giris").classList.toggle("gizli", !syAcik);
+  if ($("sy-baslat")) $("sy-baslat").onclick = async () => {
+    const { error } = await sb.rpc("sayim_ac", { p_ad: $("sy-yeni-ad").value });
+    if (error) return bildir(hataMesaji(error), true);
+    bildir("Say\u0131m ba\u015Flad\u0131.");
+    sayimSayfasi();
+  };
+  if ($("sy-kapat-btn")) $("sy-kapat-btn").onclick = async () => {
+    if (!await onayla(`\u201C${syAcik.ad}\u201D kapat\u0131ls\u0131n m\u0131?
+Kapan\u0131nca yeni giri\u015F yap\u0131lamaz; sistem sto\u011Fu bu anki haliyle sonuca yaz\u0131l\u0131r.`, "Say\u0131m\u0131 kapat")) return;
+    const { error } = await sb.rpc("sayim_kapat", { p_sayim_id: syAcik.id });
+    if (error) return bildir(hataMesaji(error), true);
+    bildir("Say\u0131m kapat\u0131ld\u0131.");
+    sySonucSecim = null;
+    sayimSayfasi();
+  };
+  $("sy-sec").innerHTML = l.length ? l.map((x) => `<option value="${x.id}">${esc(x.ad)}${x.durum === "acik" ? " \xB7 a\xE7\u0131k" : " \xB7 " + tarih(String(x.kapanis || x.created_at).slice(0, 10))}</option>`).join("") : '<option value="">Hen\xFCz say\u0131m yok</option>';
+  if (sySonucSecim && l.some((x) => x.id === sySonucSecim)) $("sy-sec").value = String(sySonucSecim);
+  if (syAcik) {
+    syCiz();
+    await syListe();
+  }
+  if (!MOBIL_KIP) sySonuc();
+}
+let sySonucSecim = null;
+function syCiz() {
+  const q = ($("sy-ara").value || "").toLocaleLowerCase("tr");
+  const toplam = {};
+  sySatirlar.forEach((r) => {
+    toplam[r.urun_id] = (toplam[r.urun_id] || 0) + Number(r.miktar);
+  });
+  $("sy-urunler").innerHTML = syUrunler.filter((u) => !q || (u.ad + " " + u.kod).toLocaleLowerCase("tr").includes(q)).map((u) => `<button type="button" class="hm-urun ${sySecili && sySecili.urun.id === u.id ? "secili" : ""}" data-sy="${u.id}"><b>${esc(u.ad)}</b><small>${toplam[u.id] != null ? `Say\u0131ld\u0131: <b>${sayi(toplam[u.id])} ${esc(u.birim)}</b>` : "Say\u0131lmad\u0131"}</small></button>`).join("") || '<div class="bos">\xDCr\xFCn bulunamad\u0131.</div>';
+}
+function sySec(urun, parti = null) {
+  sySecili = { urun, parti };
+  $("sy-form").classList.remove("gizli");
+  $("sy-ad").textContent = urun.ad;
+  $("sy-birim").textContent = urun.birim || "kg";
+  $("sy-parti").textContent = parti ? `Parti ${parti.parti_kodu}` : "Parti belirtilmedi \xB7 \xFCr\xFCn toplam\u0131na eklenir";
+  $("sy-miktar").value = "";
+  $("sy-not").value = "";
+  $("sy-miktar").placeholder = urun.takip_turu === "adet" ? "Say\u0131lan adet" : "Say\u0131lan miktar";
+  syCiz();
+  setTimeout(() => {
+    var _a;
+    $("sy-miktar").focus();
+    const y = $("sy-form").getBoundingClientRect().top + scrollY - (((_a = document.querySelector("header")) == null ? void 0 : _a.offsetHeight) || 0) - 8;
+    scrollTo({ top: y, behavior: "smooth" });
+  }, 30);
+}
+function syKapat() {
+  sySecili = null;
+  $("sy-form").classList.add("gizli");
+  syCiz();
+}
+async function syListe() {
+  if (!syAcik) return;
+  const { data } = await sb.from("v_sayim_satirlari").select("*").eq("sayim_id", syAcik.id).order("id", { ascending: false });
+  sySatirlar = data || [];
+  const benim = MOBIL_KIP ? sySatirlar.filter((r) => r.sayan === profil.id) : sySatirlar;
+  $("sy-adet").textContent = `\xB7 ${benim.length} giri\u015F${MOBIL_KIP ? " (sizin)" : ""}`;
+  $("sy-liste").innerHTML = benim.length ? benim.slice(0, 60).map((r) => `<li class="ok"><span>${esc(r.urun_ad)} \xB7 <b>${sayi(r.miktar)} ${esc(r.birim)}</b>${r.parti_kodu ? ` <span class="mono">${esc(r.parti_kodu)}</span>` : ""}${r.notu ? ` \xB7 ${esc(r.notu)}` : ""}${MOBIL_KIP ? "" : ` \xB7 ${esc(r.sayan_ad || "")}`}</span>
+      <span class="satir" style="gap:6px">${saat(r.zaman)}${r.sayan === profil.id || profil.rol === "yonetici" ? `<button type="button" class="btn kucuk ikincil" data-sy-sil="${r.id}">Sil</button>` : ""}</span></li>`).join("") : '<li class="bos" style="list-style:none">Hen\xFCz giri\u015F yok.</li>';
+  syCiz();
+}
+async function sySonuc() {
+  var _a;
+  const id = Number($("sy-sec").value);
+  if (!id) {
+    $("sy-sonuc").innerHTML = "";
+    $("sy-ozet").innerHTML = "";
+    return;
+  }
+  sySonucSecim = id;
+  const { data } = await sb.from("v_sayim_sonuc").select("*").eq("sayim_id", id).order("urun_ad");
+  const l = (data || []).filter((r) => Number(r.sistem) || Number(r.sayilan));
+  const acik = ((_a = l[0]) == null ? void 0 : _a.durum) === "acik";
+  const sayilmayan = l.filter((r) => !Number(r.satir_sayisi)).length, farkli = l.filter((r) => Number(r.satir_sayisi) && Math.abs(Number(r.fark)) > 5e-4).length;
+  $("sy-ozet").innerHTML = `<div class="ozet-satir"><div class="ozet"><b>${l.length}</b>\xFCr\xFCn</div><div class="ozet"><b>${l.length - sayilmayan}</b>say\u0131ld\u0131</div><div class="ozet"><b>${sayilmayan}</b>say\u0131lmad\u0131</div><div class="ozet"><b>${farkli}</b>farkl\u0131</div></div>
+    ${acik ? '<p class="aciklama" style="margin:0 0 8px">Say\u0131m a\xE7\u0131k: sistem miktar\u0131 \u015Fu anki stoktur. Kapat\u0131l\u0131nca o anki haliyle sabitlenir.</p>' : ""}`;
+  $("sy-sonuc").innerHTML = `<tr><th>\xDCr\xFCn</th><th style="text-align:right">Sistemde</th><th style="text-align:right">Say\u0131lan</th><th style="text-align:right">Fark</th><th>Giri\u015F</th></tr>` + l.map((r) => {
+    const f = Number(r.fark), say = Number(r.satir_sayisi);
+    return `<tr data-sy-urun="${r.urun_id}" style="cursor:pointer"><td data-et="\xDCr\xFCn"><b>${esc(r.urun_ad)}</b> <small class="mono" style="color:var(--soluk)">${esc(r.urun_kod)}</small></td>
+        <td data-et="Sistemde" style="text-align:right">${sayi(r.sistem)} ${esc(r.birim)}</td>
+        <td data-et="Say\u0131lan" style="text-align:right">${say ? `${sayi(r.sayilan)} ${esc(r.birim)}` : '<span style="color:var(--soluk)">say\u0131lmad\u0131</span>'}</td>
+        <td data-et="Fark" style="text-align:right">${!say ? "\u2013" : Math.abs(f) < 5e-4 ? '<span class="fark-tamam">0 \u2713</span>' : `<span class="${f < 0 ? "fark-eksik" : "fark-fazla"}">${f > 0 ? "+" : ""}${sayi(f)} ${esc(r.birim)}</span>`}</td>
+        <td data-et="Giri\u015F">${say}</td></tr>`;
+  }).join("");
+}
+async function syUrunDetay(sayimId, urunId) {
+  var _a;
+  const { data } = await sb.from("v_sayim_satirlari").select("*").eq("sayim_id", sayimId).eq("urun_id", urunId).order("zaman");
+  const l = data || [];
+  modalAc(`Say\u0131m giri\u015Fleri \xB7 ${esc(((_a = l[0]) == null ? void 0 : _a.urun_ad) || "")}`, l.length ? `<ul class="okut-gecmis">${l.map((r) => `<li class="ok"><span><b>${sayi(r.miktar)} ${esc(r.birim)}</b>${r.parti_kodu ? ` \xB7 <span class="mono">${esc(r.parti_kodu)}</span>` : ""}${r.notu ? ` \xB7 ${esc(r.notu)}` : ""} \xB7 ${esc(r.sayan_ad || "")}</span><span>${tarihSaat(r.zaman)}</span></li>`).join("")}</ul>` : '<div class="bos">Bu \xFCr\xFCn say\u0131lmad\u0131.</div>');
+}
+$("sy-urunler").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-sy]");
+  if (!b) return;
+  const u = syUrunler.find((x) => x.id === Number(b.dataset.sy));
+  if (u) sySec(u);
+});
+$("sy-ara").addEventListener("input", syCiz);
+$("sy-kapat").onclick = syKapat;
+$("sy-sec").addEventListener("change", sySonuc);
+$("sy-sonuc").addEventListener("click", (ev) => {
+  const t = ev.target.closest("[data-sy-urun]");
+  if (t) syUrunDetay(Number($("sy-sec").value), Number(t.dataset.syUrun));
+});
+$("sy-yazdir").onclick = () => {
+  var _a;
+  const t = $("sy-sonuc").outerHTML, a = ((_a = $("sy-sec").selectedOptions[0]) == null ? void 0 : _a.textContent) || "";
+  $("page-size").textContent = "@page { size: A4; margin: 12mm; }";
+  $("yazdir").innerHTML = `<div class="rapor-a4"><h2>${esc(FIRMA_ADI)} \xB7 ${esc(a)}</h2>${$("sy-ozet").innerHTML}${t}</div>`;
+  setTimeout(() => window.print(), 150);
+};
+document.addEventListener("click", async (ev) => {
+  const b = ev.target.closest("[data-sy-sil]");
+  if (!b) return;
+  if (!await onayla("Bu say\u0131m giri\u015Fi silinsin mi?", "Sil")) return;
+  const { error } = await sb.rpc("sayim_satir_sil", { p_id: Number(b.dataset.sySil) });
+  if (error) return bildir(hataMesaji(error), true);
+  syListe();
+  if (!MOBIL_KIP) sySonuc();
+});
+async function syOkut(ham) {
+  const kod = kodAyikla(ham);
+  if (!kod) return;
+  const { data: e } = await sb.from("v_etiketler").select("*").eq("kod_norm", kod).maybeSingle();
+  if (!e) {
+    ses("hata");
+    return bildir("Bu bir parti etiketi de\u011Fil ya da bulunamad\u0131.", true);
+  }
+  const u = syUrunler.find((x) => x.id === e.urun_id) || { id: e.urun_id, ad: e.urun_ad, birim: e.birim || "kg" };
+  ses("ok");
+  sySec(u, { id: e.parti_id, parti_kodu: e.parti_kodu });
+}
+$("sy-okut-form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const v = $("sy-okut").value;
+  $("sy-okut").value = "";
+  syOkut(v);
+});
+$("sy-kamera").onclick = () => kameraAc((kod) => syOkut(kod));
+$("sy-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  if (!sySecili || !syAcik) return;
+  const m = sayiOku($("sy-miktar").value);
+  if (!(m >= 0) || String($("sy-miktar").value).trim() === "") {
+    ses("hata");
+    bildir("Sayd\u0131\u011F\u0131n\u0131z miktar\u0131 yaz\u0131n.", true);
+    return $("sy-miktar").focus();
+  }
+  const u = sySecili.urun;
+  if (!await onayla(`${u.ad}: ${sayi(m)} ${u.birim || "kg"} say\u0131ld\u0131 olarak kaydedilsin mi?${sySecili.parti ? `
+Parti ${sySecili.parti.parti_kodu}` : ""}`, "Kaydet")) return;
+  $("sy-kaydet").disabled = true;
+  const { error } = await sb.rpc("sayim_satir_ekle", { p_sayim_id: syAcik.id, p_urun_id: u.id, p_parti_id: sySecili.parti ? sySecili.parti.id : null, p_miktar: m, p_notu: $("sy-not").value });
+  $("sy-kaydet").disabled = false;
+  if (error) {
+    ses("hata");
+    return bildir(hataMesaji(error), true);
+  }
+  ses("ok");
+  bildir(`\u2713 ${u.ad} ${sayi(m)} ${u.birim || "kg"} kaydedildi.`);
+  syKapat();
+  scrollTo({ top: 0, behavior: "smooth" });
+  await syListe();
+  if (!MOBIL_KIP) sySonuc();
 });
 async function kuyrugaAl(tur, idler) {
   if (!idler || !idler.length) return;
@@ -8380,6 +8702,7 @@ const IK = {
   sevkiyat: '<path d="M14 17V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h1"/><path d="M14 8h4.2l2.8 3.5V16a1 1 0 0 1-1 1h-1"/><path d="M9 17h6"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
   sube: '<path d="M4 10.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9.5"/><path d="M3 7.2 4.6 3.6A1 1 0 0 1 5.5 3h13a1 1 0 0 1 .9.6L21 7.2V8a2.75 2.75 0 0 1-5 1.5 2.75 2.75 0 0 1-4 0 2.75 2.75 0 0 1-4 0A2.75 2.75 0 0 1 3 8Z"/><path d="M10 21v-5h4v5"/>',
   odastok: '<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h4M7 17h4"/>',
+  sayim: '<path d="M9 4h6v3H9z"/><path d="M15 5h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h3"/><path d="m9 13 2 2 4-4"/>',
   stok: '<path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/><path d="m7.5 5.5 9 5"/>',
   partiler: '<path d="m12 3 9 4.5-9 4.5-9-4.5Z"/><path d="m3 12 9 4.5 9-4.5"/><path d="m3 16.5 9 4.5 9-4.5"/>',
   muhendis: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6Z"/><path d="m8.8 12 2.3 2.3 4.2-4.6"/>',
@@ -8407,6 +8730,7 @@ const EKRANLAR = [
   { id: "kabul", ad: "Mal Kabul", renk: "#0F766E", acik: "Parti gir, QR etiket bas" },
   { id: "uretim", ad: "\xDCretime Ver", renk: "#C2410C", acik: "Hammaddeyi miktar\u0131yla \xFCretime ver" },
   { id: "yarimamul", ad: "Yar\u0131 Mamul", renk: "#0E7490", acik: "Hamur, \u015Ferbet, \xE7ekilmi\u015F f\u0131st\u0131k" },
+  { id: "sayim", ad: "Say\u0131m", renk: "#0F5E4A", acik: "Ay sonu stok say\u0131m\u0131" },
   { id: "oda", ad: "Baklava Odas\u0131", renk: "#B45309", acik: "Tepsi etiketleri" },
   { id: "odastok", ad: "Oda Sto\u011Fu", renk: "#92400E", acik: "Odadaki tepsiler ve \u015Fube sipari\u015Fleri" },
   { id: "sevkiyat", ad: "Sevkiyat", renk: "#4338CA", acik: "Ara\xE7 kontrol\xFC ve y\xFCkleme" },
@@ -11297,7 +11621,7 @@ async function rolKartiYukle() {
   $("rol-liste").innerHTML = satirlar.length ? satirlar.join("") : `<li class="bos-satir">${esc(bos)}</li>`;
 }
 const GRUPLAR = {
-  depo: { ad: "Depo", ekranlar: ["kabul", "uretim", "yarimamul"], ikon: "kabul" },
+  depo: { ad: "Depo", ekranlar: ["kabul", "uretim", "yarimamul", "sayim"], ikon: "kabul" },
   odasevk: { ad: "Oda & Sevkiyat", ekranlar: ["oda", "odastok", "sevkiyat"], ikon: "oda" }
 };
 const grupBul = (ad) => Object.keys(GRUPLAR).find((k) => GRUPLAR[k].ekranlar.includes(ad));
@@ -11382,6 +11706,7 @@ function sayfaAc(ad) {
     if (!$("r-bas").value || $("r-donem").value !== "ozel") [$("r-bas").value, $("r-bit").value] = donemAraligi($("r-donem").value === "ozel" ? "ay" : $("r-donem").value);
     raporGetir();
   }
+  if (ad === "sayim") sayimSayfasi();
   if (ad === "sevkiyat") {
     if (!$("sv-gun").value) $("sv-gun").value = bugun();
     sevkiyatSayfasi();
