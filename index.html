@@ -4874,6 +4874,25 @@ label:has(#k-toplam) > span {
     display: none !important;
   }
 }
+.ham-gelismis {
+  margin-top: 14px;
+  border: 1px dashed var(--cizgi);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.ham-gelismis summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--soluk);
+}
+.ham-uyari {
+  background: #FFF3DC;
+  color: #7A4B00;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  margin: 10px 0 0;
+}
 </style>
 </head>
 <body>
@@ -5565,6 +5584,7 @@ label:has(#k-toplam) > span {
           <div class="satir" style="gap:8px;margin-top:12px;flex-wrap:wrap">
             <button type="button" class="btn ikincil ham-ayar-dugme" data-ham-ayar="1">Etiket yazıcısı ayarı</button>
             <button type="button" class="btn ikincil fis-ayar-dugme" data-fis-ayar="1">Fiş yazıcısı ayarı</button>
+            <button type="button" class="btn ikincil son-etiket-dugme" onclick="sonEtiketKaydet()">Son etiket işini dosyaya kaydet</button>
           </div>
         </div>
         <div class="kart">
@@ -6226,7 +6246,51 @@ function hamAyar() {
     a = JSON.parse(localStorage.getItem("hamAyar") || "{}");
   } catch (e) {
   }
+  if (a.surum !== 2) {
+    a = { ...a, dil: "surucu", koyu: 0, surum: 2 };
+    try {
+      localStorage.setItem("hamAyar", JSON.stringify(a));
+    } catch (e) {
+    }
+  }
   return { ...HAM_VARSAYILAN, ...a };
+}
+const etiketYazicisi = (s) => s && s.yazici || hamAyar().yazici || (fisAyar().yazici || "");
+function etiketBelgesi(l, s) {
+  const W = Number(s.genislik_mm), H = Number(s.yukseklik_mm);
+  const govde = l.map((v, i) => `<div style="width:${W}mm;height:${H}mm;overflow:hidden;position:relative;background:#fff;${i < l.length - 1 ? "page-break-after:always;break-after:page;" : ""}">${etiketCiz(v, s)}</div>`).join("");
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><style>$ {
+  belgeCss();
+}
+</style><style>@page {
+  size:$ {
+    W;
+  }
+  mm $ {
+    H;
+  }
+  mm;
+  margin: 0;
+}
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff !important;
+}
+#yazdir {
+  display: block !important;
+}
+#yazdir .etk {
+  page-break-after: auto !important;
+  break-after: auto !important;
+  margin: 0 !important;
+}
+</style></head><body><div id="yazdir">${govde}</div></body></html>`;
+}
+async function surucuGrupBas(g) {
+  const yazici = etiketYazicisi(g.s);
+  return yaziciKopru.etiketYazdir({ html: etiketBelgesi(g.l, g.s), yazici, genislik: Number(g.s.genislik_mm), yukseklik: Number(g.s.yukseklik_mm) });
 }
 function hamAyarYaz(a) {
   try {
@@ -6274,6 +6338,11 @@ async function hamGrupBas(g, a = hamAyar()) {
   }
   return yaziciKopru.hamBas({ ...a, yazici, html: hamBelge(g.l, g.s), adet: g.l.length, genislik: Number(g.s.genislik_mm), yukseklik: Number(g.s.yukseklik_mm) });
 }
+async function sonEtiketKaydet() {
+  if (!yaziciKopru || !yaziciKopru.sonEtiketKaydet) return bildir("Bu \xF6zellik Windows program\u0131nda \xE7al\u0131\u015F\u0131r.", true);
+  const r = await yaziciKopru.sonEtiketKaydet();
+  bildir(r && r.ok ? `Son etiket i\u015Fi masa\xFCst\xFCndeki \u201CKocak-etiket-destek\u201D klas\xF6r\xFCne kaydedildi.` : r && r.hata || "Kaydedilemedi", !(r && r.ok));
+}
 function prYaziciCiz() {
   const t = yaziciTuru();
   if (!$("pr-yazici-turu")) return;
@@ -6305,17 +6374,21 @@ async function hamAyarAc() {
   } catch (e) {
   }
   const s0 = etiketSablonlari.find((x) => x.tur === "tepsi") || etiketSablonlari[0];
-  modalAc("Etiket yaz\u0131c\u0131s\u0131 ayar\u0131 \xB7 bu bilgisayar", `
-    <p class="aciklama" style="margin-top:0">Etiket bo\u015F ya da kay\u0131k \xE7\u0131k\u0131yorsa <b>ZPL</b> ya da <b>TSPL</b> se\xE7in: etiket yaz\u0131c\u0131n\u0131n s\xFCr\xFCc\xFCs\xFCnden ge\xE7meden, do\u011Frudan ve termal olarak bas\u0131l\u0131r.</p>
+  modalAc("Etiket yaz\u0131c\u0131s\u0131 \xB7 bu bilgisayar", `
+    <p class="aciklama" style="margin-top:0">Etiketler Windows yaz\u0131c\u0131 s\xFCr\xFCc\xFCs\xFCyle, sat\u0131\u015F yaz\u0131l\u0131m\u0131m\u0131zdaki y\xF6ntemle bas\u0131l\u0131r. Yaz\u0131c\u0131n\u0131n s\xFCr\xFCc\xFCs\xFC kurulu ve s\xFCr\xFCc\xFCde etiket \xF6l\xE7\xFCs\xFC tan\u0131ml\u0131 olmal\u0131.</p>
     <label>Etiket yaz\u0131c\u0131s\u0131 <select id="ha-yazici"><option value="">Se\xE7in</option>${liste.map((y) => `<option value="${esc(y.ad)}"${y.ad === a.yazici ? " selected" : ""}>${esc(y.ad)}</option>`).join("")}</select></label>
-    <div class="ham-dil" role="radiogroup" aria-label="Yaz\u0131c\u0131 dili">${[["surucu", "Windows s\xFCr\xFCc\xFCs\xFC"], ["zpl", "ZPL (Zebra, HPRT, Godex, Kodprint)"], ["tspl", "TSPL (TSC, Xprinter)"]].map(([d, ad]) => `<label class="ham-dil-sec"><input type="radio" name="ha-dil" value="${d}"${a.dil === d ? " checked" : ""}> ${ad}</label>`).join("")}</div>
-    <div class="grid" style="margin-top:10px">
-      <label>\xC7\xF6z\xFCn\xFCrl\xFCk <select id="ha-dpi"><option value="203"${a.dpi == 203 ? " selected" : ""}>203 dpi (\xE7o\u011Fu yaz\u0131c\u0131)</option><option value="300"${a.dpi == 300 ? " selected" : ""}>300 dpi</option></select></label>
-      <label>Yaz\u0131c\u0131 kafa geni\u015Fli\u011Fi <select id="ha-kafa">${[[0, "Se\xE7ilmedi"], [58, "58 mm"], [80, "80 mm"], [100, "100 mm"], [104, "104 mm"], [108, "108 mm"]].map(([v, t]) => `<option value="${v}"${Number(a.kafa) === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>
-      <label>Koyuluk <select id="ha-koyu">${[[0, "Yaz\u0131c\u0131n\u0131n ayar\u0131"], [8, "A\xE7\u0131k"], [15, "Orta"], [22, "Koyu"], [28, "\xC7ok koyu"]].map(([v, t]) => `<option value="${v}"${Number(a.koyu) === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>
-    </div>
-    <label class="ham-onay"><input type="checkbox" id="ha-ortala"${a.ortala ? " checked" : ""}> Etiketi ortala <small>rulo yaz\u0131c\u0131n\u0131n ortas\u0131na tak\u0131l\u0131ysa (kafa geni\u015Fli\u011Fi se\xE7ili olmal\u0131)</small></label>
-    <label class="ham-onay"><input type="checkbox" id="ha-cevir"${a.cevir ? " checked" : ""}> Bask\u0131y\u0131 90\xB0 \xE7evir <small>etiket yan bas\u0131l\u0131yorsa</small></label>
+    <p class="aciklama" style="margin:6px 0 0">Bir \u015Fablona ayr\u0131 yaz\u0131c\u0131 atanm\u0131\u015Fsa o \u015Fablon kendi yaz\u0131c\u0131s\u0131na gider.</p>
+    <details class="ham-gelismis" ${a.dil !== "surucu" ? "open" : ""}>
+      <summary>Geli\u015Fmi\u015F: s\xFCr\xFCc\xFCs\xFCz do\u011Frudan bask\u0131 (\xF6nerilmez)</summary>
+      <p class="ham-uyari">Bu mod yaz\u0131c\u0131ya do\u011Frudan komut g\xF6nderir. Yanl\u0131\u015F dil se\xE7ilirse yaz\u0131c\u0131n\u0131n ayarlar\u0131 bozulabilir; ayn\u0131 yaz\u0131c\u0131y\u0131 ba\u015Fka programlar da kullan\u0131yorsa sorun \xE7\u0131kar. Sadece s\xFCr\xFCc\xFCs\xFC olmayan yaz\u0131c\u0131larda kullan\u0131n.</p>
+      <div class="ham-dil" role="radiogroup" aria-label="Yaz\u0131c\u0131 dili">${[["surucu", "Windows s\xFCr\xFCc\xFCs\xFC (\xF6nerilen)"], ["zpl", "ZPL"], ["tspl", "TSPL"]].map(([d, ad]) => `<label class="ham-dil-sec"><input type="radio" name="ha-dil" value="${d}"${a.dil === d ? " checked" : ""}> ${ad}</label>`).join("")}</div>
+      <div class="grid" style="margin-top:10px">
+        <label>\xC7\xF6z\xFCn\xFCrl\xFCk <select id="ha-dpi"><option value="203"${a.dpi == 203 ? " selected" : ""}>203 dpi</option><option value="300"${a.dpi == 300 ? " selected" : ""}>300 dpi</option></select></label>
+        <label>Yaz\u0131c\u0131 kafa geni\u015Fli\u011Fi <select id="ha-kafa">${[[0, "Se\xE7ilmedi"], [58, "58 mm"], [80, "80 mm"], [100, "100 mm"], [104, "104 mm"], [108, "108 mm"]].map(([v, t]) => `<option value="${v}"${Number(a.kafa) === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+      </div>
+      <label class="ham-onay"><input type="checkbox" id="ha-ortala"${a.ortala ? " checked" : ""}> Etiketi ortala</label>
+      <label class="ham-onay"><input type="checkbox" id="ha-cevir"${a.cevir ? " checked" : ""}> Bask\u0131y\u0131 90\xB0 \xE7evir</label>
+    </details>
     <div class="satir" style="justify-content:flex-end;margin-top:14px;gap:8px;flex-wrap:wrap">
       ${s0 ? '<button class="btn ikincil" type="button" id="ha-deneme">Deneme etiketi bas</button>' : ""}<button class="btn" type="button" id="ha-kaydet">Kaydet</button></div>`);
   const oku = () => ({
@@ -6323,12 +6396,16 @@ async function hamAyarAc() {
     dil: (document.querySelector('input[name="ha-dil"]:checked') || {}).value || "surucu",
     dpi: Number($("ha-dpi").value),
     kafa: Number($("ha-kafa").value),
-    koyu: Number($("ha-koyu").value),
+    koyu: 0,
     ortala: $("ha-ortala").checked,
-    cevir: $("ha-cevir").checked
+    cevir: $("ha-cevir").checked,
+    surum: 2
   });
-  $("ha-kaydet").onclick = () => {
+  const riskOnay = async (x) => x.dil === "surucu" || x.dil === hamAyar().dil || await onayla(`${x.dil.toUpperCase()} modu yaz\u0131c\u0131ya do\u011Frudan komut g\xF6nderir ve yaz\u0131c\u0131n\u0131n ayarlar\u0131n\u0131 de\u011Fi\u015Ftirebilir. Ayn\u0131 yaz\u0131c\u0131y\u0131 ba\u015Fka programlar kullan\u0131yorsa sorun \xE7\u0131kabilir.
+Devam edilsin mi?`, "Evet, devam et", "Vazge\xE7");
+  $("ha-kaydet").onclick = async () => {
     const x = oku();
+    if (!await riskOnay(x)) return;
     hamAyarYaz(x);
     modalKapat();
     bildir(x.dil === "surucu" ? "Etiketler Windows s\xFCr\xFCc\xFCs\xFCyle bas\u0131lacak." : `Etiketler ${x.dil.toUpperCase()} ile do\u011Frudan \u201C${x.yazici}\u201D yaz\u0131c\u0131s\u0131na bas\u0131lacak.`);
@@ -6339,12 +6416,10 @@ async function hamAyarAc() {
     const ornek = { kod: "T-" + bugun().replace(/-/g, "").slice(2) + "-0001", kod_norm: "DENEME", mamul_ad: "BAKLAVA 2,5KG LIK TEPS\u0130", dara_kod: "\xDCRT.0002", uretim_tarihi: bugun(), skt: gunEkle(bugun(), 3) };
     const g = { s: { ...s0, yazici: "" }, l: [ornek] };
     if (x.dil === "surucu") {
-      $("page-size").textContent = `@page { size: ${s0.genislik_mm}mm ${s0.yukseklik_mm}mm; margin: 0; }`;
-      $("yazdir").innerHTML = etiketCiz(ornek, s0);
-      await new Promise((r3) => setTimeout(r3, 150));
-      const r2 = await yaziciKopru.bas({ yazici: x.yazici, genislik: Number(s0.genislik_mm), yukseklik: Number(s0.yukseklik_mm) });
-      return bildir(r2 && r2.ok ? "Deneme etiketi g\xF6nderildi." : "Yazd\u0131r\u0131lamad\u0131: " + (r2 && r2.hata || ""), !(r2 && r2.ok));
+      const r2 = await yaziciKopru.etiketYazdir({ html: etiketBelgesi([ornek], s0), yazici: x.yazici, genislik: Number(s0.genislik_mm), yukseklik: Number(s0.yukseklik_mm) });
+      return bildir(r2 && r2.ok ? `Deneme etiketi ${x.yazici} yaz\u0131c\u0131s\u0131na g\xF6nderildi (${s0.genislik_mm}\xD7${s0.yukseklik_mm} mm).` : "Yazd\u0131r\u0131lamad\u0131: " + (r2 && r2.hata || ""), !(r2 && r2.ok));
     }
+    if (!await riskOnay(x)) return;
     const r = await hamGrupBas(g, x);
     bildir(r && r.ok ? `Deneme etiketi ${x.dil.toUpperCase()} ile g\xF6nderildi (${s0.genislik_mm}\xD7${s0.yukseklik_mm} mm).` : "Yazd\u0131r\u0131lamad\u0131: " + (r && r.hata || ""), !(r && r.ok));
   };
@@ -6360,6 +6435,14 @@ async function gruplariBas(gruplar) {
       const r = await hamGrupBas(g);
       if (r && !r.ok && r.hata) bildir("Yazd\u0131r\u0131lamad\u0131: " + r.hata + " \xB7 Etiket yaz\u0131c\u0131s\u0131 ayar\u0131n\u0131 kontrol edin.", true);
       else if (r && r.ok) bildir(`${g.l.length} etiket ${g.s.yazici || hamAyar().yazici} yaz\u0131c\u0131s\u0131na g\xF6nderildi.`);
+    }
+    return;
+  }
+  if (yaziciKopru && yaziciKopru.etiketYazdir) {
+    for (const g of gruplar) {
+      const r = await surucuGrupBas(g), y = etiketYazicisi(g.s);
+      if (r && !r.ok && r.hata && !/cancel/i.test(r.hata)) bildir("Yazd\u0131r\u0131lamad\u0131: " + r.hata + (y ? "" : " \xB7 Parametreler > Bu bilgisayar\u0131n yaz\u0131c\u0131s\u0131 b\xF6l\xFCm\xFCnden etiket yaz\u0131c\u0131s\u0131n\u0131 se\xE7in."), true);
+      else if (r && r.ok && y) bildir(`${g.l.length} etiket ${y} yaz\u0131c\u0131s\u0131na g\xF6nderildi.`);
     }
     return;
   }
