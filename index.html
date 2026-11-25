@@ -4661,6 +4661,45 @@ main > section {
   color: #23602A;
   font-weight: 700;
 }
+.ham-dil {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.ham-dil-sec {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 6px !important;
+  border: 1px solid var(--cizgi);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: var(--yazi) !important;
+  cursor: pointer;
+}
+.ham-dil-sec:has(input:checked) {
+  border-color: var(--yesil);
+  background: #EEF6EA;
+}
+.ham-dil-sec input,
+.ham-onay input {
+  min-height: 0;
+  width: 18px;
+  height: 18px;
+}
+.ham-onay {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  margin-top: 10px;
+  color: var(--yazi) !important;
+  font-weight: 600;
+}
+.ham-onay small {
+  color: var(--soluk);
+  font-weight: 500;
+}
 </style>
 </head>
 <body>
@@ -5955,9 +5994,127 @@ async function fisAyarAc(basmadanOnce = false) {
     }, 400);
   });
 }
+const HAM_VARSAYILAN = { dil: "surucu", yazici: "", dpi: 203, kafa: 0, ortala: false, cevir: false, koyu: 0 };
+function hamAyar() {
+  let a = {};
+  try {
+    a = JSON.parse(localStorage.getItem("hamAyar") || "{}");
+  } catch (e) {
+  }
+  return { ...HAM_VARSAYILAN, ...a };
+}
+function hamAyarYaz(a) {
+  try {
+    localStorage.setItem("hamAyar", JSON.stringify(a));
+  } catch (e) {
+  }
+}
+function belgeCss() {
+  return [...document.styleSheets].map((ss) => {
+    try {
+      return [...ss.cssRules].map((r) => r.cssText).join("\n");
+    } catch (e) {
+      return "";
+    }
+  }).join("\n");
+}
+function hamBelge(l, s) {
+  const W = Number(s.genislik_mm), H = Number(s.yukseklik_mm);
+  const govde = l.map((v) => `<div style="width:${W}mm;height:${H}mm;overflow:hidden;position:relative;background:#fff">${etiketCiz(v, s)}</div>`).join("");
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><style>$ {
+  belgeCss();
+}
+</style><style>html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff !important;
+  overflow: hidden;
+}
+#yazdir {
+  display: block !important;
+}
+#yazdir .etk {
+  page-break-after: auto !important;
+  break-after: auto !important;
+  margin: 0 !important;
+}
+</style></head><body><div id="yazdir">${govde}</div></body></html>`;
+}
+async function hamGrupBas(g, a = hamAyar()) {
+  const yazici = g.s.yazici || a.yazici;
+  if (!yazici) {
+    await hamAyarAc();
+    return { ok: false, hata: "" };
+  }
+  return yaziciKopru.hamBas({ ...a, yazici, html: hamBelge(g.l, g.s), adet: g.l.length, genislik: Number(g.s.genislik_mm), yukseklik: Number(g.s.yukseklik_mm) });
+}
+async function hamAyarAc() {
+  const a = hamAyar();
+  let liste = [];
+  try {
+    liste = await yaziciKopru.liste();
+  } catch (e) {
+  }
+  const s0 = etiketSablonlari.find((x) => x.tur === "tepsi") || etiketSablonlari[0];
+  modalAc("Etiket yaz\u0131c\u0131s\u0131 ayar\u0131 \xB7 bu bilgisayar", `
+    <p class="aciklama" style="margin-top:0">Etiket bo\u015F ya da kay\u0131k \xE7\u0131k\u0131yorsa <b>ZPL</b> ya da <b>TSPL</b> se\xE7in: etiket yaz\u0131c\u0131n\u0131n s\xFCr\xFCc\xFCs\xFCnden ge\xE7meden, do\u011Frudan ve termal olarak bas\u0131l\u0131r.</p>
+    <label>Etiket yaz\u0131c\u0131s\u0131 <select id="ha-yazici"><option value="">Se\xE7in</option>${liste.map((y) => `<option value="${esc(y.ad)}"${y.ad === a.yazici ? " selected" : ""}>${esc(y.ad)}</option>`).join("")}</select></label>
+    <div class="ham-dil" role="radiogroup" aria-label="Yaz\u0131c\u0131 dili">${[["surucu", "Windows s\xFCr\xFCc\xFCs\xFC"], ["zpl", "ZPL (Zebra, HPRT, Godex, Kodprint)"], ["tspl", "TSPL (TSC, Xprinter)"]].map(([d, ad]) => `<label class="ham-dil-sec"><input type="radio" name="ha-dil" value="${d}"${a.dil === d ? " checked" : ""}> ${ad}</label>`).join("")}</div>
+    <div class="grid" style="margin-top:10px">
+      <label>\xC7\xF6z\xFCn\xFCrl\xFCk <select id="ha-dpi"><option value="203"${a.dpi == 203 ? " selected" : ""}>203 dpi (\xE7o\u011Fu yaz\u0131c\u0131)</option><option value="300"${a.dpi == 300 ? " selected" : ""}>300 dpi</option></select></label>
+      <label>Yaz\u0131c\u0131 kafa geni\u015Fli\u011Fi <select id="ha-kafa">${[[0, "Se\xE7ilmedi"], [58, "58 mm"], [80, "80 mm"], [100, "100 mm"], [104, "104 mm"], [108, "108 mm"]].map(([v, t]) => `<option value="${v}"${Number(a.kafa) === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label>Koyuluk <select id="ha-koyu">${[[0, "Yaz\u0131c\u0131n\u0131n ayar\u0131"], [8, "A\xE7\u0131k"], [15, "Orta"], [22, "Koyu"], [28, "\xC7ok koyu"]].map(([v, t]) => `<option value="${v}"${Number(a.koyu) === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+    </div>
+    <label class="ham-onay"><input type="checkbox" id="ha-ortala"${a.ortala ? " checked" : ""}> Etiketi ortala <small>rulo yaz\u0131c\u0131n\u0131n ortas\u0131na tak\u0131l\u0131ysa (kafa geni\u015Fli\u011Fi se\xE7ili olmal\u0131)</small></label>
+    <label class="ham-onay"><input type="checkbox" id="ha-cevir"${a.cevir ? " checked" : ""}> Bask\u0131y\u0131 90\xB0 \xE7evir <small>etiket yan bas\u0131l\u0131yorsa</small></label>
+    <div class="satir" style="justify-content:flex-end;margin-top:14px;gap:8px;flex-wrap:wrap">
+      ${s0 ? '<button class="btn ikincil" type="button" id="ha-deneme">Deneme etiketi bas</button>' : ""}<button class="btn" type="button" id="ha-kaydet">Kaydet</button></div>`);
+  const oku = () => ({
+    yazici: $("ha-yazici").value,
+    dil: (document.querySelector('input[name="ha-dil"]:checked') || {}).value || "surucu",
+    dpi: Number($("ha-dpi").value),
+    kafa: Number($("ha-kafa").value),
+    koyu: Number($("ha-koyu").value),
+    ortala: $("ha-ortala").checked,
+    cevir: $("ha-cevir").checked
+  });
+  $("ha-kaydet").onclick = () => {
+    const x = oku();
+    hamAyarYaz(x);
+    modalKapat();
+    bildir(x.dil === "surucu" ? "Etiketler Windows s\xFCr\xFCc\xFCs\xFCyle bas\u0131lacak." : `Etiketler ${x.dil.toUpperCase()} ile do\u011Frudan \u201C${x.yazici}\u201D yaz\u0131c\u0131s\u0131na bas\u0131lacak.`);
+  };
+  if ($("ha-deneme")) $("ha-deneme").onclick = async () => {
+    const x = oku();
+    if (!x.yazici) return bildir("\xD6nce etiket yaz\u0131c\u0131s\u0131n\u0131 se\xE7in.", true);
+    const ornek = { kod: "T-" + bugun().replace(/-/g, "").slice(2) + "-0001", kod_norm: "DENEME", mamul_ad: "BAKLAVA 2,5KG LIK TEPS\u0130", dara_kod: "\xDCRT.0002", uretim_tarihi: bugun(), skt: gunEkle(bugun(), 3) };
+    const g = { s: { ...s0, yazici: "" }, l: [ornek] };
+    if (x.dil === "surucu") {
+      $("page-size").textContent = `@page { size: ${s0.genislik_mm}mm ${s0.yukseklik_mm}mm; margin: 0; }`;
+      $("yazdir").innerHTML = etiketCiz(ornek, s0);
+      await new Promise((r3) => setTimeout(r3, 150));
+      const r2 = await yaziciKopru.bas({ yazici: x.yazici, genislik: Number(s0.genislik_mm), yukseklik: Number(s0.yukseklik_mm) });
+      return bildir(r2 && r2.ok ? "Deneme etiketi g\xF6nderildi." : "Yazd\u0131r\u0131lamad\u0131: " + (r2 && r2.hata || ""), !(r2 && r2.ok));
+    }
+    const r = await hamGrupBas(g, x);
+    bildir(r && r.ok ? `Deneme etiketi ${x.dil.toUpperCase()} ile g\xF6nderildi (${s0.genislik_mm}\xD7${s0.yukseklik_mm} mm).` : "Yazd\u0131r\u0131lamad\u0131: " + (r && r.hata || ""), !(r && r.ok));
+  };
+}
+document.addEventListener("click", (ev) => {
+  if (ev.target.closest("[data-ham-ayar]")) hamAyarAc();
+});
 async function gruplariBas(gruplar) {
   const f = FIS_YAZICI[yaziciTuru()];
   if (f) return fiseBas(gruplar, f);
+  if (yaziciKopru && yaziciKopru.hamBas && hamAyar().dil !== "surucu") {
+    for (const g of gruplar) {
+      const r = await hamGrupBas(g);
+      if (r && !r.ok && r.hata) bildir("Yazd\u0131r\u0131lamad\u0131: " + r.hata + " \xB7 Etiket yaz\u0131c\u0131s\u0131 ayar\u0131n\u0131 kontrol edin.", true);
+      else if (r && r.ok) bildir(`${g.l.length} etiket ${g.s.yazici || hamAyar().yazici} yaz\u0131c\u0131s\u0131na g\xF6nderildi.`);
+    }
+    return;
+  }
   if (yaziciKopru) {
     for (const g of gruplar) {
       $("page-size").textContent = `@page { size: ${g.s.genislik_mm}mm ${g.s.yukseklik_mm}mm; margin: 0; }`;
@@ -6002,14 +6159,14 @@ async function etiketAyarlariniYukle() {
 const ETIKET_EKRANLARI = { kabul: { tur: "hammadde", yazi: "Hammadde etiketi" }, yarimamul: { tur: "hammadde", yazi: "Yar\u0131 mamul etiketi" }, oda: { tur: "tepsi", yazi: "Tepsi etiketi" } };
 function etiketSecimleriniDoldur() {
   Object.entries(ETIKET_EKRANLARI).forEach(([id, e]) => {
-    var _a;
+    var _a, _b;
     const secenek = '<option value="oto">\xDCr\xFCne g\xF6re (otomatik)</option>' + etiketSablonlari.filter((s) => s.aktif && sablonUygun(s, e.tur)).map((s) => `<option value="${s.id}">${esc(s.ad)} \xB7 ${sayi(s.genislik_mm)}\xD7${sayi(s.yukseklik_mm)} mm</option>`).join("");
     const sec = document.querySelector(`main > section[data-sayfa="${id}"]`);
     if (!sec) return;
     let bar = sec.querySelector(".etiket-bar");
     if (!bar) {
       sec.querySelector("h2").insertAdjacentHTML("afterend", `<div class="etiket-bar">${ikon("etiket", 16, 2)}<span>${e.yazi}</span><select class="etiket-sec" id="etiket-sec-${id}" aria-label="${e.yazi}"></select>
-        <span>Yaz\u0131c\u0131</span><select class="yazici-turu" id="yazici-turu-${id}" aria-label="Bu bilgisayardaki yaz\u0131c\u0131 t\xFCr\xFC"><option value="etiket">Etiket yaz\u0131c\u0131s\u0131</option><option value="fis80">Fi\u015F yaz\u0131c\u0131s\u0131 80 mm</option><option value="fis58">Fi\u015F yaz\u0131c\u0131s\u0131 58 mm</option></select><button type="button" class="btn ikincil kucuk fis-ayar-dugme" data-fis-ayar="1">Fi\u015F ayar\u0131</button></div>`);
+        <span>Yaz\u0131c\u0131</span><select class="yazici-turu" id="yazici-turu-${id}" aria-label="Bu bilgisayardaki yaz\u0131c\u0131 t\xFCr\xFC"><option value="etiket">Etiket yaz\u0131c\u0131s\u0131</option><option value="fis80">Fi\u015F yaz\u0131c\u0131s\u0131 80 mm</option><option value="fis58">Fi\u015F yaz\u0131c\u0131s\u0131 58 mm</option></select><button type="button" class="btn ikincil kucuk ham-ayar-dugme" data-ham-ayar="1">Etiket yaz\u0131c\u0131s\u0131 ayar\u0131</button><button type="button" class="btn ikincil kucuk fis-ayar-dugme" data-fis-ayar="1">Fi\u015F ayar\u0131</button></div>`);
       bar = sec.querySelector(".etiket-bar");
       bar.querySelector("select").onchange = (ev) => {
         try {
@@ -6021,6 +6178,7 @@ function etiketSecimleriniDoldur() {
     const yt = bar.querySelector(".yazici-turu");
     yt.value = yaziciTuru();
     (_a = bar.querySelector(".fis-ayar-dugme")) == null ? void 0 : _a.classList.toggle("gizli", yt.value === "etiket");
+    (_b = bar.querySelector(".ham-ayar-dugme")) == null ? void 0 : _b.classList.toggle("gizli", yt.value !== "etiket" || !yaziciKopru);
     yt.onchange = () => {
       try {
         localStorage.setItem("yaziciTuru", yt.value);
@@ -6028,6 +6186,7 @@ function etiketSecimleriniDoldur() {
       }
       document.querySelectorAll(".yazici-turu").forEach((x) => x.value = yt.value);
       document.querySelectorAll(".fis-ayar-dugme").forEach((x) => x.classList.toggle("gizli", yt.value === "etiket"));
+      document.querySelectorAll(".ham-ayar-dugme").forEach((x) => x.classList.toggle("gizli", yt.value !== "etiket" || !yaziciKopru));
       if (yt.value !== "etiket") {
         const a = fisAyar();
         a.genislik = FIS_YAZICI[yt.value].kagit;
