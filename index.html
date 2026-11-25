@@ -4286,26 +4286,6 @@ main > section {
     font-size: 12.5px;
     padding: 6px 8px;
   }
-  .hm-sag .hm-panel:not(.gizli) {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 40;
-    margin: 0;
-    border-radius: 18px 18px 0 0;
-    border-width: 2px 0 0;
-    background: var(--kart);
-    box-shadow: 0 -12px 30px rgba(20, 30, 24, .25);
-    max-height: 78vh;
-    overflow: auto;
-    padding: 12px 12px 14px;
-    gap: 8px;
-  }
-  .hm-sag:has(.hm-panel:not(.gizli)) ~ *,
-  .hm-duzen:has(.hm-panel:not(.gizli)) .hm-sol {
-    padding-bottom: 260px;
-  }
   .hm-baslik {
     font-size: 17px;
   }
@@ -4481,7 +4461,6 @@ main > section {
   display: none;
 }
 .mobil-kip #o-hepsi,
-.mobil-kip #o-siparis-uyari,
 .mobil-kip #o-ozet,
 .mobil-kip [data-filtre-hedef=o-liste] .cipler,
 .mobil-kip [data-filtre-hedef=o-liste] .sonuc-say {
@@ -4703,6 +4682,64 @@ main > section {
 .etiket-bar {
   display: none !important;
 }
+.sip-bildirim {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  top: calc(env(safe-area-inset-top, 0px) + 70px);
+  z-index: 70;
+  max-width: 560px;
+  margin: 0 auto;
+  background: #1E3A5F;
+  color: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+  animation: sipGel .35s ease-out;
+}
+.sip-bildirim-ic {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.sip-bildirim-ic > span {
+  display: flex;
+  flex-direction: column;
+}
+.sip-bildirim-ic b {
+  font-size: 18px;
+}
+.sip-bildirim-ic small {
+  opacity: .85;
+  font-size: 14px;
+}
+.sip-bildirim-dugme {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.sip-bildirim-dugme .btn {
+  flex: 1;
+  min-height: 46px;
+}
+.sip-bildirim .btn.ikincil {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, .5);
+}
+@keyframes sipGel {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.onay-kutu p {
+  white-space: pre-line;
+}
 </style>
 </head>
 <body>
@@ -4776,6 +4813,7 @@ main > section {
       <button class="btn kucuk ikincil" id="cikis"><span data-ikon="cikis"></span>Çıkış</button>
     </div>
   </header>
+  <div id="sip-bildirim" class="sip-bildirim gizli" role="alert"></div>
   <button type="button" id="kuyruk-serit" class="kuyruk-serit gizli" onclick="kuyrukAc()"></button>
 
   <main>
@@ -6867,8 +6905,12 @@ function hmSec(anahtar) {
   $("hm-miktar").value = "";
   hmFireSifirla();
   setTimeout(() => {
+    var _a;
     $("hm-miktar").focus();
-    if (!matchMedia("(min-width: 1000px)").matches) $("hm-form").scrollIntoView({ block: "start", behavior: "smooth" });
+    if (!matchMedia("(min-width: 1000px)").matches) {
+      const y = $("hm-form").getBoundingClientRect().top + scrollY - (((_a = document.querySelector("header")) == null ? void 0 : _a.offsetHeight) || 0) - 8;
+      scrollTo({ top: y, behavior: "smooth" });
+    }
   }, 30);
 }
 let hmFireElle = false;
@@ -6934,6 +6976,16 @@ $("hm-form").addEventListener("submit", async (ev) => {
     hmDurum("hata", "Fire 0 ile verilen miktar aras\u0131nda olmal\u0131");
     return $("hm-fire").focus();
   }
+  const b = u.birim || "kg", acikK = u.acik ? Number(u.acik.kalan) : 0, top = Number(u.toplam || acikK);
+  let msj = `${sayi(m)} ${b} ${u.ad} \xFCretime verilecek.`;
+  if (u.acik) msj += m <= acikK ? `
+Parti ${u.acik.parti_kodu}: ${sayi(acikK)} \u2192 ${sayi(acikK - m)} ${b} kalacak.` : `
+Parti ${u.acik.parti_kodu} bitecek (${sayi(acikK)} ${b}), kalan ${sayi(m - acikK)} ${b} s\u0131radaki partiden d\xFC\u015F\xFClecek.`;
+  if (top) msj += `
+Toplam stok: ${sayi(top)} \u2192 ${sayi(Math.max(0, top - m))} ${b}.`;
+  if (fire) msj += `
+Fire: ${sayi(fire)} ${b}.`;
+  if (!await onayla(msj, "Evet, \xFCretime ver", "Vazge\xE7")) return;
   $("hm-ver").disabled = true;
   const { data, error } = u.tur === "y" ? await sb.rpc("uretime_yari_ver", { p_yari_mamul_id: u.id, p_miktar: m, p_fire: fire }) : await sb.rpc("uretime_miktar_ver", { p_urun_id: u.id, p_miktar: m, p_fire: fire });
   $("hm-ver").disabled = false;
@@ -6957,7 +7009,12 @@ $("hm-form").addEventListener("submit", async (ev) => {
   if ($("u-gun").value !== bugun()) $("u-gun").value = bugun();
   await hmYukle();
   uretimListesiYukle();
-  $("hm-miktar").focus();
+  if (matchMedia("(max-width: 760px)").matches) {
+    $("hm-durum").classList.add("gizli");
+    hmKapat();
+    scrollTo({ top: 0, behavior: "smooth" });
+    bildir(`\u2713 ${sayi(data.miktar)} ${data.birim} ${data.urun_ad} \xFCretime verildi${data.acik ? ` \xB7 kalan ${sayi(data.acik.kalan)} ${data.birim}` : ""}`);
+  } else $("hm-miktar").focus();
 });
 async function hmGeriAl(grup, btn, yari) {
   if (btn && !btn.dataset.onay) {
@@ -9066,20 +9123,12 @@ $("sv-kapat").onclick = async () => {
   const n = document.querySelectorAll("#sv-tepsiler tr").length - 1;
   if (n < 1) return bildir("Araca hi\xE7 \xFCr\xFCn y\xFCklenmedi.", true);
   const btn = $("sv-kapat");
-  if (!btn.dataset.onay) {
-    btn.dataset.onay = "1";
-    const eski = btn.textContent;
-    btn.textContent = `${n} tepsi \xB7 g\xF6ndermek i\xE7in tekrar dokunun`;
-    btn.classList.add("onayla");
-    setTimeout(() => {
-      delete btn.dataset.onay;
-      btn.textContent = eski;
-      btn.classList.remove("onayla");
-    }, 4e3);
-    return;
-  }
-  delete btn.dataset.onay;
-  btn.classList.remove("onayla");
+  const ozet = svSiparisOzet;
+  let msj = `${n} tepsi y\xFCklendi.`;
+  if (ozet && ozet.var) msj += ozet.eksik.length || ozet.fazla.length ? (ozet.eksik.length ? `
+Eksik: ${ozet.eksik.join(", ")}.` : "\nSipari\u015Fte eksik yok.") + (ozet.fazla.length ? `
+Fazla g\xF6nderim: ${ozet.fazla.join(", ")}.` : "") : "\nSipari\u015F tam: istenen her \u015Fey ara\xE7ta.";
+  if (!await onayla(msj + "\nAra\xE7 yola \xE7\u0131ks\u0131n m\u0131?", "Y\xFCkleme bitti, yola \xE7\u0131kt\u0131", "Okutmaya devam")) return;
   const { error } = await sb.rpc("sevkiyat_kapat", { p_sevkiyat_id: aktifSevkiyat.id });
   if (error) return bildir(hataMesaji(error), true);
   bildir(`${aktifSevkiyat.kod} yola \xE7\u0131kt\u0131.`);
@@ -9798,7 +9847,7 @@ async function acikSiparisleriGetir() {
 async function odaUyarilari() {
   const [stok, sip] = await Promise.all([odaStokGetir(), acikSiparisleriGetir()]);
   const n = sip.length;
-  $("o-siparis-uyari").innerHTML = n ? `<button type="button" class="dikkat mavi" data-git="odastok" style="margin-bottom:14px">${ikon("sevkiyat", 22, 2)}<span>${n} \u015Fube sipari\u015Fi bekliyor \xB7 ${sip.reduce((t, x) => t + Number(x.toplam_adet), 0)} tepsi<small>${esc([...new Set(sip.map((x) => x.sube_ad))].join(", "))} \xB7 stok ve sipari\u015Fleri g\xF6rmek i\xE7in dokunun</small></span>${ikon("ileri", 18, 2)}</button>` : "";
+  $("o-siparis-uyari").innerHTML = n ? `<button type="button" class="dikkat mavi" ${izinliEkranlar().includes("odastok") ? 'data-git="odastok"' : 'onclick="bekleyenSiparislerAc()"'} style="margin-bottom:14px">${ikon("sevkiyat", 22, 2)}<span>${n} \u015Fube sipari\u015Fi bekliyor \xB7 ${sip.reduce((t, x) => t + Number(x.toplam_adet), 0)} tepsi<small>${esc([...new Set(sip.map((x) => x.sube_ad))].join(", "))} \xB7 sipari\u015Fleri g\xF6rmek ve haz\u0131rlamak i\xE7in dokunun</small></span>${ikon("ileri", 18, 2)}</button>` : "";
   sekmeRozeti(n);
 }
 function sekmeRozeti(n) {
@@ -9882,7 +9931,7 @@ function siparisKartHtml(s, kalemler, o = {}) {
     return `<span>${esc(k.mamul_ad)}</span><span><b>${k.adet}</b></span><span>${gonderildi ? f === 0 ? `<span class="fark-tamam">${k.gonderilen} \u2713</span>` : f < 0 ? `<span class="fark-eksik">${k.gonderilen} (${-f} eksik)</span>` : `<span class="fark-fazla">${k.gonderilen} (+${f})</span>` : ""}</span>`;
   };
   const dugmeler = [];
-  if (o.oda && s.durum === "bekliyor") dugmeler.push(`<button class="btn kucuk" data-sip-durum="${s.id}" data-d="hazirlaniyor">Haz\u0131rlan\u0131yor</button>`);
+  if (o.oda && ["bekliyor", "hazirlaniyor"].includes(s.durum)) dugmeler.push(`<button class="btn kucuk" data-sip-hazirla="${s.id}" data-sube="${s.sube_id}">${ikon("sevkiyat", 16, 2)} Sipari\u015Fi haz\u0131rla</button>`);
   if (o.oda && s.durum === "hazirlaniyor") dugmeler.push(`<button class="btn kucuk ikincil" data-sip-durum="${s.id}" data-d="bekliyor">Beklemeye al</button>`);
   if (o.sube && ["bekliyor", "hazirlaniyor"].includes(s.durum)) dugmeler.push(`<button class="btn kucuk ikincil" data-sip-duzenle="${s.id}">De\u011Fi\u015Ftir</button>`, `<button class="btn kucuk ikincil" data-sip-iptal="${s.id}">\u0130ptal</button>`);
   return `<div class="sip-kart ${o.yeni ? "yeni" : ""}">
@@ -9893,6 +9942,88 @@ function siparisKartHtml(s, kalemler, o = {}) {
     ${gonderildi && s.sevkiyat_kod ? `<div class="sip-not">Sevkiyat ${esc(s.sevkiyat_kod)} ile g\xF6nderildi.</div>` : ""}
     ${s.notu ? `<div class="sip-not">Not: ${esc(s.notu)}</div>` : ""}</div>`;
 }
+async function siparisHazirla(id, subeId) {
+  var _a;
+  modalKapat();
+  $("sip-bildirim").classList.add("gizli");
+  await sb.rpc("siparis_durum", { p_id: Number(id), p_durum: "hazirlaniyor" });
+  if (!izinliEkranlar().includes("sevkiyat")) return bildir("Sipari\u015F haz\u0131rlan\u0131yor olarak i\u015Faretlendi. Sevkiyat ekran\u0131 yetkiniz yok.", true);
+  const { data: acik } = await sb.from("sevkiyatlar").select("id").eq("sube_id", Number(subeId)).eq("durum", "yukleniyor").order("id", { ascending: false }).limit(1);
+  sayfaAc("sevkiyat");
+  await sevkiyatSayfasi();
+  if (acik && acik.length) {
+    yuklemeAc(acik[0].id);
+    return bildir("Bu \u015Fubeye y\xFCklenen ara\xE7 a\xE7\u0131k; okutmaya devam edin.");
+  }
+  $("sv-sube").value = String(subeId);
+  subeDugmeleriCiz();
+  const sube = ((_a = subeler.find((x) => x.id === Number(subeId))) == null ? void 0 : _a.ad) || "\u015Eube";
+  if ($("sv-plaka").value.trim()) {
+    $("sv-form").requestSubmit();
+    bildir(`${sube} sipari\u015Fi: ${$("sv-plaka").value} arac\u0131na y\xFCkleme ba\u015Flad\u0131. Tepsileri okutun.`);
+  } else {
+    $("sv-plaka").focus();
+    bildir(`${sube} sipari\u015Fi: arac\u0131 se\xE7ip \u201COkutmaya ba\u015Fla\u201Dya bas\u0131n.`);
+  }
+}
+let sipSonId = null;
+async function siparisBildirimKontrol() {
+  if (!profil || !izinliEkranlar().some((x) => ["oda", "sevkiyat", "odastok"].includes(x))) return;
+  const { data } = await sb.from("v_siparisler").select("id,kod,sube_id,sube_ad,toplam_adet,teslim_tarihi,created_at,olusturan_ad").eq("durum", "bekliyor").order("id", { ascending: false }).limit(10);
+  if (!data) return;
+  const enBuyuk = data.reduce((a, x) => Math.max(a, x.id), 0);
+  if (sipSonId === null) {
+    let k = 0;
+    try {
+      k = Number(localStorage.getItem("sipSonId") || 0);
+    } catch (e) {
+    }
+    sipSonId = k || enBuyuk;
+  }
+  const yeni = data.filter((x) => x.id > sipSonId);
+  if (enBuyuk > sipSonId) {
+    sipSonId = enBuyuk;
+    try {
+      localStorage.setItem("sipSonId", String(enBuyuk));
+    } catch (e) {
+    }
+  }
+  if (!yeni.length) return;
+  const s = yeni[0], teslim = s.teslim_tarihi === bugun() ? "bug\xFCn" : s.teslim_tarihi === yarin() ? "yar\u0131n" : tarih(s.teslim_tarihi);
+  const b = $("sip-bildirim");
+  b.innerHTML = `<div class="sip-bildirim-ic">${ikon("sevkiyat", 28, 2)}<span><b>Yeni sipari\u015F \xB7 ${esc(s.sube_ad)}</b><small>${s.toplam_adet} tepsi \xB7 teslim ${teslim}${s.olusturan_ad ? " \xB7 " + esc(s.olusturan_ad) : ""}${yeni.length > 1 ? ` \xB7 ${yeni.length - 1} sipari\u015F daha` : ""}</small></span></div>
+    <div class="sip-bildirim-dugme"><button type="button" class="btn ikincil" id="sb-kapat">Sonra</button><button type="button" class="btn" data-sip-hazirla="${s.id}" data-sube="${s.sube_id}">Sipari\u015Fi haz\u0131rla</button></div>`;
+  b.classList.remove("gizli");
+  $("sb-kapat").onclick = () => b.classList.add("gizli");
+  ses("uyari");
+  setTimeout(() => ses("uyari"), 900);
+  setTimeout(() => ses("uyari"), 1800);
+  try {
+    navigator.vibrate && navigator.vibrate([300, 150, 300]);
+  } catch (e) {
+  }
+  if (aktifSayfa === "oda") odaYukle();
+  else if (aktifSayfa === "odastok") odaStokYukle();
+}
+setInterval(() => {
+  if (document.visibilityState === "visible") siparisBildirimKontrol();
+}, 15e3);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") siparisBildirimKontrol();
+});
+document.addEventListener("pointerdown", () => {
+  try {
+    sesBaglam = sesBaglam || new (window.AudioContext || window.webkitAudioContext)();
+    if (sesBaglam.state === "suspended") sesBaglam.resume();
+  } catch (e) {
+  }
+}, { once: false, passive: true });
+async function bekleyenSiparislerAc() {
+  const { data } = await sb.from("v_siparisler").select("*").in("durum", ["bekliyor", "hazirlaniyor"]).order("teslim_tarihi").order("id");
+  const l = data || [];
+  const { data: k } = l.length ? await sb.from("v_siparis_kalemleri").select("*").in("siparis_id", l.map((x) => x.id)) : { data: [] };
+  modalAc("Bekleyen \u015Fube sipari\u015Fleri", l.length ? l.map((x) => siparisKartHtml(x, (k || []).filter((y) => y.siparis_id === x.id), { oda: true })).join("") : '<div class="bos">Bekleyen sipari\u015F yok.</div>');
+}
 async function siparisDurumDegistir(id, durum) {
   const { error } = await sb.rpc("siparis_durum", { p_id: Number(id), p_durum: durum });
   if (error) return bildir(hataMesaji(error), true);
@@ -9900,6 +10031,8 @@ async function siparisDurumDegistir(id, durum) {
   else if (aktifSayfa === "sube") subeSiparisleri();
 }
 document.addEventListener("click", (ev) => {
+  const h = ev.target.closest("[data-sip-hazirla]");
+  if (h) return siparisHazirla(h.dataset.sipHazirla, h.dataset.sube);
   const d = ev.target.closest("[data-sip-durum]");
   if (d) return siparisDurumDegistir(d.dataset.sipDurum, d.dataset.d);
   const i = ev.target.closest("[data-sip-iptal]");
@@ -9940,8 +10073,10 @@ async function eskiTepsiKontrol(kod, mamulAd) {
   const gunAd = (t) => gunFarki(t, bugun()) === 1 ? `d\xFCn (${tarih(t).slice(0, 5)})` : tarih(t).slice(0, 5);
   svDurum("bilgi", `\u2713 ${kod} okutuldu`, `Bu \xFCr\xFCnden \xFCretimi ${gunler.map(gunAd).join(" ve ")} olan ${n} tepsi stokta var.`);
 }
+let svSiparisOzet = null;
 async function svSiparisCiz(aracta) {
   const x = aktifSevkiyat, kap = $("sv-siparis");
+  svSiparisOzet = null;
   if (!x || !x.sube_id) {
     kap.innerHTML = "";
     return;
@@ -9959,6 +10094,12 @@ async function svSiparisCiz(aracta) {
   });
   const adlar = [.../* @__PURE__ */ new Set([...Object.keys(g), ...Object.keys(aracta)])].sort((a, b) => a.localeCompare(b, "tr"));
   let eksik = 0, fazla = 0;
+  svSiparisOzet = { var: true, eksik: [], fazla: [] };
+  adlar.forEach((ad) => {
+    const f = (aracta[ad] || 0) - (g[ad] || 0);
+    if (f < 0) svSiparisOzet.eksik.push(`${ad} ${-f}`);
+    else if (f > 0) svSiparisOzet.fazla.push(`${ad} ${f}`);
+  });
   const satirlar = adlar.map((ad) => {
     const s = g[ad] || 0, a = aracta[ad] || 0, f = a - s;
     if (f < 0) eksik -= f;
@@ -11300,6 +11441,7 @@ async function basla(kullaniciId, email) {
   if (izin.includes("kabul")) sonGirisleriYukle();
   bekleyenSay();
   kuyrukSay();
+  setTimeout(siparisBildirimKontrol, 3e3);
   kaydetSirasi(document);
   if (!izin.length && MOBIL_KIP) {
     kipUyumsuz();
