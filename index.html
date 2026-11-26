@@ -5615,6 +5615,19 @@ label:has(#k-toplam) > span {
           <div class="satir" style="margin-top:12px"><button class="btn" type="button" id="pr-genel-kaydet">Genel ayarları kaydet</button></div>
         </div>
 
+        <div class="kart" id="pr-dara-kart">
+          <h3 style="margin:0 0 4px">Dara entegrasyonu · sevkiyat faturası</h3>
+          <p class="aciklama">Şubeye giden sevkiyat <b>yola çıkınca</b> Dara'ya o şubenin carisine satış faturası olarak yazılır: her mamul kendi Dara stok koduyla, miktar <b>tepsi adedi</b>, fiyat Dara stok kartından. Yazmayı POSİM Entegratör yapar.</p>
+          <div id="pr-dara-subeler"></div>
+          <div class="satir" style="margin-top:12px;gap:8px;flex-wrap:wrap">
+            <button class="btn" type="button" id="pr-dara-kaydet">Cari kodlarını kaydet</button>
+            <button class="btn ikincil" type="button" id="pr-dara-anahtar">Entegratör bağlantı anahtarı</button>
+            <span id="pr-dara-baglanti" class="aciklama" style="margin:0"></span>
+          </div>
+          <h4 style="margin:18px 0 6px">Son Dara faturaları</h4>
+          <div id="pr-dara-liste"></div>
+        </div>
+
         <div class="kart">
           <h3 style="margin:0 0 4px">Firma görünümü</h3>
           <p class="aciklama">Uygulama Koçak Baklava logosu ve baklava fotoğrafıyla gelir. Başka bir logo ya da fotoğraf yüklenirse bütün bilgisayar ve telefonlarda onlar görünür; “Kaldır” ile uygulamanınkine dönülür.</p>
@@ -9414,10 +9427,72 @@ $("sv-form").addEventListener("submit", async (ev) => {
     btn.disabled = false;
   }
 });
+const DARA_DURUM = { bekliyor: ["bekliyor", "Dara bekliyor"], aktarildi: ["kabul", "Dara\u2019da"], hata: ["ret", "Dara hatas\u0131"], iptal: ["pasif", "Dara\u2019ya gitmeyecek"] };
+function daraRozet(f) {
+  if (!f) return '<span style="color:var(--soluk)">\u2014</span>';
+  const [s, ad] = DARA_DURUM[f.durum] || ["bekliyor", f.durum];
+  const ek = f.durum === "aktarildi" && f.dara_numara ? ` <span class="mono" style="font-size:12px">No ${esc(f.dara_numara)}</span>` : "";
+  const hata = f.durum === "hata" && f.hata ? `<div style="color:var(--hata,#a33);font-size:12px;max-width:260px">${esc(f.hata)}</div>` : "";
+  const yon = profil.rol === "yonetici" ? (["hata", "iptal"].includes(f.durum) ? ` <button class="btn kucuk ikincil" data-dara-islem="yeniden" data-id="${f.id}">Yeniden g\xF6nder</button>` : "") + (["bekliyor", "hata"].includes(f.durum) ? ` <button class="btn kucuk ikincil" data-dara-islem="iptal" data-id="${f.id}">G\xF6nderme</button>` : "") : "";
+  return `<span class="rozet ${s}" title="${esc(f.hata || "")}">${ad}</span>${ek}${hata}${yon}`;
+}
+async function daraKartCiz() {
+  var _a;
+  if (!$("pr-dara-kart")) return;
+  const yon = profil.rol === "yonetici";
+  $("pr-dara-subeler").innerHTML = `<table><tr><th>\u015Eube</th><th>Dara cari hesap kodu</th></tr>${subeler.filter((x) => x.aktif).map((x) => `<tr><td>${esc(x.ad)}</td><td><input data-dara-cari="${x.id}" value="${esc(x.dara_cari_kod || "")}" placeholder="\xF6r. 120 00010" spellcheck="false" ${yon ? "" : "disabled"} style="max-width:220px"></td></tr>`).join("")}</table>
+    <p class="aciklama" style="margin-top:6px">Kodu Dara'daki cari kartta yazd\u0131\u011F\u0131 gibi girin (bo\u015Fluk dahil). Kodu bo\u015F \u015Fubeye giden sevkiyat beklemede kal\u0131r, kod girilince kendili\u011Finden gider.</p>`;
+  $("pr-dara-kaydet").disabled = $("pr-dara-anahtar").disabled = !yon;
+  const [{ data: ay }, { data: fl }] = await Promise.all([
+    sb.from("ayarlar").select("deger").eq("anahtar", "dara_entegrator").maybeSingle(),
+    sb.from("v_dara_faturalar").select("*").order("id", { ascending: false }).limit(30)
+  ]);
+  const son = (_a = ay == null ? void 0 : ay.deger) == null ? void 0 : _a.son_baglanti;
+  $("pr-dara-baglanti").innerHTML = !ay ? "Entegrat\xF6r hen\xFCz ba\u011Flanmad\u0131 (anahtar yok)." : son ? `Entegrat\xF6r son ba\u011Flant\u0131: <b>${tarihSaat(son)}</b>` : "Anahtar haz\u0131r, entegrat\xF6r hen\xFCz ba\u011Flanmad\u0131.";
+  $("pr-dara-liste").innerHTML = (fl || []).length ? `<table><tr><th>Sevkiyat</th><th>\u015Eube</th><th>Tepsi</th><th>Durum</th></tr>${fl.map((f) => `<tr><td class="mono">${esc(f.sevkiyat_kod)}<div style="font-family:inherit;color:var(--soluk);font-size:12px">${tarihSaat(f.cikis_zamani || f.created_at)}</div></td><td>${esc(f.sube_ad || "")}${f.sube_cari_kod ? "" : ' <span class="rozet bekliyor">cari kodu yok</span>'}</td><td>${f.tepsi_adet}</td><td>${daraRozet(f)}</td></tr>`).join("")}</table>` : '<div class="bos">Hen\xFCz Dara\u2019ya gidecek sevkiyat yok. \u015Eubeye sevkiyat yola \xE7\u0131k\u0131nca burada g\xF6r\xFCn\xFCr.</div>';
+}
+$("pr-dara-kaydet").onclick = async () => {
+  const girdiler = [...document.querySelectorAll("[data-dara-cari]")];
+  for (const g of girdiler) {
+    const id = Number(g.dataset.daraCari), kod = g.value.trim(), x = subeler.find((s) => s.id === id);
+    if (((x == null ? void 0 : x.dara_cari_kod) || "") === kod) continue;
+    const { error } = await sb.rpc("sube_dara_cari_kaydet", { p_sube_id: id, p_kod: kod });
+    if (error) return bildir(hataMesaji(error), true);
+    if (x) x.dara_cari_kod = kod || null;
+  }
+  bildir("Dara cari kodlar\u0131 kaydedildi.");
+  daraKartCiz();
+};
+$("pr-dara-anahtar").onclick = async () => {
+  if (!await onayla("Yeni ba\u011Flant\u0131 anahtar\u0131 olu\u015Fturulsun mu? Eski anahtarla \xE7al\u0131\u015Fan entegrat\xF6r yeni anahtar girilene kadar fatura g\xF6nderemez.", "Olu\u015Ftur")) return;
+  const { data, error } = await sb.rpc("dara_anahtar_yenile");
+  if (error) return bildir(hataMesaji(error), true);
+  modalAc("Entegrat\xF6r ba\u011Flant\u0131 bilgisi", `<p>Bu iki bilgiyi POS\u0130M Entegrat\xF6r'de <b>Ko\xE7ak ba\u011Flant\u0131s\u0131</b> alan\u0131na girin. Anahtar bir daha g\xF6sterilmez; kaybolursa yenisini olu\u015Fturun.</p>
+    <label>Adres <input readonly value="${SUPABASE_URL}" onclick="this.select()"></label>
+    <label style="margin-top:10px">Anahtar <input readonly class="mono" value="${esc(data)}" onclick="this.select()"></label>
+    <div class="satir" style="margin-top:14px"><button class="btn" type="button" onclick="navigator.clipboard.writeText('${SUPABASE_URL}\\n${esc(data)}').then(()=>bildir('Kopyaland\u0131.'))">\u0130kisini kopyala</button></div>`);
+  daraKartCiz();
+};
+document.addEventListener("click", async (ev) => {
+  const b = ev.target.closest("[data-dara-islem]");
+  if (!b) return;
+  const islem = b.dataset.daraIslem;
+  if (islem === "iptal" && !await onayla("Bu sevkiyat Dara\u2019ya fatura olarak G\u0130TMES\u0130N mi?", "Gitmesin")) return;
+  const { error } = await sb.rpc("dara_fatura_islem", { p_id: Number(b.dataset.id), p_islem: islem });
+  if (error) return bildir(hataMesaji(error), true);
+  bildir(islem === "yeniden" ? "Tekrar Dara kuyru\u011Funa al\u0131nd\u0131." : "Dara\u2019ya g\xF6nderilmeyecek.");
+  daraKartCiz();
+  if (!$("sv-liste").closest(".gizli")) sevkiyatListesi();
+});
 async function sevkiyatListesi() {
   const { data, error } = await sb.from("v_sevkiyatlar").select("*").eq("tarih", $("sv-gun").value || bugun()).order("id", { ascending: false });
   if (error) return bildir(hataMesaji(error), true);
-  $("sv-liste").innerHTML = data.length ? `<table><tr><th>Sevkiyat</th><th>Ara\xE7 / \u015Fof\xF6r</th><th>Nokta / rota</th><th>\xDCr\xFCn</th><th>Durum</th><th>Teslim</th><th>M\xFChendis</th><th></th></tr>
+  const daraMap = {};
+  if (data.length) {
+    const { data: df } = await sb.from("dara_faturalar").select("*").in("sevkiyat_id", data.map((x) => x.id));
+    (df || []).forEach((f) => daraMap[f.sevkiyat_id] = f);
+  }
+  $("sv-liste").innerHTML = data.length ? `<table><tr><th>Sevkiyat</th><th>Ara\xE7 / \u015Fof\xF6r</th><th>Nokta / rota</th><th>\xDCr\xFCn</th><th>Durum</th><th>Teslim</th><th>M\xFChendis</th><th>Dara</th><th></th></tr>
     ${data.map((x) => `<tr class="${x.durum === "arac_uygunsuz" ? "uygunsuz" : ""}">
       <td class="mono">${esc(x.kod)}<div style="font-family:inherit;font-weight:400;color:var(--soluk);font-size:13px">${tarihSaat(x.created_at)}</div></td>
       <td><b>${esc(x.plaka)}</b><br><span style="color:var(--soluk)">${esc(x.sofor_ad)}</span></td>
@@ -9426,6 +9501,7 @@ async function sevkiyatListesi() {
       <td><span class="rozet ${x.durum === "arac_uygunsuz" ? "ret" : x.durum === "yolda" ? "kabul" : "bekliyor"}">${sevDurumAd[x.durum]}</span>${!x.kontrol_sayisi ? ' <span class="rozet bekliyor">Kontrol formu yok</span>' : ""}</td>
       <td>${teslimRozet(x)}</td>
       <td><span class="rozet ${x.muhendis_durum}">${x.muhendis_durum === "bekliyor" ? "Onay bekliyor" : x.muhendis_durum === "onaylandi" ? "Onayl\u0131" : "Reddedildi"}</span></td>
+      <td>${x.sube_id ? daraRozet(daraMap[x.id]) : '<span style="color:var(--soluk)">\u2014</span>'}</td>
       <td style="white-space:nowrap">
         ${x.durum === "yukleniyor" ? `<button class="btn kucuk" data-sev-yukle="${x.id}">Y\xFCkle</button>` : ""}
         ${["yukleniyor", "arac_uygunsuz"].includes(x.durum) ? `<button class="btn kucuk ikincil" data-sev-iptal="${x.id}" data-kod="${esc(x.kod)}" data-adet="${x.tepsi_adet}">\u0130ptal</button>` : ""}
@@ -11023,6 +11099,7 @@ const sablonSecenek = (bos, tur) => `<option value="">${bos}</option>` + etiketS
 async function parametreleriAc() {
   var _a, _b;
   prYaziciCiz();
+  daraKartCiz();
   await etiketAyarlariniYukle();
   $("pr-dpi").value = String(ayar.yazici_dpi || 203);
   $("pr-onek").value = ayar.qr_adres_oneki || "";
