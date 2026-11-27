@@ -5925,7 +5925,7 @@ function kaydedildiGoster(b) {
     b.classList.remove("kaydedildi");
   }, 1800);
 }
-const SURUM = /^\d/.test("0.39.1") ? "0.39.1" : "geli\u015Ftirme";
+const SURUM = /^\d/.test("0.39.2") ? "0.39.2" : "geli\u015Ftirme";
 document.querySelectorAll(".surum-yazi").forEach((e) => {
   e.textContent = "S\xFCr\xFCm " + SURUM;
 });
@@ -9113,9 +9113,10 @@ function yeniKullaniciFormu() {
 }
 const IC_ALAN = "kocak.izl";
 const kullaniciAdiYap = (t) => String(t || "").trim().toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c").replace(/\s+/g, ".").replace(/[^a-z0-9._-]/g, "");
+const epostaDuzelt = (t) => String(t || "").trim().replace(/\s+/g, "").replace(/İ/g, "i").replace(/I/g, "i").replace(/ı/g, "i").replace(/[şŞ]/g, "s").replace(/[ğĞ]/g, "g").replace(/[üÜ]/g, "u").replace(/[öÖ]/g, "o").replace(/[çÇ]/g, "c").toLowerCase();
 const girisEposta = (t) => {
   t = String(t || "").trim();
-  return t.includes("@") ? t.toLowerCase() : `${kullaniciAdiYap(t)}@${IC_ALAN}`;
+  return t.includes("@") ? epostaDuzelt(t) : `${kullaniciAdiYap(t)}@${IC_ALAN}`;
 };
 const gorunurKullanici = (e) => String(e || "").endsWith("@" + IC_ALAN) ? String(e).slice(0, -IC_ALAN.length - 1) : e || "\u2013";
 const sifreUret = () => {
