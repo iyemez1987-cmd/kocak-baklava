@@ -1,0 +1,27 @@
+# Windows programlarının (Koçak, POSİM Entegratör) güncelleme dosyalarını sürüm kutusuna (release) koyar.
+# "yukle-*" dalına etiket.txt + dosyalar/ itilir → dosyalar ilgili release'e yüklenir → dal silinir.
+name: guncelleme-yukle
+on:
+  push:
+    branches: ['yukle-*']
+permissions:
+  contents: write
+jobs:
+  yukle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sürüm kutusuna yükle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          TAG=$(tr -d ' \r\n' < etiket.txt)
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --notes "Windows güncelleme kutusu. Silmeyin." --latest=false
+          ESKI=$(gh release view "$TAG" --json assets --jq '.assets[].name')
+          for f in dosyalar/*.exe dosyalar/*.blockmap; do [ -f "$f" ] && gh release upload "$TAG" "$f" --clobber; done
+          gh release upload "$TAG" dosyalar/latest.yml --clobber
+          for a in $ESKI; do [ -f "dosyalar/$a" ] || gh release delete-asset "$TAG" "$a" -y || true; done
+      - name: Dalı sil
+        if: always()
+        run: git push origin --delete "${GITHUB_REF_NAME}"
