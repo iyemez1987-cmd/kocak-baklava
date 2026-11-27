@@ -4893,6 +4893,13 @@ label:has(#k-toplam) > span {
   font-size: 13.5px;
   margin: 10px 0 0;
 }
+.ust-surum {
+  display: block;
+  font-size: 10.5px !important;
+  opacity: .7;
+  font-weight: 500;
+  letter-spacing: .3px;
+}
 .btn.kaydedildi,
 button.kaydedildi {
   background: #2E7D4F !important;
@@ -4946,7 +4953,7 @@ button.kaydedildi {
 <!-- ============ UYGULAMA ============ -->
 <div id="uygulama" class="gizli">
   <header>
-    <h1 class="marka"><span id="marka-ik" class="marka-ik"></span><span class="marka-ad"><small>İzlenebilirlik</small></span><span id="kip-ad" class="kip-ad"></span></h1>
+    <h1 class="marka"><span id="marka-ik" class="marka-ik"></span><span class="marka-ad"><small>İzlenebilirlik</small><small class="surum-yazi ust-surum"></small></span><span id="kip-ad" class="kip-ad"></span></h1>
     <nav>
       <button data-sayfa="ana" class="gizli" id="ana-btn">Bugün</button>
       <button type="button" data-grup="depo"><span class="grup-ad">Depo</span></button>
@@ -5918,7 +5925,7 @@ function kaydedildiGoster(b) {
     b.classList.remove("kaydedildi");
   }, 1800);
 }
-const SURUM = /^\d/.test("0.39.0") ? "0.39.0" : "geli\u015Ftirme";
+const SURUM = /^\d/.test("0.39.1") ? "0.39.1" : "geli\u015Ftirme";
 document.querySelectorAll(".surum-yazi").forEach((e) => {
   e.textContent = "S\xFCr\xFCm " + SURUM;
 });
