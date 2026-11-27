@@ -6005,6 +6005,8 @@ const qrIcerik = (v, s) => {
   const o = String(ayar.qr_adres_oneki).trim();
   return (/[a-z?=]/.test(o) ? o : trUpper(o)) + v.kod_norm;
 };
+const denemeKodu = (k) => /^DENEME/.test(String(k || ""));
+const DENEME_MSJ = "Bu bir DENEME (\xF6rnek) etiketidir; etiket ayarlar\u0131ndan bas\u0131lm\u0131\u015F, ger\xE7ek bir pakete ait de\u011Fil. Paketin \xFCzerindeki as\u0131l etiketi okutun.";
 function kodAyikla(s) {
   const n = normalize(s);
   const adresMi = n.startsWith("HTTP") || onekGovde && n.includes(onekGovde.slice(0, 8));
@@ -6198,7 +6200,7 @@ async function fisAyarAc(basmadanOnce = false) {
     } catch (e) {
     }
   }
-  const ornek = { kod: "FST-0007-012", kod_norm: "FST0007012", urun_ad: "Antep F\u0131st\u0131\u011F\u0131 (Boz \u0130\xE7)", parti_kodu: "FST-0007", giris_tarihi: bugun(), skt: gunEkle(bugun(), 365), miktar: 25, birim: "kg", seri: 12, paket_adedi: 24, firma_kod: "FSTK01" };
+  const ornek = { kod: "DENEME-ETIKET", kod_norm: "DENEME", urun_ad: "DENEME \xB7 Antep F\u0131st\u0131\u011F\u0131", parti_kodu: "FST-0007", giris_tarihi: bugun(), skt: gunEkle(bugun(), 365), miktar: 25, birim: "kg", seri: 12, paket_adedi: 24, firma_kod: "FSTK01" };
   return new Promise((coz) => {
     modalAc("Fi\u015F yaz\u0131c\u0131s\u0131 ayarlar\u0131 \xB7 bu bilgisayar", `
       ${basmadanOnce ? '<p style="margin-top:0">Etiketlerin pencere a\xE7madan do\u011Frudan bas\u0131lmas\u0131 i\xE7in bu bilgisayardaki fi\u015F yaz\u0131c\u0131s\u0131n\u0131 bir kez se\xE7in.</p>' : ""}
@@ -7084,6 +7086,10 @@ $("s-form").addEventListener("submit", async (ev) => {
   const kod = kodAyikla($("s-kod").value);
   $("s-kod").select();
   if (!kod) return;
+  if (denemeKodu(kod)) {
+    $("s-sonuc").innerHTML = `<div class="kart hata">${DENEME_MSJ}</div>`;
+    return;
+  }
   if (/^T\d{10}$/.test(kod)) return tepsiSorgula(kod);
   {
     const { data: y } = await sb.from("v_yari_partiler").select("*").eq("kod_norm", kod).maybeSingle();
@@ -8331,6 +8337,11 @@ document.addEventListener("click", async (ev) => {
 });
 async function uretimeVer(kod) {
   kod = kodAyikla(kod);
+  if (denemeKodu(kod)) {
+    ses("hata");
+    okutDurum("hata", "Deneme etiketi okutuldu", DENEME_MSJ);
+    return;
+  }
   const { data, error } = await sb.rpc("uretim_okut", { p_kod: kod });
   if (error) {
     ses("hata");
@@ -9203,8 +9214,39 @@ async function tepsiSorgula(kodNorm) {
     sb.from("v_tepsi_yari_partileri").select("*").eq("tepsi_id", t.id).order("created_at")
   ]);
   const pDurum = Object.fromEntries((partiler || []).map((p) => [p.id, p]));
-  const bulunan = new Set((hm || []).map((x) => x.urun_id));
-  const eksik = (tanim || []).map((x) => urunler.find((u) => u.id === x.urun_id)).filter((u) => u && !bulunan.has(u.id));
+  const receteIds = (tanim || []).map((x) => x.urun_id), gun0 = gunEkle(t.uretim_tarihi, -30);
+  const [{ data: c1 }, { data: c2 }] = await Promise.all([
+    sb.from("v_hammadde_cikislari").select("urun_id,urun_ad,parti_id,parti_kodu,firma_ad,tedarikci_parti_no,irsaliye_no,skt,miktar,birim,uretim_gunu,tarih,geri_alindi").gte("uretim_gunu", gun0).lte("uretim_gunu", t.uretim_tarihi),
+    sb.from("v_uretim_cikislari").select("urun_id,urun_ad,parti_id,parti_kodu,firma_ad,tedarikci_parti_no,irsaliye_no,skt,miktar,birim,uretim_gunu,tarih").gte("uretim_gunu", gun0).lte("uretim_gunu", t.uretim_tarihi)
+  ]);
+  const cik = [...(c1 || []).filter((x) => !x.geri_alindi), ...c2 || []];
+  const satirlar = [];
+  for (const uid of receteIds) {
+    const u = urunler.find((x) => x.id === uid);
+    const l = cik.filter((x) => x.urun_id === uid);
+    if (!l.length) {
+      satirlar.push({ urun_id: uid, urun_ad: (u == null ? void 0 : u.ad) || "?", yok: true });
+      continue;
+    }
+    const gun = l.map((x) => x.uretim_gunu).sort().pop();
+    const grup = {};
+    l.filter((x) => x.uretim_gunu === gun).forEach((x) => {
+      var _a;
+      const g = grup[_a = x.parti_id] || (grup[_a] = { ...x, miktar: 0, adet: 0 });
+      g.miktar += Number(x.miktar || 0);
+      g.adet++;
+    });
+    Object.values(grup).forEach((g) => satirlar.push({ ...g, gun, onceki: gun !== t.uretim_tarihi }));
+  }
+  satirlar.sort((a, b) => (a.urun_ad || "").localeCompare(b.urun_ad || "", "tr"));
+  const digerGrup = {};
+  cik.filter((x) => x.uretim_gunu === t.uretim_tarihi && !receteIds.includes(x.urun_id)).forEach((x) => {
+    var _a;
+    const g = digerGrup[_a = x.parti_id] || (digerGrup[_a] = { ...x, miktar: 0 });
+    g.miktar += Number(x.miktar || 0);
+  });
+  const diger = Object.values(digerGrup);
+  const eksik = satirlar.filter((x) => x.yok);
   $("s-sonuc").innerHTML = `<div class="kart">
     <div class="satir" style="align-items:flex-start;gap:24px">
       <div class="qr-onizleme">${qrSvg(t.kod_norm)}</div>
@@ -9223,22 +9265,29 @@ async function tepsiSorgula(kodNorm) {
         <div id="s-mamul-analiz" style="margin-top:12px"></div>
       </div>
     </div>
-    <h3 style="margin:24px 0 8px">Bu tepsiye giren hammaddeler</h3>
-    ${(hm || []).length ? `<table><tr><th>Hammadde</th><th>Parti</th><th>Tedarik\xE7i</th><th>T. parti no</th><th>\u0130rsaliye</th><th>SKT</th><th>Kabul / onay</th><th></th></tr>
-      ${hm.map((x) => {
+    <h3 style="margin:24px 0 8px">Bu tepsiye giren hammaddeler <small style="font-weight:400;color:var(--soluk);font-size:14px">(${receteIds.length} hammadde)</small></h3>
+    ${satirlar.length ? `<table><tr><th>Hammadde</th><th>Parti</th><th>Verildi\u011Fi g\xFCn</th><th>Miktar</th><th>Tedarik\xE7i</th><th>\u0130rsaliye</th><th>SKT</th><th>Kabul / onay</th><th></th></tr>
+      ${satirlar.map((x) => {
+    if (x.yok) return `<tr><td><b>${esc(x.urun_ad)}</b></td><td colspan="8"><span class="rozet ret">Son 30 g\xFCnde \xFCretime verilmemi\u015F</span></td></tr>`;
     const d = pDurum[x.parti_id] || {};
     return `<tr>
-        <td><b>${esc(x.urun_ad)}</b></td><td class="mono">${esc(x.parti_kodu)}</td><td>${esc(x.firma_ad || "\u2013")}</td>
-        <td>${esc(x.tedarikci_parti_no || "\u2013")}</td><td>${esc(x.irsaliye_no || "\u2013")}</td><td>${tarih(x.skt)}</td>
+        <td><b>${esc(x.urun_ad)}</b></td><td class="mono">${esc(x.parti_kodu)}</td>
+        <td style="white-space:nowrap">${tarih(x.gun)}${x.onceki ? ' <span class="rozet bekliyor" title="\xDCretim g\xFCn\xFC bu hammadde verilmemi\u015F; en son verilen parti g\xF6steriliyor">\xF6nceden verilen</span>' : ""}</td>
+        <td style="white-space:nowrap">${sayi(x.miktar)} ${esc(x.birim || "")}</td>
+        <td>${esc(x.firma_ad || "\u2013")}</td><td>${esc(x.irsaliye_no || "\u2013")}</td><td>${tarih(x.skt)}</td>
         <td style="white-space:nowrap">${d.kabul_karari ? `<span class="rozet ${d.kabul_karari}">${kararAd[d.kabul_karari]}</span> <span class="rozet ${d.muhendis_durum}">${d.muhendis_durum === "onaylandi" ? "Onayl\u0131" : d.muhendis_durum === "reddedildi" ? "Reddedildi" : "Onay bekliyor"}</span>` : ""}</td>
-        <td style="white-space:nowrap"><button class="btn kucuk ikincil" data-form="${x.parti_id}">Kabul formu</button> ${analizTusu({ parti_id: x.parti_id, kod: x.parti_kodu, ad: x.urun_ad })}</td></tr>`;
+        <td style="white-space:nowrap"><button class="btn kucuk" data-parti-gecmis="${x.parti_id}">Ge\xE7mi\u015Fi</button> <button class="btn kucuk ikincil" data-form="${x.parti_id}">Kabul formu</button> ${analizTusu({ parti_id: x.parti_id, kod: x.parti_kodu, ad: x.urun_ad })}</td></tr>`;
   }).join("")}
-      </table>` : '<div class="bos">Bu tarihte \xFCretime verilen ve bu mamulde kullan\u0131lan hammadde partisi bulunamad\u0131.</div>'}
+      </table>` : '<div class="bos">Bu mamul\xFCn re\xE7etesinde hammadde tan\u0131ml\u0131 de\u011Fil (\xDCr\xFCnler \u2192 mamul re\xE7etesi).</div>'}
+    ${diger.length ? `<h3 style="margin:20px 0 8px;font-size:16px">O g\xFCn \xFCretime verilen di\u011Fer hammaddeler</h3>
+      <table><tr><th>Hammadde</th><th>Parti</th><th>Miktar</th><th>Tedarik\xE7i</th><th></th></tr>
+      ${diger.map((x) => `<tr><td>${esc(x.urun_ad)}</td><td class="mono">${esc(x.parti_kodu)}</td><td>${sayi(x.miktar)} ${esc(x.birim || "")}</td><td>${esc(x.firma_ad || "\u2013")}</td><td><button class="btn kucuk" data-parti-gecmis="${x.parti_id}">Ge\xE7mi\u015Fi</button></td></tr>`).join("")}</table>` : ""}
     ${(yari || []).length ? `<h3 style="margin:24px 0 8px">O g\xFCn kullan\u0131lan / \xFCretilen yar\u0131 mamuller</h3>
       <table><tr><th>Yar\u0131 mamul</th><th>Parti</th><th>Miktar</th><th>Saat</th><th></th></tr>
       ${yari.map((y) => `<tr><td><b>${esc(y.yari_ad)}</b></td><td class="mono">${esc(y.yari_kod)}</td><td>${sayi(y.miktar)} ${esc(y.birim)}</td><td>${saat(y.created_at)}</td>
         <td style="white-space:nowrap"><button class="btn kucuk ikincil" data-yari-sorgu="${esc(y.yari_kod)}">\u0130\xE7eri\u011Fi</button> ${analizTusu({ yari_parti_id: y.yari_parti_id, kod: y.yari_kod, ad: y.yari_ad })}</td></tr>`).join("")}</table>` : ""}
-    ${eksik.length ? `<p class="hata" style="margin:12px 0 0">Dikkat: ${eksik.map((u) => esc(u.ad)).join(", ")} bu mamulde kullan\u0131l\u0131yor ama ${tarih(t.uretim_tarihi)} g\xFCn\xFC \xFCretime verildi\u011Fi okutulmam\u0131\u015F.</p>` : ""}
+    ${satirlar.some((x) => x.onceki) ? `<p style="margin:10px 0 0;color:var(--soluk);font-size:14px">\u201C\xD6nceden verilen\u201D: Bu hammadde ${tarih(t.uretim_tarihi)} g\xFCn\xFC verilmemi\u015F; \xFCretimden \xF6nce en son verilen parti g\xF6steriliyor.</p>` : ""}
+    ${eksik.length ? `<p class="hata" style="margin:8px 0 0">Dikkat: ${eksik.map((u) => esc(u.urun_ad)).join(", ")} bu mamul\xFCn re\xE7etesinde var ama son 30 g\xFCnde \xFCretime verilmemi\u015F.</p>` : ""}
     <h3 style="margin:24px 0 8px">Sevkiyat</h3>
     ${sev ? `<div class="detay">
       <div>Sevkiyat</div><div class="mono">${esc(sev.sevkiyat_kod)} <button class="btn kucuk ikincil" data-sev-form="${sev.sevkiyat_id}">Ara\xE7 kontrol formu</button></div>
@@ -9256,6 +9305,39 @@ async function tepsiSorgula(kodNorm) {
   </div>`;
   analizOzetiCiz($("s-mamul-analiz"), { mamul_id: t.mamul_id, mamul_tarih: t.uretim_tarihi, kod: `${t.dara_kod || ""} \xB7 ${tarih(t.uretim_tarihi)}`, ad: t.mamul_ad }, false, "\xDCr\xFCn analizi");
 }
+async function partiGecmisi(partiId) {
+  var _a, _b;
+  const [{ data: p }, { data: c1 }, { data: c2 }, { data: e }] = await Promise.all([
+    sb.from("v_partiler").select("*").eq("id", partiId).maybeSingle(),
+    sb.from("v_hammadde_cikislari").select("tarih,uretim_gunu,miktar,birim,kullanici_ad,geri_alindi").eq("parti_id", partiId).order("tarih"),
+    sb.from("v_uretim_cikislari").select("tarih,uretim_gunu,miktar,birim,kod").eq("parti_id", partiId).order("tarih"),
+    sb.from("etiketler").select("kod,durum").eq("parti_id", partiId).order("seri")
+  ]);
+  if (!p) return bildir("Parti bulunamad\u0131.", true);
+  const olay = [
+    { t: p.created_at, ne: "Mal kabul", ac: `${sayi((_a = p.toplam_miktar) != null ? _a : 0)} ${esc(p.birim || "")} \xB7 ${p.paket_adedi || 0} paket \xB7 ${esc(p.firma_ad || "")}${p.irsaliye_no ? " \xB7 irsaliye " + esc(p.irsaliye_no) : ""}${p.arac_plaka ? " \xB7 ara\xE7 " + esc(p.arac_plaka) : ""}`, r: p.kabul_karari ? `<span class="rozet ${p.kabul_karari}">${kararAd[p.kabul_karari]}</span>` : "" },
+    ...p.muhendis_tarih ? [{ t: p.muhendis_tarih, ne: "G\u0131da m\xFChendisi", ac: esc(p.muhendis_notu || ""), r: `<span class="rozet ${p.muhendis_durum}">${p.muhendis_durum === "onaylandi" ? "Onayl\u0131" : p.muhendis_durum === "reddedildi" ? "Reddedildi" : "Onay bekliyor"}</span>` }] : [],
+    ...(c1 || []).map((x) => ({ t: x.tarih, ne: "\xDCretime verildi (miktar)", ac: `${sayi(x.miktar)} ${esc(x.birim || "")}${x.kullanici_ad ? " \xB7 " + esc(x.kullanici_ad) : ""}`, r: x.geri_alindi ? '<span class="rozet ret">Geri al\u0131nd\u0131</span>' : "" })),
+    ...(c2 || []).map((x) => ({ t: x.tarih, ne: "\xDCretime verildi (etiket)", ac: `${esc(x.kod)}${x.miktar ? " \xB7 " + sayi(x.miktar) + " " + esc(x.birim || "") : ""}`, r: "" }))
+  ].sort((a, b) => String(a.t).localeCompare(String(b.t)));
+  modalAc(`Parti ge\xE7mi\u015Fi \xB7 ${p.parti_kodu}`, `
+    <div class="detay">
+      <div>Hammadde</div><div><b>${esc(p.urun_ad)}</b></div>
+      <div>Tedarik\xE7i</div><div>${esc(p.firma_ad || "\u2013")}${p.tedarikci_parti_no ? " \xB7 parti " + esc(p.tedarikci_parti_no) : ""}</div>
+      <div>Giri\u015F / SKT</div><div>${tarih(p.giris_tarihi)} \xB7 SKT ${tarih(p.skt)}</div>
+      <div>Miktar</div><div>${p.toplam_miktar != null ? `${sayi(p.toplam_miktar)} ${esc(p.birim || "")} \xB7 kullan\u0131lan ${sayi(p.kullanilan_miktar || 0)} \xB7 <b>kalan ${sayi((_b = p.kalan_miktar) != null ? _b : 0)}</b>` : "Toplam miktar girilmemi\u015F"}</div>
+      <div>Analiz</div><div>${esc({ uygun: "Uygun", uygun_degil: "Uygun de\u011Fil", bekliyor: "Girilmedi" }[p.analiz_durum] || p.analiz_durum || "\u2013")}</div>
+      <div>Etiketler</div><div class="mono" style="font-size:13px">${(e || []).map((x) => esc(x.kod) + " (" + (durumAd[x.durum] || x.durum) + ")").join(", ") || "\u2013"}</div>
+    </div>
+    <h4 style="margin:16px 0 6px">Hareketler</h4>
+    <table><tr><th>Tarih</th><th>\u0130\u015Flem</th><th>Ayr\u0131nt\u0131</th><th></th></tr>
+      ${olay.map((o) => `<tr><td style="white-space:nowrap">${tarihSaat(o.t)}</td><td>${o.ne}</td><td>${o.ac}</td><td>${o.r}</td></tr>`).join("")}</table>
+    <div class="satir" style="margin-top:12px;gap:8px"><button class="btn ikincil" data-form="${p.id}">Kabul formu</button></div>`);
+}
+document.addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-parti-gecmis]");
+  if (b) partiGecmisi(Number(b.dataset.partiGecmis));
+});
 function teslimRozet(x) {
   if (x.durum !== "yolda") return "\u2013";
   if (x.teslim_durum === "tamam") return `<span class="rozet kabul">Tam ${x.teslim_alinan}/${x.tepsi_adet}</span>`;
@@ -11079,10 +11161,10 @@ document.querySelector('section[data-sayfa="kullanicilar"] .sekmeler').addEventL
   if (b.dataset.sekme === "ku-param") parametreleriAc();
 });
 const ORNEK_ETIKET = () => ({
-  kod: "FST-0012-003",
-  kod_norm: "FST0012003",
-  urun_ad: "Antep F\u0131st\u0131\u011F\u0131 (K\u0131r\u0131k)",
-  parti_kodu: "FST-0012",
+  kod: "DENEME-ETIKET",
+  kod_norm: "DENEME",
+  urun_ad: "DENEME \xB7 Antep F\u0131st\u0131\u011F\u0131",
+  parti_kodu: "DENEME",
   seri: 3,
   paket_adedi: 20,
   firma_kod: "CFT01",
@@ -11213,7 +11295,7 @@ function prOnizle() {
     $("pr-qr-bilgi").textContent = "\xD6l\xE7\xFCleri girin (en az 15 \xD7 10 mm).";
     return;
   }
-  const v = s.tur === "tepsi" ? { ...ORNEK_ETIKET(), kod: "T-261119-0124", kod_norm: "T2611190124", urun_ad: null, mamul_ad: "F\u0131st\u0131kl\u0131 Baklava" } : ORNEK_ETIKET();
+  const v = s.tur === "tepsi" ? { ...ORNEK_ETIKET(), kod: "DENEME-TEPSI", kod_norm: "DENEME", urun_ad: null, mamul_ad: "DENEME \xB7 F\u0131st\u0131kl\u0131 Baklava" } : ORNEK_ETIKET();
   $("pr-onizleme").innerHTML = `<div style="width:calc(${s.genislik_mm}mm * 2);height:calc(${s.yukseklik_mm}mm * 2)"><div style="transform:scale(2);transform-origin:top left;width:${s.genislik_mm}mm">${etiketCiz(v, s)}</div></div>`;
   const d = qrDegerlendir(qrOlcu(s, qrIcerik(v, s)));
   $("pr-qr-bilgi").innerHTML = `<span class="${d.iyi ? "" : "qr-uyari"}">${esc(d.metin)}</span>` + (s.qr_icerik === "adres" ? `<br>QR i\xE7eri\u011Fi: <span class="mono">${esc(qrIcerik(v, s))}</span>` : "");
@@ -11255,7 +11337,7 @@ $("pr-sablon-liste").addEventListener("click", (ev) => {
 });
 $("pr-deneme").onclick = () => {
   const s = formSablonu();
-  const v = s.tur === "tepsi" ? { ...ORNEK_ETIKET(), kod: "T-261119-0124", kod_norm: "T2611190124", urun_ad: null, mamul_ad: "F\u0131st\u0131kl\u0131 Baklava" } : ORNEK_ETIKET();
+  const v = s.tur === "tepsi" ? { ...ORNEK_ETIKET(), kod: "DENEME-TEPSI", kod_norm: "DENEME", urun_ad: null, mamul_ad: "DENEME \xB7 F\u0131st\u0131kl\u0131 Baklava" } : ORNEK_ETIKET();
   gruplariBas([{ s, l: [v] }]);
 };
 $("pr-form").addEventListener("submit", async (ev) => {
