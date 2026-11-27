@@ -5918,7 +5918,7 @@ function kaydedildiGoster(b) {
     b.classList.remove("kaydedildi");
   }, 1800);
 }
-const SURUM = /^\d/.test("0.38.1") ? "0.38.1" : "geli\u015Ftirme";
+const SURUM = /^\d/.test("0.39.0") ? "0.39.0" : "geli\u015Ftirme";
 document.querySelectorAll(".surum-yazi").forEach((e) => {
   e.textContent = "S\xFCr\xFCm " + SURUM;
 });
@@ -10856,22 +10856,37 @@ async function siparisFormu(duzenleId = null) {
 $("sb2-siparis-yeni").onclick = () => siparisFormu();
 async function odaYukle() {
   const gun = $("o-gun").value || bugun();
+  sb.from("ayarlar").select("deger").eq("anahtar", "dara_is_emri_okuma").maybeSingle().then(({ data: a }) => {
+    window.__daraIsEmri = (a == null ? void 0 : a.deger) || null;
+  });
   const { data, error } = await sb.rpc("baklava_odasi", { p_tarih: gun });
   if (error) return bildir(hataMesaji(error), true);
   odaSatirlar = data;
   odaCiz();
   odaUyarilari();
 }
+setInterval(() => {
+  const sec = document.querySelector('section[data-sayfa="oda"]');
+  if (!sec || sec.classList.contains("gizli") || document.hidden) return;
+  const a = document.activeElement;
+  if (a && sec.contains(a) && a.matches("input, select, textarea")) return;
+  if (Object.values(typeof odaSecim === "object" && odaSecim ? odaSecim : {}).some(Boolean)) return;
+  odaYukle();
+}, 3e4);
 function odaCiz() {
   const toplamIe = odaSatirlar.reduce((s, r) => s + Number(r.is_emri), 0);
   const toplamBas = odaSatirlar.reduce((s, r) => s + Number(r.basilan), 0);
   const etiketsiz = odaSatirlar.reduce((s, r) => s + Math.max(0, r.is_emri - r.basilan), 0);
   const fazla = odaSatirlar.reduce((s, r) => s + Math.max(0, r.basilan - r.is_emri), 0);
+  const eksikler = odaSatirlar.filter((r) => r.is_emri > r.basilan).sort((a, b) => b.is_emri - b.basilan - (a.is_emri - a.basilan));
+  const di = window.__daraIsEmri;
   $("o-ozet").innerHTML = `
-    <div class="ozet"><b>${toplamBas}</b>QR bas\u0131lan tepsi</div>
-    <div class="ozet"><b>${toplamIe || "\u2013"}</b>Dara i\u015F emri ${toplamIe ? "" : "(hen\xFCz girilmedi)"}</div>
-    ${toplamIe ? `<div class="ozet ${etiketsiz ? "uyari" : "iyi"}"><b>${etiketsiz}</b>Etiketsiz tepsi</div>
-    <div class="ozet ${fazla ? "uyari" : "iyi"}"><b>${fazla}</b>Fazla QR</div>` : ""}`;
+    <div class="ozet"><b>${toplamIe || "\u2013"}</b>\xDCretim (Dara i\u015F emri) ${toplamIe ? "" : "\xB7 hen\xFCz girilmedi"}</div>
+    <div class="ozet"><b>${toplamBas}</b>Odaya al\u0131nan tepsi</div>
+    ${toplamIe ? `<div class="ozet ${etiketsiz ? "uyari" : "iyi"}"><b>${etiketsiz}</b>${etiketsiz ? "Gelmesi gereken" : "Hepsi geldi \u2713"}</div>
+    ${fazla ? `<div class="ozet uyari"><b>${fazla}</b>\xDCretimden fazla al\u0131nan</div>` : ""}` : ""}
+    ${toplamIe && eksikler.length ? `<div class="ozet" style="flex-basis:100%;text-align:left;font-size:14px"><b style="font-size:14px;display:inline">Gelmesi gerekenler:</b> ${eksikler.map((r) => `${r.is_emri - r.basilan} \xD7 ${esc(r.mamul_ad || r.ad || r.dara_kod)}`).join(" \xB7 ")}</div>` : ""}
+    ${di && di.zaman ? `<div style="flex-basis:100%;color:var(--soluk);font-size:12px">Dara i\u015F emirleri entegrat\xF6rden kendili\u011Finden gelir \xB7 son okuma ${saat(di.zaman)}${(di.bilinmeyen || []).length ? ` \xB7 <b style="color:var(--hata,#a33)">Ko\xE7ak'ta kar\u015F\u0131l\u0131\u011F\u0131 olmayan Dara kodu: ${di.bilinmeyen.map((x) => esc(x.dara_kod)).join(", ")}</b>` : ""}</div>` : ""}`;
   const liste = odaSatirlar.slice();
   const hareketli = (r) => r.is_emri > 0 || r.basilan > 0;
   liste.sort((x, y) => hareketli(y) - hareketli(x) || String(x.dara_kod).localeCompare(String(y.dara_kod), "tr"));
