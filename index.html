@@ -4939,7 +4939,7 @@ button.kaydedildi {
     <button type="button" class="btn ikincil kur-dugme gizli" data-kur="1"><span data-ikon="telefon"></span>Uygulamayı telefona yükle</button>
   </form>
  </div>
- <div class="giris-alt">İzlenebilirlik sistemi · <a class="posim-imza" href="https://posimyazilim.com" target="_blank" rel="noopener">by <b>POSİM</b> Yazılım</a></div>
+ <div class="giris-alt">İzlenebilirlik sistemi · <span class="surum-yazi"></span> · <a class="posim-imza" href="https://posimyazilim.com" target="_blank" rel="noopener">by <b>POSİM</b> Yazılım</a></div>
  </div>
 </div>
 
@@ -5817,7 +5817,7 @@ button.kaydedildi {
         <div id="firma-liste"></div>
       </div>
     </section>
-    <footer class="posim-alt">Koçak Baklava İzlenebilirlik · <a class="posim-imza" href="https://posimyazilim.com" target="_blank" rel="noopener">by <b>POSİM</b> Yazılım</a></footer>
+    <footer class="posim-alt">Koçak Baklava İzlenebilirlik · <span class="surum-yazi"></span> · <a class="posim-imza" href="https://posimyazilim.com" target="_blank" rel="noopener">by <b>POSİM</b> Yazılım</a></footer>
   </main>
 </div>
 
@@ -5918,6 +5918,10 @@ function kaydedildiGoster(b) {
     b.classList.remove("kaydedildi");
   }, 1800);
 }
+const SURUM = /^\d/.test("0.38.1") ? "0.38.1" : "geli\u015Ftirme";
+document.querySelectorAll(".surum-yazi").forEach((e) => {
+  e.textContent = "S\xFCr\xFCm " + SURUM;
+});
 function bildir(mesaj, hata = false) {
   if (!hata) kaydedildiGoster();
   else sonKaydetBtn = null;
