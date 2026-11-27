@@ -4893,6 +4893,12 @@ label:has(#k-toplam) > span {
   font-size: 13.5px;
   margin: 10px 0 0;
 }
+.btn.kaydedildi,
+button.kaydedildi {
+  background: #2E7D4F !important;
+  border-color: #2E7D4F !important;
+  color: #fff !important;
+}
 </style>
 </head>
 <body>
@@ -5888,7 +5894,33 @@ const kararAd = { kabul: "Kabul", sartli: "\u015Eartl\u0131 kabul", ret: "Ret / 
 const muhAd = { bekliyor: "Onay bekliyor", onaylandi: "M\xFChendis onaylad\u0131", reddedildi: "M\xFChendis reddetti" };
 let profil = { rol: "depocu", ad: "" };
 const muhendisMi = () => ["muhendis", "yonetici"].includes(profil.rol);
+const KAYDET_DUGME = /kaydet|üretime ver|stoğa al|kabul et|teslim al|gönder|ekle|onayla|sayımı kapat|bitir/i;
+let sonKaydetBtn = null, sonKaydetZaman = 0;
+function kaydetIzle(b) {
+  if (!b || b.closest(".onay-zemin") || !KAYDET_DUGME.test(b.textContent || "")) return;
+  sonKaydetBtn = b;
+  sonKaydetZaman = Date.now();
+}
+document.addEventListener("click", (ev) => kaydetIzle(ev.target.closest("button")), true);
+document.addEventListener("submit", (ev) => kaydetIzle(ev.submitter || ev.target.querySelector('button[type="submit"], button:not([type])')), true);
+function kaydedildiGoster(b) {
+  b = b || (Date.now() - sonKaydetZaman < 2e4 ? sonKaydetBtn : null);
+  sonKaydetBtn = null;
+  if (!b || !b.isConnected || b.dataset.kdEski != null) return;
+  b.dataset.kdEski = b.innerHTML;
+  b.classList.add("kaydedildi");
+  b.innerHTML = "\u2713 Kaydedildi";
+  setTimeout(() => {
+    if (b.dataset.kdEski != null) {
+      b.innerHTML = b.dataset.kdEski;
+      delete b.dataset.kdEski;
+    }
+    b.classList.remove("kaydedildi");
+  }, 1800);
+}
 function bildir(mesaj, hata = false) {
+  if (!hata) kaydedildiGoster();
+  else sonKaydetBtn = null;
   const t = document.createElement("div");
   t.className = "toast" + (hata ? " hata" : "");
   t.textContent = mesaj;
@@ -7384,7 +7416,27 @@ $("hm-miktar").addEventListener("input", () => {
 $("hm-fire").addEventListener("input", () => {
   hmFireElle = String($("hm-fire").value).trim() !== "";
 });
+function qrOdakla(gecikme = 60) {
+  setTimeout(() => {
+    const sayfa = document.querySelector('section[data-sayfa="uretim"]');
+    if (!sayfa || sayfa.classList.contains("gizli") || document.querySelector(".onay-zemin") || !$("modal").classList.contains("gizli") || kameraAcik) return;
+    const a = document.activeElement;
+    if (a && a !== document.body && a.id !== "u-okut" && a.matches("input, select, textarea") && a.id !== "hm-miktar" && a.id !== "hm-fire") return;
+    if (a && (a.id === "hm-miktar" || a.id === "hm-fire") && hmSecili && $("hm-miktar").value.trim()) return;
+    $("u-okut").focus({ preventScroll: true });
+  }, gecikme);
+}
+document.querySelector('section[data-sayfa="uretim"]').addEventListener("focusout", () => setTimeout(() => {
+  if (document.activeElement === document.body) qrOdakla(0);
+}, 250));
+$("hm-miktar").addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape") {
+    ev.preventDefault();
+    hmKapat();
+  }
+});
 function hmKapat() {
+  qrOdakla();
   hmSecili = null;
   $("hm-form").classList.add("gizli");
   $("hm-bos").classList.remove("gizli");
@@ -7468,7 +7520,8 @@ Fire: ${sayi(fire)} ${b}.`;
     hmKapat();
     scrollTo({ top: 0, behavior: "smooth" });
     bildir(`\u2713 ${sayi(data.miktar)} ${data.birim} ${data.urun_ad} \xFCretime verildi${data.acik ? ` \xB7 kalan ${sayi(data.acik.kalan)} ${data.birim}` : ""}`);
-  } else $("hm-miktar").focus();
+  } else kaydedildiGoster($("hm-ver"));
+  qrOdakla();
 });
 async function hmGeriAl(grup, btn, yari) {
   if (btn && !btn.dataset.onay) {
